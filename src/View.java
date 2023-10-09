@@ -14,11 +14,15 @@ public class View extends JFrame {
 
     public View() throws HeadlessException {
         processing = new Processing();
-        locationView = new LocationView(processing.getProcessAllData());
+        locationView = new LocationView(
+            processing.getFileLoadingWorker(),
+            processing.getLookForDuplicatesWorker(),
+            processing.getMoveFilesWorker()
+        );
 
         // Add listeners to Processing start
         locationView.addProcessingListener(processing);
-        processing.addTaskListeners(locationView);
+        processing.addFileLoadingListeners(locationView);
 
 
         this.add(locationView);

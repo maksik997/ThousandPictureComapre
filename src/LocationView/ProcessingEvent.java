@@ -1,15 +1,17 @@
 package LocationView;
 
-import java.io.File;
 import java.util.EventObject;
 
 public class ProcessingEvent extends EventObject {
-
-    private String path;
+    private final String path;
 
     public ProcessingEvent(Object source, String path) {
         super(source);
         this.path = path;
+    }
+
+    public ProcessingEvent(Object source){
+        this(source, "");
     }
 
     public String getPath() {

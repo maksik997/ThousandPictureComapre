@@ -1,145 +1,143 @@
+import DataActions.ImageRecord;
 import LocationView.ProcessingEvent;
 import LocationView.ProcessingListener;
-import LocationView.TaskListener;
+import LocationView.FileLoadingListener;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EventObject;
 
 public class Processing implements ProcessingListener {
+    private ArrayList<ImageRecord> allImages, duplicates;
 
-    private ArrayList<File> files,
-            duplicates;
+    private File dir;
 
     public Processing() {
-        this.files = new ArrayList<>();
+        this.allImages = new ArrayList<>();
         this.duplicates = new ArrayList<>();
     }
 
+
+    // Loading file fires :P
     @Override
     public void actionPerformed(ProcessingEvent e) {
-        File[] files = new File(e.getPath()).listFiles();
-
-        if(files == null)
-            return;
-
-        Arrays.stream(files).filter(File::isFile).forEach(
-            f -> {
-                if (f.getName().matches(".*\\.jpg$|.*\\.png$"))
-                    this.files.add(f);
-            }
-        );
-        fireTaskListener();
+        dir = new File(e.getPath());
+        fireFileLoadingListener();
     }
 
 
-    // Started externally by View
-    private final SwingWorker<Boolean, Void> processAllData = new SwingWorker<>() {
+    // This worker is supposed to load all file
+    private final SwingWorker<Void, Void> fileLoadingWorker = new SwingWorker<>() {
         @Override
-        protected Boolean doInBackground() {
+        protected Void doInBackground() {
             setProgress(0);
-            checkForDuplicates(files);
-            setProgress(25);
-            duplicates.forEach(
-                f -> {
-                    try {
-                        Files.move( // Moving files takes a while tho
-                            f.toPath(),
-                            Paths.get("data/duplicates/" + f.getName()),
-                            StandardCopyOption.ATOMIC_MOVE
-                        );
-                        setProgress(Math.min(getProgress()+1, 90));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        throw new RuntimeException(e);
-                    }
-                }
-            );
-
-            return true;
+            try {
+                allImages = ImageRecord.getAllImages(dir);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return null;
         }
 
         @Override
         protected void done() {
             super.done();
-            setProgress(100);
         }
     };
 
-    public SwingWorker<Boolean, Void> getProcessAllData() {
-        return processAllData;
+    public SwingWorker<Void, Void> getFileLoadingWorker() {
+        return fileLoadingWorker;
     }
 
-    private void checkForDuplicates(ArrayList<File> data){
-        File n, m;
+    // This worker is supposed to find all ImageReaders duplicates using checksums
+    private final SwingWorker<Void, Void> lookForDuplicatesWorker = new SwingWorker<Void, Void>() {
+        @Override
+        protected Void doInBackground() {
+            setProgress(0);
+            duplicates = compareAllImages();
+            return null;
+        }
 
-        for (int i = 0, j = 1; i < data.size(); i++) {
+        @Override
+        protected void done() {
+            super.done();
+        }
+    };
 
-            n = data.get(i);
-            // Checked focus
-            for (; j < data.size(); j++) {
-                m = data.get(j);
-                // Comparing
-                try {
-                    if(compareImg(
-                            ImageIO.read(n),
-                            ImageIO.read(m)
-                    )){
+    // This worker is supposed to move all files to duplicates folder in project folder
+    public SwingWorker<Void, Void> getLookForDuplicatesWorker() {
+        return lookForDuplicatesWorker;
+    }
 
-                        if(!duplicates.contains(m))
-                            duplicates.add(m);
+    private final SwingWorker<Void, Void> moveFilesWorker = new SwingWorker<>() {
+        @Override
+        protected Void doInBackground() throws Exception {
+            setProgress(0);
+            duplicates.forEach(
+                    imageRecord -> {
+                        File file = imageRecord.getFile();
+                        try {
+                            Files.move(
+                                    file.toPath(),
+                                    Paths.get("data/duplicates/" + file.getName()),
+                                    StandardCopyOption.ATOMIC_MOVE
+                            );
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+            );
+            return null;
+        }
+
+        @Override
+        protected void done() {
+            super.done();
+        }
+    };
+
+    public SwingWorker<Void, Void> getMoveFilesWorker() {
+        return moveFilesWorker;
+    }
+
+    // This method compare all images checksum
+
+    private ArrayList<ImageRecord> compareAllImages(){
+        ImageRecord n,m;
+        ArrayList<ImageRecord> duplicates = new ArrayList<>();
+
+        for (int i = 0, j = 1; i < allImages.size(); i++) {
+
+            n = allImages.get(i);
+            for (; j < allImages.size(); j++) {
+                m = allImages.get(j);
+
+                if(n.checksumEquals(m)){
+                    if (!duplicates.contains(m))
+                        duplicates.add(m);
                 }
             }
             j = 1;
             j += i + 1;
         }
+
+        return duplicates;
     }
 
-    private boolean compareImg(BufferedImage img1, BufferedImage img2){
-        // Check dimensions
-        if (img1.getTileWidth() != img2.getTileWidth() || img1.getTileHeight() != img2.getTileHeight())
-            return false;
+    // Listeners called when file loading can proceed, needed to start whole procedure
+    private final ArrayList<FileLoadingListener> fileLoadingListeners = new ArrayList<>();
 
-        int height = img1.getTileHeight(), width = img1.getTileWidth();
-        Color pixel1, pixel2;
-
-        // Check every pixel
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                // Get RGB for both images (where blue with >> 0, green >> 8, red >> 16) and all & 0xff
-                int rgb1 = img1.getRGB(j, i),
-                        rgb2 = img2.getRGB(j, i);
-                pixel1 = new Color((rgb1 >> 16) & 0xff, (rgb1 >> 8) & 0xff, (rgb1) & 0xff);
-                pixel2 = new Color((rgb2 >> 16) & 0xff, (rgb2 >> 8) & 0xff, (rgb2) & 0xff);
-
-                if(!pixel1.equals(pixel2))
-                    return false;
-            }
-        }
-        return true;
+    public void addFileLoadingListeners(FileLoadingListener l){
+        fileLoadingListeners.add(l);
     }
 
-
-    private final ArrayList<TaskListener> listeners = new ArrayList<>();
-
-    public void addTaskListeners(TaskListener l){
-        listeners.add(l);
-    }
-
-    public void fireTaskListener(){
-        for (TaskListener l : listeners)
+    public void fireFileLoadingListener(){
+        for (FileLoadingListener l : fileLoadingListeners)
             l.actionPerformed(new EventObject(this));
     }
 

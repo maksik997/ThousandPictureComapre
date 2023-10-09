@@ -8,82 +8,99 @@ import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
 
-public class LocationView extends JPanel implements TaskListener, PropertyChangeListener {
+public class LocationView extends JPanel implements FileLoadingListener, PropertyChangeListener {
     private final JFileChooser fileChooser;
-    private final JProgressBar progressBar;
     private final JTextArea outputLog;
-    private List<ProcessingListener> listeners = new ArrayList<ProcessingListener>();
+    JButton checkDuplicatesButton, loadFilesButton;
+    private final List<ProcessingListener> listeners = new ArrayList<ProcessingListener>();
     private String path;
 
-    private final SwingWorker<Boolean, Void> processAllData;
+    private int workersHandled;
 
-    public LocationView(SwingWorker<Boolean, Void> processAllData) {
-        this.processAllData = processAllData;
+    private final SwingWorker<Void, Void> fileLoadingWorker, lookForDuplicatesWorker, moveFilesWorker;
+
+    public LocationView(SwingWorker<Void, Void> fileLoadingWorker, SwingWorker<Void, Void> lookForDuplicatesWorker, SwingWorker<Void, Void> moveFilesWorker) {
+        workersHandled = 0;
+        this.fileLoadingWorker = fileLoadingWorker;
+        this.lookForDuplicatesWorker = lookForDuplicatesWorker;
+        this.moveFilesWorker = moveFilesWorker;
         fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        this.progressBar = new JProgressBar(0, 100);
-        this.progressBar.setString("0%");
-        this.progressBar.setStringPainted(true);
-
-        this.outputLog = new JTextArea();
-        this.outputLog.setEditable(false);
-        this.outputLog.setColumns(64);
-        this.outputLog.setRows(13);
 
         this.setLayout(new BorderLayout());
 
         JLabel title = new JLabel("Thousand Pictures Redundancy"),
             pathLabel = new JLabel("Path: ");
 
+        title.setHorizontalAlignment(SwingConstants.CENTER);
         this.add(title, BorderLayout.NORTH);
 
+        // Central Panel
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new GridLayout(2, 1));
+
+        // PathBox Panel
         JPanel pathBox = new JPanel();
         pathBox.setLayout(new FlowLayout());
         pathBox.add(pathLabel);
 
         JTextField path = new JTextField(64);
         path.setEditable(false);
-
         pathBox.add(path);
 
         JButton pathButton = new JButton("Open a directory");
+        pathBox.add(pathButton);
+
+        // Progress Panel
+        JPanel progressPanel = new JPanel();
+
+        this.outputLog = new JTextArea();
+        this.outputLog.setEditable(false);
+        this.outputLog.setColumns(64);
+        this.outputLog.setRows(13);
+        progressPanel.add(outputLog);
+
+        centerPanel.add(pathBox);
+        centerPanel.add(progressPanel);
+
+        this.add(centerPanel);
+
+        // Bottom panel
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setLayout(new GridLayout(1,2));
+
+        loadFilesButton = new JButton("Load files");
+        loadFilesButton.setEnabled(false);
+        bottomPanel.add(loadFilesButton);
+
+        checkDuplicatesButton = new JButton("Check duplicates & move files");
+        checkDuplicatesButton.setEnabled(false);
+        bottomPanel.add(checkDuplicatesButton);
+
+        // Action listeners for buttons
 
         pathButton.addActionListener(e->{
             int file = fileChooser.showOpenDialog(LocationView.this);
             if (file == JFileChooser.APPROVE_OPTION) {
                 path.setText(fileChooser.getSelectedFile().getAbsolutePath());
                 this.path = path.getText();
+                loadFilesButton.setEnabled(true);
             }
         });
-
-        pathBox.add(pathButton);
-
-//        this.add(pathBox);
-
-        JPanel progressPanel = new JPanel();
-
-        progressPanel.setLayout(new FlowLayout());
-
-        progressPanel.add(progressBar);
-        progressPanel.add(outputLog);
-
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new GridLayout(2, 1));
-
-        centerPanel.add(pathBox);
-
-        centerPanel.add(progressPanel);
-
-        this.add(centerPanel);
-
-        JButton startButton = new JButton("Extract duplicates");
-
-        startButton.addActionListener(e -> {
-            startButton.setEnabled(false);
+        loadFilesButton.addActionListener(e -> {
+            loadFilesButton.setEnabled(false);
             callProcessingListeners();
         });
+        checkDuplicatesButton.addActionListener(e->{
+            checkDuplicatesButton.setEnabled(false);
+            outputLog.append("Checking collection of images for duplicates...\n");
+            outputLog.append("It can take awhile...\n");
+            lookForDuplicatesWorker.addPropertyChangeListener(this);
+            lookForDuplicatesWorker.execute();
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        });
 
-        this.add(startButton, BorderLayout.SOUTH);
+        this.add(bottomPanel, BorderLayout.SOUTH);
     }
 
     public void addProcessingListener(ProcessingListener l){
@@ -102,18 +119,37 @@ public class LocationView extends JPanel implements TaskListener, PropertyChange
 
     @Override
     public void actionPerformed(EventObject e) {
-        processAllData.addPropertyChangeListener(this);
-        processAllData.execute();
+        fileLoadingWorker.addPropertyChangeListener(this);
+        fileLoadingWorker.execute();
+        outputLog.append("Loading images... \n");
+        outputLog.append("It can take awhile...\n");
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        int progress = processAllData.getProgress();
-        progressBar.setValue(progress);
-        progressBar.setString(progress + "%");
-        outputLog.append("Completed in " + progress + "% \n");
-        if (progress >= 100)
+        if (fileLoadingWorker.isDone() && workersHandled == 0) {
+            outputLog.append("Completed loading images. \n");
+            workersHandled++;
             setCursor(Cursor.getDefaultCursor());
+            checkDuplicatesButton.setEnabled(true);
+        }
+        if (lookForDuplicatesWorker.isDone() && workersHandled == 1){
+            outputLog.append("Completed checking for duplicates. \n");
+            outputLog.append("Files transfer started. \n");
+            outputLog.append("It will probably take a brief moment... \n");
+
+            workersHandled++;
+            // now third worker will start working to move files
+            if(moveFilesWorker.getState() == SwingWorker.StateValue.PENDING) {
+                moveFilesWorker.addPropertyChangeListener(this);
+                moveFilesWorker.execute();
+            }
+        }
+        if (moveFilesWorker.isDone() && workersHandled == 2){
+            outputLog.append("Completed moving files. \n");
+            setCursor(Cursor.getDefaultCursor());
+            workersHandled++;
+        }
     }
 }

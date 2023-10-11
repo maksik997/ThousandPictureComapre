@@ -1,28 +1,27 @@
-import LocationView.LocationView;
+import MinorViews.LocationView;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class View extends JFrame {
 
+    private final Controller controller;
+
     // Different Panels
-    LocationView locationView;
+    private final LocationView locationView;
 
     // Model Classes
-    Processing processing;
+//    private Processing processing;
 
 
     public View() throws HeadlessException {
-        processing = new Processing();
-        locationView = new LocationView(
-            processing.getFileLoadingWorker(),
-            processing.getLookForDuplicatesWorker(),
-            processing.getMoveFilesWorker()
-        );
+
+//        processing = new Processing();
+        locationView = new LocationView();
 
         // Add listeners to Processing start
-        locationView.addProcessingListener(processing);
-        processing.addFileLoadingListeners(locationView);
+        /*locationView.addProcessingListener(processing);
+        processing.addFileLoadingListeners(locationView);*/
 
 
         this.add(locationView);
@@ -31,5 +30,11 @@ public class View extends JFrame {
         this.setSize(800, 600);
         this.setVisible(true);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        controller = new Controller(this, new Model());
+    }
+
+    public LocationView getLocationView() {
+        return locationView;
     }
 }

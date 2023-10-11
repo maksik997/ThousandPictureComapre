@@ -1,18 +1,13 @@
 import DataActions.ImageRecord;
-import LocationView.ProcessingEvent;
-import LocationView.ProcessingListener;
-import LocationView.FileLoadingListener;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.EventObject;
 
-public class Processing implements ProcessingListener {
+public class Processing{
     private ArrayList<ImageRecord> allImages, duplicates;
 
     private File dir;
@@ -22,16 +17,8 @@ public class Processing implements ProcessingListener {
         this.duplicates = new ArrayList<>();
     }
 
-
-    // Loading file fires :P
-    @Override
-    public void actionPerformed(ProcessingEvent e) {
-        dir = new File(e.getPath());
-        fireFileLoadingListener();
-    }
-
-
-    // This worker is supposed to load all file
+    //deprecated
+    /*// This worker is supposed to load all file
     private final SwingWorker<Void, Void> fileLoadingWorker = new SwingWorker<>() {
         @Override
         protected Void doInBackground() {
@@ -77,22 +64,7 @@ public class Processing implements ProcessingListener {
     private final SwingWorker<Void, Void> moveFilesWorker = new SwingWorker<>() {
         @Override
         protected Void doInBackground() throws Exception {
-            String separator = File.separator;
-            setProgress(0);
-            duplicates.forEach(
-                    imageRecord -> {
-                        File file = imageRecord.getFile();
-                        try {
-                            Files.move(
-                                    file.toPath(),
-                                    Paths.get("data" + separator + "duplicates" + File.separator + file.getName()),
-                                    StandardCopyOption.ATOMIC_MOVE
-                            );
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-            );
+            fileTransfer();
             return null;
         }
 
@@ -105,10 +77,10 @@ public class Processing implements ProcessingListener {
     public SwingWorker<Void, Void> getMoveFilesWorker() {
         return moveFilesWorker;
     }
+*/
 
     // This method compare all images checksum
-
-    private ArrayList<ImageRecord> compareAllImages(){
+    public ArrayList<ImageRecord> compareAllImages(){
         ImageRecord n,m;
         ArrayList<ImageRecord> duplicates = new ArrayList<>();
 
@@ -130,16 +102,44 @@ public class Processing implements ProcessingListener {
         return duplicates;
     }
 
-    // Listeners called when file loading can proceed, needed to start whole procedure
-    private final ArrayList<FileLoadingListener> fileLoadingListeners = new ArrayList<>();
-
-    public void addFileLoadingListeners(FileLoadingListener l){
-        fileLoadingListeners.add(l);
+    public void fileTransfer(){
+        String separator = File.separator;
+        duplicates.forEach(imageRecord -> {
+            File file = imageRecord.getFile();
+            try {
+                Files.move(
+                    file.toPath(),
+                    Paths.get("data" + separator + "duplicates" + separator + file.getName()),
+                    StandardCopyOption.ATOMIC_MOVE
+                );
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
-    public void fireFileLoadingListener(){
-        for (FileLoadingListener l : fileLoadingListeners)
-            l.actionPerformed(new EventObject(this));
+
+    public ArrayList<ImageRecord> getAllImages() {
+        return allImages;
     }
 
+    public ArrayList<ImageRecord> getDuplicates() {
+        return duplicates;
+    }
+
+    public File getDir() {
+        return dir;
+    }
+
+    public void setAllImages(ArrayList<ImageRecord> allImages) {
+        this.allImages = allImages;
+    }
+
+    public void setDuplicates(ArrayList<ImageRecord> duplicates) {
+        this.duplicates = duplicates;
+    }
+
+    public void setDir(File dir) {
+        this.dir = dir;
+    }
 }

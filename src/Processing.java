@@ -77,6 +77,7 @@ public class Processing implements ProcessingListener {
     private final SwingWorker<Void, Void> moveFilesWorker = new SwingWorker<>() {
         @Override
         protected Void doInBackground() throws Exception {
+            String separator = File.separator;
             setProgress(0);
             duplicates.forEach(
                     imageRecord -> {
@@ -84,7 +85,7 @@ public class Processing implements ProcessingListener {
                         try {
                             Files.move(
                                     file.toPath(),
-                                    Paths.get("data/duplicates/" + file.getName()),
+                                    Paths.get("data" + separator + "duplicates" + File.separator + file.getName()),
                                     StandardCopyOption.ATOMIC_MOVE
                             );
                         } catch (IOException e) {

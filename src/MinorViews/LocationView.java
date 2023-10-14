@@ -1,69 +1,97 @@
 package MinorViews;
 
 import javax.swing.*;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 
-public class LocationView extends JPanel /*implements FileLoadingListener, PropertyChangeListener*/ {
+public class LocationView extends JPanel {
     private final JFileChooser fileChooser;
-    private final JTextArea outputLog;
+    private JTextArea outputLog;
     private JTextField pathTextField;
-    private JButton fileTransferButton, loadFilesButton, pathButton;
-//    private final List<ProcessingListener> listeners = new ArrayList<ProcessingListener>();
+    private JButton fileTransferButton, loadFilesButton, pathButton, settingsButton, resetButton;
     private String path;
-
-//    private int workersHandled;
-
-    private SwingWorker<Void, Void> fileLoadingWorker, lookForDuplicatesWorker, moveFilesWorker;
-
+    
     public LocationView() {
-//        workersHandled = 0;
-/*        this.fileLoadingWorker = fileLoadingWorker;
-        this.lookForDuplicatesWorker = lookForDuplicatesWorker;
-        this.moveFilesWorker = moveFilesWorker;*/
+        this.setLayout(new BorderLayout());
+
         fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-        this.setLayout(new BorderLayout());
+        _init();
+    }
 
-        JLabel title = new JLabel("Thousand Pictures Redundancy"),
-            pathLabel = new JLabel("Path: ");
+    private void _init(){
+        this.add(_initHeader(), BorderLayout.NORTH);
+        this.add(_initMain());
+        this.add(_initFooter(), BorderLayout.SOUTH);
+    }
 
-        title.setHorizontalAlignment(SwingConstants.CENTER);
-        this.add(title, BorderLayout.NORTH);
+    private JPanel _initHeader(){
+        JPanel header = new JPanel();
+        header.setLayout(new GridLayout(2,1));
 
-        // Central Panel
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new GridLayout(2, 1));
+        ImageIcon icon = new ImageIcon("data/thumbnail.png");
+        JLabel mainTitle = new JLabel("Thousand Picture Redundancy", icon, JLabel.LEFT);
+        mainTitle.setFont(new Font("Helvetica", Font.BOLD, 32));
 
-        // PathBox Panel
+        header.add(mainTitle);
+
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setBorder(new MatteBorder(0,0,1,0, Color.GRAY));
+
+        settingsButton = new JButton("Settings");
+
+        bottomPanel.add(settingsButton);
+
+        header.add(bottomPanel);
+
+        return header;
+    }
+
+    private JPanel _initMain(){
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout());
+
         JPanel pathBox = new JPanel();
         pathBox.setLayout(new FlowLayout());
+
+        JLabel pathLabel = new JLabel("Path:");
+
         pathBox.add(pathLabel);
 
-        pathTextField = new JTextField(64);
+        pathTextField = new JTextField();
+        pathTextField.setColumns(58);
         pathTextField.setEditable(false);
+        pathTextField.setFocusable(false);
+
         pathBox.add(pathTextField);
 
-        pathButton = new JButton("Open a directory");
+        pathButton = new JButton("Open");
+
         pathBox.add(pathButton);
 
-        // Progress Panel
-        JPanel progressPanel = new JPanel();
+        mainPanel.add(pathBox, BorderLayout.PAGE_START);
 
-        this.outputLog = new JTextArea();
-        this.outputLog.setEditable(false);
-        this.outputLog.setColumns(64);
-        this.outputLog.setRows(13);
-        progressPanel.add(outputLog);
+        outputLog = new JTextArea();
+        outputLog.setEditable(false);
+        outputLog.setColumns(64);
+        outputLog.setRows(13);
 
-        centerPanel.add(pathBox);
-        centerPanel.add(progressPanel);
+        JScrollPane outputPanel = new JScrollPane(outputLog);
 
-        this.add(centerPanel);
+        mainPanel.add(outputPanel);
 
-        // Bottom panel
+        return mainPanel;
+    }
+
+    private JPanel _initFooter(){
         JPanel bottomPanel = new JPanel();
-        bottomPanel.setLayout(new GridLayout(1,2));
+        bottomPanel.setLayout(new GridLayout(1,3));
+
+        resetButton = new JButton("Reset");
+        resetButton.setEnabled(false);
+        bottomPanel.add(resetButton);
 
         loadFilesButton = new JButton("Load files");
         loadFilesButton.setEnabled(false);
@@ -73,71 +101,18 @@ public class LocationView extends JPanel /*implements FileLoadingListener, Prope
         fileTransferButton.setEnabled(false);
         bottomPanel.add(fileTransferButton);
 
-        // deprecated
-        /*// Action listeners for buttons
-
-        pathButton.addActionListener(e->{
-            int file = fileChooser.showOpenDialog(LocationView.this);
-            if (file == JFileChooser.APPROVE_OPTION) {
-                pathTextField.setText(fileChooser.getSelectedFile().getAbsolutePath());
-                this.path = pathTextField.getText();
-                loadFilesButton.setEnabled(true);
-            }
-        });
-        loadFilesButton.addActionListener(e -> {
-            loadFilesButton.setEnabled(false);
-            callProcessingListeners();
-        });
-        fileTransferButton.addActionListener(e->{
-            fileTransferButton.setEnabled(false);
-            outputLog.append("Checking collection of images for duplicates...\n");
-            outputLog.append("It can take awhile...\n");
-            lookForDuplicatesWorker.addPropertyChangeListener(this);
-            lookForDuplicatesWorker.execute();
-            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        });*/
-
-        this.add(bottomPanel, BorderLayout.SOUTH);
+        return bottomPanel;
     }
 
-    //deprecated
-    /*@Override
-    public void actionPerformed(EventObject e) {
-        fileLoadingWorker.addPropertyChangeListener(this);
-        fileLoadingWorker.execute();
-        outputLog.append("Loading images... \n");
-        outputLog.append("It can take awhile...\n");
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-    }*/
+    public void _reset(){
+        fileTransferButton.setEnabled(false);
+        loadFilesButton.setEnabled(false);
+        resetButton.setEnabled(false);
 
-    //deprecated
-    /*@Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        if (fileLoadingWorker.isDone() && workersHandled == 0) {
-            outputLog.append("Completed loading images. \n");
-            workersHandled++;
-            setCursor(Cursor.getDefaultCursor());
-            fileTransferButton.setEnabled(true);
-        }
-        if (lookForDuplicatesWorker.isDone() && workersHandled == 1){
-            outputLog.append("Completed checking for duplicates. \n");
-            outputLog.append("Files transfer started. \n");
-            outputLog.append("It will probably take a brief moment... \n");
+        pathTextField.setText("");
 
-            workersHandled++;
-            // now third worker will start working to move files
-            if(moveFilesWorker.getState() == SwingWorker.StateValue.PENDING) {
-                moveFilesWorker.addPropertyChangeListener(this);
-                moveFilesWorker.execute();
-            }
-        }
-        if (moveFilesWorker.isDone() && workersHandled == 2){
-            outputLog.append("Completed moving files. \n");
-            setCursor(Cursor.getDefaultCursor());
-            workersHandled++;
-        }
-    }*/
-
+        path = "";
+    }
 
     // Couple of getters
     public JButton getFileTransferButton() {
@@ -154,6 +129,14 @@ public class LocationView extends JPanel /*implements FileLoadingListener, Prope
 
     public JFileChooser getFileChooser() {
         return fileChooser;
+    }
+
+    public JButton getSettingsButton() {
+        return settingsButton;
+    }
+
+    public JButton getResetButton() {
+        return resetButton;
     }
 
     public String getPath() {
@@ -184,38 +167,15 @@ public class LocationView extends JPanel /*implements FileLoadingListener, Prope
         this.pathButton = pathButton;
     }
 
+    public void setSettingsButton(JButton settingsButton) {
+        this.settingsButton = settingsButton;
+    }
+
     public void setPath(String path) {
         this.path = path;
     }
 
-    //deprecated
-    /*public void setWorkersHandled(int workersHandled) {
-        this.workersHandled = workersHandled;
-    }*/
-
-    //deprecated
-    /*// tmp, next six
-    public SwingWorker<Void, Void> getFileLoadingWorker() {
-        return fileLoadingWorker;
+    public void setResetButton(JButton resetButton) {
+        this.resetButton = resetButton;
     }
-
-    public SwingWorker<Void, Void> getLookForDuplicatesWorker() {
-        return lookForDuplicatesWorker;
-    }
-
-    public SwingWorker<Void, Void> getMoveFilesWorker() {
-        return moveFilesWorker;
-    }
-
-    public void setFileLoadingWorker(SwingWorker<Void, Void> fileLoadingWorker) {
-        this.fileLoadingWorker = fileLoadingWorker;
-    }
-
-    public void setLookForDuplicatesWorker(SwingWorker<Void, Void> lookForDuplicatesWorker) {
-        this.lookForDuplicatesWorker = lookForDuplicatesWorker;
-    }
-
-    public void setMoveFilesWorker(SwingWorker<Void, Void> moveFilesWorker) {
-        this.moveFilesWorker = moveFilesWorker;
-    }*/
 }

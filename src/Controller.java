@@ -1,5 +1,6 @@
 import DataActions.ImageRecord;
 import MinorViews.LocationView;
+import MinorViews.SettingsView;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,12 +29,36 @@ public class Controller {
         // This method initialize every interactive element of view :P
 
         LocationView lView = view.getLocationView();
+        SettingsView sView = view.getSettingsView();
 
-        //deprecated
-        /*// next three are tmp
-        lView.setFileLoadingWorker(model.getProcessing().getFileLoadingWorker());
-        lView.setLookForDuplicatesWorker(model.getProcessing().getLookForDuplicatesWorker());
-        lView.setMoveFilesWorker(model.getProcessing().getMoveFilesWorker());*/
+        // change view to settings
+        lView.getSettingsButton().addActionListener(e->{
+            view.remove(lView);
+            view.add(sView);
+            view.repaint();
+            view.revalidate();
+        });
+
+        // go back to main view
+        sView.getBackButton().addActionListener(e->{
+            view.remove(sView);
+            view.add(lView);
+            view.repaint();
+            view.revalidate();
+        });
+
+        // des dir button action listener
+        sView.getDestDirButton().addActionListener(e->{
+            int file = sView.getFileChooser().showOpenDialog(sView);
+            if (file == JFileChooser.APPROVE_OPTION){
+                sView.getDestDirTextField().setText(
+                    sView.getFileChooser().getSelectedFile().getAbsolutePath()
+                );
+                model.getProcessing().setDestDir(
+                    new File(sView.getDestDirTextField().getText())
+                );
+            }
+        });
 
         // path button action listener
         lView.getPathButton().addActionListener(e->{
@@ -47,20 +72,31 @@ public class Controller {
             }
         });
 
+        // reset button action listener
+        lView.getResetButton().addActionListener(e->{
+            workersFactory();
+
+            lView.getOutputLog().append("\n RESET \n\n");
+
+            lView._reset();
+
+            model.getProcessing()._reset();
+        });
+
         // load files button action listener
 
         lView.getLoadFilesButton().addActionListener(e->{
             lView.getLoadFilesButton().setEnabled(false);
             model.getProcessing().setDir(new File(lView.getPath()));
 
-            //lView.getFileLoadingWorker().addPropertyChangeListener(lView);
-            //lView.getFileLoadingWorker().execute();
             loadFilesWorker.execute();
 
             lView.getOutputLog().append("Loading images... \n");
             lView.getOutputLog().append("It can take awhile...\n");
 
             view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+            lView.getResetButton().setEnabled(true);
         });
 
         // check for duplicates button action listener
@@ -68,8 +104,6 @@ public class Controller {
         lView.getFileTransferButton().addActionListener(e->{
             lView.getFileTransferButton().setEnabled(false);
 
-            //lView.getLookForDuplicatesWorker().addPropertyChangeListener(lView);
-            //lView.getLookForDuplicatesWorker().execute();
             fileTransferWorker.execute();
 
             lView.getOutputLog().append("Files transfer started. \n");

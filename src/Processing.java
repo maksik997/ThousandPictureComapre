@@ -10,74 +10,18 @@ import java.util.ArrayList;
 public class Processing{
     private ArrayList<ImageRecord> allImages, duplicates;
 
-    private File dir;
+    private File dir, destDir;
 
     public Processing() {
         this.allImages = new ArrayList<>();
         this.duplicates = new ArrayList<>();
     }
 
-    //deprecated
-    /*// This worker is supposed to load all file
-    private final SwingWorker<Void, Void> fileLoadingWorker = new SwingWorker<>() {
-        @Override
-        protected Void doInBackground() {
-            setProgress(0);
-            try {
-                allImages = ImageRecord.getAllImages(dir);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            return null;
-        }
-
-        @Override
-        protected void done() {
-            super.done();
-        }
-    };
-
-    public SwingWorker<Void, Void> getFileLoadingWorker() {
-        return fileLoadingWorker;
+    public void _reset(){
+        allImages = new ArrayList<>();
+        duplicates = new ArrayList<>();
+        dir = null;
     }
-
-    // This worker is supposed to find all ImageReaders duplicates using checksums
-    private final SwingWorker<Void, Void> lookForDuplicatesWorker = new SwingWorker<Void, Void>() {
-        @Override
-        protected Void doInBackground() {
-            setProgress(0);
-            duplicates = compareAllImages();
-            return null;
-        }
-
-        @Override
-        protected void done() {
-            super.done();
-        }
-    };
-
-    // This worker is supposed to move all files to duplicates folder in project folder
-    public SwingWorker<Void, Void> getLookForDuplicatesWorker() {
-        return lookForDuplicatesWorker;
-    }
-
-    private final SwingWorker<Void, Void> moveFilesWorker = new SwingWorker<>() {
-        @Override
-        protected Void doInBackground() throws Exception {
-            fileTransfer();
-            return null;
-        }
-
-        @Override
-        protected void done() {
-            super.done();
-        }
-    };
-
-    public SwingWorker<Void, Void> getMoveFilesWorker() {
-        return moveFilesWorker;
-    }
-*/
 
     // This method compare all images checksum
     public ArrayList<ImageRecord> compareAllImages(){
@@ -109,7 +53,9 @@ public class Processing{
             try {
                 Files.move(
                     file.toPath(),
-                    Paths.get("data" + separator + "duplicates" + separator + file.getName()),
+                    destDir == null ?
+                    Paths.get("data" + separator + "duplicates" + separator + file.getName()):
+                    Paths.get(destDir + file.getName()),
                     StandardCopyOption.ATOMIC_MOVE
                 );
             } catch (IOException e) {
@@ -131,6 +77,10 @@ public class Processing{
         return dir;
     }
 
+    public File getDestDir() {
+        return destDir;
+    }
+
     public void setAllImages(ArrayList<ImageRecord> allImages) {
         this.allImages = allImages;
     }
@@ -141,5 +91,9 @@ public class Processing{
 
     public void setDir(File dir) {
         this.dir = dir;
+    }
+
+    public void setDestDir(File destDir) {
+        this.destDir = destDir;
     }
 }

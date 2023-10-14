@@ -1,4 +1,5 @@
-import LocationView.LocationView;
+import MinorViews.LocationView;
+import MinorViews.SettingsView;
 
 import javax.swing.*;
 import java.awt.*;
@@ -6,30 +7,28 @@ import java.awt.*;
 public class View extends JFrame {
 
     // Different Panels
-    LocationView locationView;
-
-    // Model Classes
-    Processing processing;
-
+    private final LocationView locationView;
+    private final SettingsView settingsView;
 
     public View() throws HeadlessException {
-        processing = new Processing();
-        locationView = new LocationView(
-            processing.getFileLoadingWorker(),
-            processing.getLookForDuplicatesWorker(),
-            processing.getMoveFilesWorker()
-        );
-
-        // Add listeners to Processing start
-        locationView.addProcessingListener(processing);
-        processing.addFileLoadingListeners(locationView);
-
+        locationView = new LocationView();
+        settingsView = new SettingsView();
 
         this.add(locationView);
 
-        this.setTitle("ImageComparator");
+        this.setTitle("Thousand Picture Redundancy");
         this.setSize(800, 600);
         this.setVisible(true);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        new Controller(this, new Model());
+    }
+
+    public LocationView getLocationView() {
+        return locationView;
+    }
+
+    public SettingsView getSettingsView() {
+        return settingsView;
     }
 }

@@ -123,8 +123,8 @@ public class Controller {
             @Override
             protected Void doInBackground() {
                 try {
-                    processing.setAllImages(
-                        ImageRecord.getAllImages(processing.getDir())
+                    processing.setMappedImages(
+                        ImageRecord.mappedImages(processing.getDir())
                     );
                 } catch (IOException e) {
                     lView.getOutputLog().append("\n\n[E]Problem just occurred...\n");
@@ -133,7 +133,7 @@ public class Controller {
                     throw new RuntimeException(e);
                 }
                 lView.getOutputLog().append("Completed loading images. \n");
-                lView.getOutputLog().append("Found "+ processing.getAllImages().size() +" images. \n\n");
+                lView.getOutputLog().append("Found "+ processing.getImagesCount() +" images. \n\n");
                 lView.getOutputLog().append("Checking collection of images for duplicates...\n");
                 lView.getOutputLog().append("It can take awhile...\n");
 

@@ -6,43 +6,40 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Processing{
-    private ArrayList<ImageRecord> allImages, duplicates;
+    private ArrayList<ImageRecord> duplicates;
+
+    private HashMap<Long, ArrayList<ImageRecord>> mappedImages;
+
+    private int imagesCount;
 
     private File dir, destDir;
 
     public Processing() {
-        this.allImages = new ArrayList<>();
-        this.duplicates = new ArrayList<>();
+        _reset();
     }
 
     public void _reset(){
-        allImages = new ArrayList<>();
+        imagesCount = 0;
+        mappedImages = new HashMap<>();
         duplicates = new ArrayList<>();
         dir = null;
     }
 
     // This method compare all images checksum
     public ArrayList<ImageRecord> compareAllImages(){
-        ImageRecord n,m;
+        // update v3-0
         ArrayList<ImageRecord> duplicates = new ArrayList<>();
 
-        for (int i = 0, j = 1; i < allImages.size(); i++) {
-
-            n = allImages.get(i);
-            for (; j < allImages.size(); j++) {
-                m = allImages.get(j);
-
-                if(n.checksumEquals(m)){
-                    if (!duplicates.contains(m))
-                        duplicates.add(m);
+        mappedImages.forEach(
+            (key, val) -> {
+                for (int i = 0; i < val.size(); i++) {
+                    if(i > 0) duplicates.add(val.get(i));
                 }
             }
-            j = 1;
-            j += i + 1;
-        }
-
+        );
         return duplicates;
     }
 
@@ -56,17 +53,12 @@ public class Processing{
                     destDir == null ?
                     Paths.get("data" + separator + "duplicates" + separator + file.getName()):
                     Paths.get(destDir + separator + file.getName()),
-                    StandardCopyOption.ATOMIC_MOVE
+                    StandardCopyOption.REPLACE_EXISTING
                 );
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
-    }
-
-
-    public ArrayList<ImageRecord> getAllImages() {
-        return allImages;
     }
 
     public ArrayList<ImageRecord> getDuplicates() {
@@ -81,10 +73,6 @@ public class Processing{
         return destDir;
     }
 
-    public void setAllImages(ArrayList<ImageRecord> allImages) {
-        this.allImages = allImages;
-    }
-
     public void setDuplicates(ArrayList<ImageRecord> duplicates) {
         this.duplicates = duplicates;
     }
@@ -95,5 +83,24 @@ public class Processing{
 
     public void setDestDir(File destDir) {
         this.destDir = destDir;
+    }
+
+    public HashMap<Long, ArrayList<ImageRecord>> getMappedImages() {
+        return mappedImages;
+    }
+
+    public void setMappedImages(HashMap<Long, ArrayList<ImageRecord>> mappedImages) {
+        this.mappedImages = mappedImages;
+        mappedImages.forEach(
+            (k, v) -> imagesCount += v.size()
+        );
+    }
+
+    public int getImagesCount() {
+        return imagesCount;
+    }
+
+    public void setImagesCount(int imagesCount) {
+        this.imagesCount = imagesCount;
     }
 }

@@ -55,7 +55,7 @@ public class Processing{
                     file.toPath(),
                     destDir == null ?
                     Paths.get("data" + separator + "duplicates" + separator + file.getName()):
-                    Paths.get(destDir + file.getName()),
+                    Paths.get(destDir + separator + file.getName()),
                     StandardCopyOption.ATOMIC_MOVE
                 );
             } catch (IOException e) {

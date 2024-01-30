@@ -16,7 +16,7 @@ public class View extends JFrame {
 
         this.add(locationView);
 
-        this.setTitle("Thousand Picture Redundancy");
+        this.setTitle("Thousand Picture Comapre v0.3.1");
         this.setSize(800, 600);
         this.setVisible(true);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);

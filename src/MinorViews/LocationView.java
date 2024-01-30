@@ -1,77 +1,47 @@
 package MinorViews;
 
+import UiComponents.UiFooter;
+import UiComponents.UiHeader;
+import UiComponents.UiPath;
+import UiComponents.Utility;
+
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class LocationView extends JPanel {
-    private final JFileChooser fileChooser;
+
     private JTextArea outputLog;
-    private JTextField pathTextField;
-    private JButton fileTransferButton, loadFilesButton, pathButton, settingsButton, resetButton;
-    private String path;
+    // update v0.3
+    private final UiPath uiPath;
+
+    private final UiHeader uiHeader;
+
+    private final UiFooter uiFooter;
     
     public LocationView() {
         this.setLayout(new BorderLayout());
 
-        fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        // update v0.3
+        this.uiPath = new UiPath();
+        this.uiHeader = new UiHeader();
+        this.uiFooter = new UiFooter();
 
         _init();
     }
 
     private void _init(){
-        this.add(_initHeader(), BorderLayout.NORTH);
+        this.add(uiHeader, BorderLayout.NORTH); // update v0.3
         this.add(_initMain());
-        this.add(_initFooter(), BorderLayout.SOUTH);
-    }
-
-    private JPanel _initHeader(){
-        JPanel header = new JPanel();
-        header.setLayout(new GridLayout(2,1));
-
-        ImageIcon icon = new ImageIcon("data/thumbnail.png");
-        JLabel mainTitle = new JLabel("Thousand Picture Redundancy", icon, JLabel.LEFT);
-        mainTitle.setFont(new Font("Helvetica", Font.BOLD, 32));
-
-        header.add(mainTitle);
-
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        bottomPanel.setBorder(new MatteBorder(0,0,1,0, Color.GRAY));
-
-        settingsButton = new JButton("Settings");
-
-        bottomPanel.add(settingsButton);
-
-        header.add(bottomPanel);
-
-        return header;
+        this.add(uiFooter, BorderLayout.SOUTH); // update v0.3
     }
 
     private JPanel _initMain(){
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
-        JPanel pathBox = new JPanel();
-        pathBox.setLayout(new FlowLayout());
-
-        JLabel pathLabel = new JLabel("Path:");
-
-        pathBox.add(pathLabel);
-
-        pathTextField = new JTextField();
-        pathTextField.setColumns(58);
-        pathTextField.setEditable(false);
-        pathTextField.setFocusable(false);
-
-        pathBox.add(pathTextField);
-
-        pathButton = new JButton("Open");
-
-        pathBox.add(pathButton);
-
-        mainPanel.add(pathBox, BorderLayout.PAGE_START);
+        mainPanel.add(uiPath, BorderLayout.PAGE_START);
 
         outputLog = new JTextArea();
         outputLog.setEditable(false);
@@ -85,97 +55,25 @@ public class LocationView extends JPanel {
         return mainPanel;
     }
 
-    private JPanel _initFooter(){
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setLayout(new GridLayout(1,3));
-
-        resetButton = new JButton("Reset");
-        resetButton.setEnabled(false);
-        bottomPanel.add(resetButton);
-
-        loadFilesButton = new JButton("Load files");
-        loadFilesButton.setEnabled(false);
-        bottomPanel.add(loadFilesButton);
-
-        fileTransferButton = new JButton("Move files");
-        fileTransferButton.setEnabled(false);
-        bottomPanel.add(fileTransferButton);
-
-        return bottomPanel;
-    }
-
     public void _reset(){
-        fileTransferButton.setEnabled(false);
-        loadFilesButton.setEnabled(false);
-        resetButton.setEnabled(false);
-
-        pathTextField.setText("");
-
-        path = "";
-    }
-
-    // Couple of getters
-    public JButton getFileTransferButton() {
-        return fileTransferButton;
-    }
-
-    public JButton getLoadFilesButton() {
-        return loadFilesButton;
-    }
-
-    public JButton getPathButton() {
-        return pathButton;
-    }
-
-    public JFileChooser getFileChooser() {
-        return fileChooser;
-    }
-
-    public JButton getSettingsButton() {
-        return settingsButton;
-    }
-
-    public JButton getResetButton() {
-        return resetButton;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public JTextField getPathTextField() {
-        return pathTextField;
+        uiFooter.clear();
+        uiPath.clear();
     }
 
     public JTextArea getOutputLog() {
         return outputLog;
     }
 
-    public void setPathTextField(JTextField pathTextField) {
-        this.pathTextField = pathTextField;
+    // update v0.3
+    public UiPath getUiPath() {
+        return uiPath;
     }
 
-    public void setFileTransferButton(JButton fileTransferButton) {
-        this.fileTransferButton = fileTransferButton;
+    public UiHeader getUiHeader() {
+        return uiHeader;
     }
 
-    public void setLoadFilesButton(JButton loadFilesButton) {
-        this.loadFilesButton = loadFilesButton;
-    }
-
-    public void setPathButton(JButton pathButton) {
-        this.pathButton = pathButton;
-    }
-
-    public void setSettingsButton(JButton settingsButton) {
-        this.settingsButton = settingsButton;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public void setResetButton(JButton resetButton) {
-        this.resetButton = resetButton;
+    public UiFooter getUiFooter() {
+        return uiFooter;
     }
 }

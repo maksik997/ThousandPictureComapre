@@ -1,12 +1,9 @@
-import DataActions.ImageRecord;
 import MinorViews.LocationView;
 import MinorViews.SettingsView;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
-
 public class Controller {
 
     private final View view;
@@ -32,14 +29,14 @@ public class Controller {
         SettingsView sView = view.getSettingsView();
 
         // change view to settings
-        lView.getSettingsButton().addActionListener(e->{
+        lView.getUiHeader().getSettingsButton().addActionListener(e->{
             view.remove(lView);
             view.add(sView);
             view.repaint();
             view.revalidate();
         });
 
-        // go back to main view
+        // go back to the main view
         sView.getBackButton().addActionListener(e->{
             view.remove(sView);
             view.add(lView);
@@ -47,47 +44,50 @@ public class Controller {
             view.revalidate();
         });
 
-        // des dir button action listener
+        // destDir button action listener
         sView.getDestDirButton().addActionListener(e->{
             int file = sView.getFileChooser().showOpenDialog(sView);
             if (file == JFileChooser.APPROVE_OPTION){
                 sView.getDestDirTextField().setText(
                     sView.getFileChooser().getSelectedFile().getAbsolutePath()
                 );
-                model.getProcessing().setDestDir(
+                model.getComparerLayer().setDestDir(
                     new File(sView.getDestDirTextField().getText())
                 );
             }
         });
 
         // path button action listener
-        lView.getPathButton().addActionListener(e->{
-            int file = lView.getFileChooser().showOpenDialog(lView);
-            if (file == JFileChooser.APPROVE_OPTION){
-                lView.getPathTextField().setText(
-                    lView.getFileChooser().getSelectedFile().getAbsolutePath()
-                );
-                lView.setPath(lView.getPathTextField().getText());
-                lView.getLoadFilesButton().setEnabled(true);
+        lView.getUiPath().getPathButton().addActionListener(e->{ // updated
+            if(lView.getUiPath().openFileChooser()) {
+                lView.getUiFooter().getLoadFilesButton().setEnabled(true);
             }
+
+/*//            int file = lView.getUiPath().showOpenDialog(lView);
+//            if (file == JFileChooser.APPROVE_OPTION){
+//                lView.getPathTextField().setText(
+//                    lView.getFileChooser().getSelectedFile().getAbsolutePath()
+//                );
+//                lView.setPath(lView.getPathTextField().getText());
+//                lView.getLoadFilesButton().setEnabled(true);
+//            }*/
         });
 
+
         // reset button action listener
-        lView.getResetButton().addActionListener(e->{
+        lView.getUiFooter().getResetButton().addActionListener(e->{
             workersFactory();
 
-            lView.getOutputLog().append("\n RESET \n\n");
-
+            lView.getOutputLog().append("\n ===RESET=== \n");
             lView._reset();
-
-            model.getProcessing()._reset();
+            model.getComparerLayer()._reset();
         });
 
         // load files button action listener
-
-        lView.getLoadFilesButton().addActionListener(e->{
-            lView.getLoadFilesButton().setEnabled(false);
-            model.getProcessing().setDir(new File(lView.getPath()));
+        lView.getUiFooter().getLoadFilesButton().addActionListener(e->{
+            lView.getUiFooter().getLoadFilesButton().setEnabled(false);
+            lView.getUiFooter().getResetButton().setEnabled(false);
+            model.getComparerLayer().setSourceDir(new File(lView.getUiPath().getPath()));
 
             loadFilesWorker.execute();
 
@@ -96,13 +96,13 @@ public class Controller {
 
             view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-            lView.getResetButton().setEnabled(true);
+//            lView.getResetButton().setEnabled(true);
         });
 
-        // check for duplicates button action listener
-
-        lView.getFileTransferButton().addActionListener(e->{
-            lView.getFileTransferButton().setEnabled(false);
+        // check for duplicate button action listener
+        lView.getUiFooter().getFileTransferButton().addActionListener(e->{
+            lView.getUiFooter().getFileTransferButton().setEnabled(false);
+            lView.getUiFooter().getResetButton().setEnabled(false);
 
             fileTransferWorker.execute();
 
@@ -116,34 +116,30 @@ public class Controller {
     public void workersFactory(){
         // This method will create workers on-demand, which is handy in case of program restart without restart
 
-        Processing processing = model.getProcessing();
+        ComparerLayer compareLayer = model.getComparerLayer();
         LocationView lView = view.getLocationView();
+
 
         loadFilesWorker = new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                try {
-                    processing.setMappedImages(
-                        ImageRecord.mappedImages(processing.getDir())
-                    );
-                } catch (IOException e) {
-                    lView.getOutputLog().append("\n\n[E]Problem just occurred...\n");
-                    lView.getOutputLog().append("[E]Application couldn't load files.\n");
-                    lView.getOutputLog().append("Please restart app and try again.\n");
-                    throw new RuntimeException(e);
-                }
-                lView.getOutputLog().append("Completed loading images. \n");
-                lView.getOutputLog().append("Found "+ processing.getImagesCount() +" images. \n\n");
-                lView.getOutputLog().append("Checking collection of images for duplicates...\n");
-                lView.getOutputLog().append("It can take awhile...\n");
+                lView.getOutputLog().append("Preparing picture comparer.\n");
+                compareLayer.setUp();
+                lView.getOutputLog().append("Mapping files... This will take a while...\n");
 
-                processing.setDuplicates(processing.compareAllImages());
+                // todo It should call loading indicator in future
+                compareLayer.compareAndExtract();
+
 
                 lView.getOutputLog().append("Completed checking for duplicates. \n");
-                lView.getOutputLog().append("Found " + processing.getDuplicates().size()+ " redundant images. \n\n");
+//                lView.getOutputLog().append("Found " + compareLayer.getPc().getTotalObjectCount() + " images. \n\n");
+                lView.getOutputLog().append(String.format(
+                    "Found %d images%n", compareLayer.getPc().getTotalObjectCount()
+                ));
 
                 view.setCursor(Cursor.getDefaultCursor());
-                lView.getFileTransferButton().setEnabled(true);
+                lView.getUiFooter().getFileTransferButton().setEnabled(true);
+                lView.getUiFooter().getResetButton().setEnabled(true);
 
                 return null;
             }
@@ -152,14 +148,15 @@ public class Controller {
         fileTransferWorker = new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                processing.fileTransfer();
+                compareLayer.fileTransfer();
 
                 lView.getOutputLog().append("Completed moving files. \n");
 
                 view.setCursor(Cursor.getDefaultCursor());
+
+                lView.getUiFooter().getResetButton().setEnabled(true);
                 return null;
             }
         };
     }
-
 }

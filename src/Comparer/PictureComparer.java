@@ -79,6 +79,7 @@ public class PictureComparer extends Comparer<ImageRecord> {
         );
 
         super.duplicates = duplicates;
+        super.duplicatesObjectCount = duplicates.size();
         log(String.format("Found %d duplicates from %d all images", duplicates.size(), totalObjectCount));
     }
 

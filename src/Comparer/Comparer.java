@@ -19,7 +19,7 @@ public abstract class Comparer<T extends Record> implements Logger {
     protected HashMap<Long, ArrayList<T>> mappedObjects;
 
                  // total number of valid files
-    protected int totalObjectCount, processedObjectCount;
+    protected int totalObjectCount, processedObjectCount, duplicatesObjectCount;
                               //  total number of processed Objects
 
     protected List<File> sourceFiles;
@@ -50,6 +50,10 @@ public abstract class Comparer<T extends Record> implements Logger {
 
     public int getProcessedObjectCount() {
         return processedObjectCount;
+    }
+
+    public int getDuplicatesObjectCount() {
+        return duplicatesObjectCount;
     }
 
     public void _setUp(File sourceDirectory, File destDirectory) throws IOException {

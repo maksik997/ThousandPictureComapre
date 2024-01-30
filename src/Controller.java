@@ -1,5 +1,6 @@
-import MinorViews.LocationView;
-import MinorViews.SettingsView;
+import UiViews.LocationView;
+import UiViews.SettingsView;
+import UiComponents.Utility;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,91 +24,65 @@ public class Controller {
     }
 
     public void initView(){
-        // This method initialize every interactive element of view :P
-
-        LocationView lView = view.getLocationView();
+        // This method initializes every interactive element of view
         SettingsView sView = view.getSettingsView();
 
-        // change view to settings
-        lView.getUiHeader().getSettingsButton().addActionListener(e->{
-            view.remove(lView);
-            view.add(sView);
-            view.repaint();
-            view.revalidate();
-        });
+        // Show the main view.
+        sView.getBackButton().addActionListener(e-> view.toggleScene(Utility.Scene.MAIN));
 
-        // go back to the main view
-        sView.getBackButton().addActionListener(e->{
-            view.remove(sView);
-            view.add(lView);
-            view.repaint();
-            view.revalidate();
-        });
-
-        // destDir button action listener
-        sView.getDestDirButton().addActionListener(e->{
-            int file = sView.getFileChooser().showOpenDialog(sView);
-            if (file == JFileChooser.APPROVE_OPTION){
-                sView.getDestDirTextField().setText(
-                    sView.getFileChooser().getSelectedFile().getAbsolutePath()
-                );
+        // destination button action listener
+        sView.getPathButton().addActionListener(e->{
+            if(sView.openFileChooser()) {
                 model.getComparerLayer().setDestDir(
-                    new File(sView.getDestDirTextField().getText())
+                    new File(sView.getPath())
                 );
             }
         });
+
+        LocationView lView = view.getLocationView();
+
+        // Show settings view.
+        lView.getButton(Utility.Buttons.SETTINGS).addActionListener(e-> view.toggleScene(Utility.Scene.SETTINGS));
 
         // path button action listener
-        lView.getUiPath().getPathButton().addActionListener(e->{ // updated
-            if(lView.getUiPath().openFileChooser()) {
-                lView.getUiFooter().getLoadFilesButton().setEnabled(true);
+        lView.getButton(Utility.Buttons.OPEN_SOURCE).addActionListener(e->{ // updated
+            if(lView.openFileChooser()) {
+                lView.getButton(Utility.Buttons.LOAD_FILES).setEnabled(true);
             }
-
-/*//            int file = lView.getUiPath().showOpenDialog(lView);
-//            if (file == JFileChooser.APPROVE_OPTION){
-//                lView.getPathTextField().setText(
-//                    lView.getFileChooser().getSelectedFile().getAbsolutePath()
-//                );
-//                lView.setPath(lView.getPathTextField().getText());
-//                lView.getLoadFilesButton().setEnabled(true);
-//            }*/
         });
 
-
         // reset button action listener
-        lView.getUiFooter().getResetButton().addActionListener(e->{
-            workersFactory();
+        lView.getButton(Utility.Buttons.RESET).addActionListener(e->{
+            lView.writeLine("Resetting...");
 
-            lView.getOutputLog().append("\n ===RESET=== \n");
-            lView._reset();
+            workersFactory();
+            lView.clear();
             model.getComparerLayer()._reset();
+
+            lView.writeLine("Reset done.\n");
         });
 
         // load files button action listener
-        lView.getUiFooter().getLoadFilesButton().addActionListener(e->{
-            lView.getUiFooter().getLoadFilesButton().setEnabled(false);
-            lView.getUiFooter().getResetButton().setEnabled(false);
-            model.getComparerLayer().setSourceDir(new File(lView.getUiPath().getPath()));
+        lView.getButton(Utility.Buttons.LOAD_FILES).addActionListener(e->{
+            lView.writeLine("Loading images. It can take awhile...");
+
+            lView.getButton(Utility.Buttons.LOAD_FILES).setEnabled(false);
+            lView.getButton(Utility.Buttons.RESET).setEnabled(false);
+            model.getComparerLayer().setSourceDir(new File(lView.getPath()));
 
             loadFilesWorker.execute();
 
-            lView.getOutputLog().append("Loading images... \n");
-            lView.getOutputLog().append("It can take awhile...\n");
-
             view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-
-//            lView.getResetButton().setEnabled(true);
         });
 
-        // check for duplicate button action listener
-        lView.getUiFooter().getFileTransferButton().addActionListener(e->{
-            lView.getUiFooter().getFileTransferButton().setEnabled(false);
-            lView.getUiFooter().getResetButton().setEnabled(false);
+        // move files button action listener
+        lView.getButton(Utility.Buttons.MOVE_FILES).addActionListener(e->{
+            lView.writeLine("File transfer started. It can take awhile...");
+
+            lView.getButton(Utility.Buttons.MOVE_FILES).setEnabled(false);
+            lView.getButton(Utility.Buttons.RESET).setEnabled(false);
 
             fileTransferWorker.execute();
-
-            lView.getOutputLog().append("Files transfer started. \n");
-            lView.getOutputLog().append("It will probably take a brief moment... \n");
 
             view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         });
@@ -123,23 +98,26 @@ public class Controller {
         loadFilesWorker = new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                lView.getOutputLog().append("Preparing picture comparer.\n");
+                lView.writeLine("Setting up picture comparer.");
                 compareLayer.setUp();
-                lView.getOutputLog().append("Mapping files... This will take a while...\n");
+                lView.writeLine("Picture comparer ready.\nMapping files. It can take awhile...");
 
-                // todo It should call loading indicator in future
                 compareLayer.compareAndExtract();
 
+                lView.writeLine("Completed checking for duplicates.");
+                lView.updateTray(
+                    compareLayer.getPc().getTotalObjectCount(),
+                    compareLayer.getPc().getProcessedObjectCount(),
+                    compareLayer.getPc().getDuplicatesObjectCount()
+                );
 
-                lView.getOutputLog().append("Completed checking for duplicates. \n");
-//                lView.getOutputLog().append("Found " + compareLayer.getPc().getTotalObjectCount() + " images. \n\n");
-                lView.getOutputLog().append(String.format(
-                    "Found %d images%n", compareLayer.getPc().getTotalObjectCount()
-                ));
 
                 view.setCursor(Cursor.getDefaultCursor());
-                lView.getUiFooter().getFileTransferButton().setEnabled(true);
-                lView.getUiFooter().getResetButton().setEnabled(true);
+
+                if(compareLayer.getPc().getDuplicatesObjectCount() > 0)
+                    lView.getButton(Utility.Buttons.MOVE_FILES).setEnabled(true);
+
+                lView.getButton(Utility.Buttons.RESET).setEnabled(true);
 
                 return null;
             }
@@ -148,13 +126,18 @@ public class Controller {
         fileTransferWorker = new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                compareLayer.fileTransfer();
+                lView.writeLine(
+                    String.format("Moving duplicates from %s to %s",
+                        compareLayer.getSourceDir(), compareLayer.getDestDir()
+                    )
+                );
 
-                lView.getOutputLog().append("Completed moving files. \n");
+                compareLayer.fileTransfer();
+                lView.writeLine("Completed moving files.");
 
                 view.setCursor(Cursor.getDefaultCursor());
 
-                lView.getUiFooter().getResetButton().setEnabled(true);
+                lView.getButton(Utility.Buttons.RESET).setEnabled(true);
                 return null;
             }
         };

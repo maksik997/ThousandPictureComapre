@@ -1,18 +1,23 @@
 package UiComponents;
 
 import javax.swing.*;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 
 public class UiFooter extends JPanel {
-
     private final JButton resetButton, loadFilesButton, fileTransferButton;
 
     public UiFooter() {
         this.setLayout(new GridLayout(1, 3));
+        this.setBorder(
+            new MatteBorder(1,0,0,0, Color.GRAY)
+        );
 
-        this.resetButton = Utility.buttonFactory("Reset", new Insets(5, 15, 5, 15));
-        this.loadFilesButton = Utility.buttonFactory("Load files & compare", new Insets(5, 15, 5, 15));
-        this.fileTransferButton = Utility.buttonFactory("Move files", new Insets(5, 15, 5, 15));
+        Insets insets = new Insets(5, 15, 5, 15);
+
+        this.resetButton = Utility.buttonFactory("Reset", insets);
+        this.loadFilesButton = Utility.buttonFactory("Load files & compare", insets);
+        this.fileTransferButton = Utility.buttonFactory("Move files", insets);
 
         clear();
 

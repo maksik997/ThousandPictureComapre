@@ -8,7 +8,6 @@ import java.awt.*;
 
 public class UiHeader extends JPanel {
 
-    private final JLabel title;
     private final JButton settingsButton;
 
     public UiHeader() {
@@ -20,19 +19,15 @@ public class UiHeader extends JPanel {
             )
         );
 
-        ImageIcon thumbnail = Utility.getScaledImage(new ImageIcon("data/thumbnail.png"), 50, 50);
+        ImageIcon thumbnail = Utility.getScaledImage(new ImageIcon("resources/thumbnail.png"), 50, 50);
 
-        this.title = new JLabel("Thousand Picture Comapre", thumbnail, JLabel.LEFT);
+        JLabel title = new JLabel("Thousand Picture Comapre", thumbnail, JLabel.LEFT);
         this.settingsButton = Utility.buttonFactory("Settings", new Insets(5, 15, 5, 15));
 
-        this.title.setFont(Utility.fontHelveticaBold);
+        title.setFont(Utility.fontHelveticaBold);
 
         this.add(title, BorderLayout.LINE_START);
         this.add(settingsButton, BorderLayout.LINE_END);
-    }
-
-    public JLabel getTitle() {
-        return title;
     }
 
     public JButton getSettingsButton() {

@@ -1,11 +1,11 @@
 public class Model {
-    private final Processing processing;
+    private final ComparerLayer comparerLayer;
 
     public Model() {
-        processing = new Processing();
+        comparerLayer = new ComparerLayer();
     }
 
-    public Processing getProcessing() {
-        return processing;
+    public ComparerLayer getComparerLayer() {
+        return comparerLayer;
     }
 }

@@ -1,7 +1,7 @@
+import pl.magzik.PictureComparer;
+
 import java.io.File;
 import java.io.IOException;
-
-import Comparer.PictureComparer;
 
 public class ComparerLayer {
     private File sourceDir, destDir;

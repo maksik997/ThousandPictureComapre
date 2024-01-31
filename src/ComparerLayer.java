@@ -15,7 +15,7 @@ public class ComparerLayer {
         try {
             pc = new PictureComparer();
         } catch (IOException e) {
-            throw new RuntimeException(e); // todo
+            throw new RuntimeException(e);
         }
     }
 

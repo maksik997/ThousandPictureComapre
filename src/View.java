@@ -23,7 +23,6 @@ public class View extends JFrame {
         this.setIconImage(icon.getImage());
         this.setMinimumSize(new Dimension(800, 400));
         this.pack();
-
         this.setVisible(true);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);

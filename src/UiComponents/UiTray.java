@@ -17,7 +17,7 @@ public class UiTray extends JPanel {
         this.add(duplicatesField_);
     }
 
-    public void update(int total, int processed, int duplicates) {
+    public void update(long total, long processed, long duplicates) {
         totalField_.setText(String.valueOf(total));
         processedField_.setText(String.valueOf(processed));
         duplicatesField_.setText(String.valueOf(duplicates));

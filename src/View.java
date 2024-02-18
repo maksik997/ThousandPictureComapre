@@ -19,7 +19,7 @@ public class View extends JFrame {
 
         this.add(locationView);
 
-        this.setTitle("Thousand Picture Comapre v0.3.2");
+        this.setTitle("Thousand Picture Comapre v0.3.3");
         this.setIconImage(icon.getImage());
         this.setMinimumSize(new Dimension(800, 400));
         this.pack();

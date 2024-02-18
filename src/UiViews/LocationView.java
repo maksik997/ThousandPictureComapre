@@ -44,7 +44,7 @@ public class LocationView extends JPanel {
         write(String.format("%s%n", msg));
     }
 
-    public void updateTray(int total, int processed, int duplicates) {
+    public void updateTray(long total, long processed, long duplicates) {
         uiMainPanel_.updateTray(total, processed, duplicates);
     }
 

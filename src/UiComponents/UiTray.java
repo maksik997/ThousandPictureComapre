@@ -26,4 +26,16 @@ public class UiTray extends JPanel {
     public void clear() {
         update(0, 0, 0);
     }
+
+    public JTextField getTotalField_() {
+        return totalField_;
+    }
+
+    public JTextField getProcessedField_() {
+        return processedField_;
+    }
+
+    public JTextField getDuplicatesField_() {
+        return duplicatesField_;
+    }
 }

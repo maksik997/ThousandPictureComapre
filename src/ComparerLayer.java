@@ -8,8 +8,6 @@ public class ComparerLayer {
 
     private final PictureComparer pc;
 
-
-
     public ComparerLayer() {
         destDir = new File(System.getProperty("user.dir"));
         try {
@@ -24,18 +22,14 @@ public class ComparerLayer {
         pc._reset();
     }
 
-    public void setUp(){
-        try {
-            pc._setUp(sourceDir, destDir);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void setUp() throws IOException{
+        pc._setUp(sourceDir, destDir);
     }
 
     // This method compares all images checksums
-    public void compareAndExtract(){
+    public void compareAndExtract() {
         if(sourceDir == null || destDir == null)
-            throw new RuntimeException("Test exception::");
+            throw new RuntimeException("Source directory and destination directory shouldn't be null");
 
         pc.map();
         pc.compare();

@@ -16,6 +16,7 @@
 ## Notes:
 - Project build system: InteliJ Idea
 - Jdk version: 19
-- App doesn't check if images are corrupted. So be warned about that
+- ~~App doesn't check if images are corrupted. So be warned about that.~~ (Picture Comparer lib 0.3.3d)
+- Versions with d letter suffix are un-tested
 
 Author of the code: Maksymilian Strzelczak 

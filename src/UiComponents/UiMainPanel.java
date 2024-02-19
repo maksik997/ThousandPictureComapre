@@ -41,7 +41,7 @@ public class UiMainPanel extends JPanel {
     public void writeLine(String msg) {
         write(String.format("%s%n", msg));
     }
-    
+
 
     public String getPath() {
         return uiPath_.getPath();
@@ -51,6 +51,7 @@ public class UiMainPanel extends JPanel {
         return uiPath_.getPathButton();
     }
 
+    // Getters
     public UiPath getUiPath_() {
         return uiPath_;
     }

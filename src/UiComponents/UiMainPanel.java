@@ -42,9 +42,6 @@ public class UiMainPanel extends JPanel {
         write(String.format("%s%n", msg));
     }
 
-    public void updateTray(long total, long processed, long duplicates) {
-        uiTray_.update(total, processed, duplicates);
-    }
 
     public String getPath() {
         return uiPath_.getPath();
@@ -52,5 +49,18 @@ public class UiMainPanel extends JPanel {
 
     public JButton getPathButton() {
         return uiPath_.getPathButton();
+    }
+
+    // Getters
+    public UiPath getUiPath_() {
+        return uiPath_;
+    }
+
+    public UiOutput getUiOutput_() {
+        return uiOutput_;
+    }
+
+    public UiTray getUiTray_() {
+        return uiTray_;
     }
 }

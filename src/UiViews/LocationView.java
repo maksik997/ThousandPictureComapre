@@ -45,7 +45,27 @@ public class LocationView extends JPanel {
     }
 
     public void updateTray(long total, long processed, long duplicates) {
-        uiMainPanel_.updateTray(total, processed, duplicates);
+        setTotalFieldValue(total);
+        setProcessedFieldValue(processed);
+        setDuplicatesFieldValue(duplicates);
+    }
+
+    public void setTotalFieldValue(long value) {
+        uiMainPanel_.getUiTray_().getTotalField_().setText(
+            String.valueOf(value)
+        );
+    }
+
+    public void setProcessedFieldValue(long value) {
+        uiMainPanel_.getUiTray_().getProcessedField_().setText(
+            String.valueOf(value)
+        );
+    }
+
+    public void setDuplicatesFieldValue(long value) {
+        uiMainPanel_.getUiTray_().getDuplicatesField_().setText(
+            String.valueOf(value)
+        );
     }
 
     public JButton getButton(Utility.Buttons button){
@@ -62,4 +82,15 @@ public class LocationView extends JPanel {
         return uiMainPanel_.getPath();
     }
 
+    public UiHeader getUiHeader_() {
+        return uiHeader_;
+    }
+
+    public UiMainPanel getUiMainPanel_() {
+        return uiMainPanel_;
+    }
+
+    public UiFooter getUiFooter_() {
+        return uiFooter_;
+    }
 }

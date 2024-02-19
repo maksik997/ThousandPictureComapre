@@ -1,7 +1,6 @@
 ![logo](resources/thumbnail.png) 
 # Thousand Picture Comapre
-### Version tag: 0.3.2f
-
+### Version tag: 0.3.3f
 ## Instruction of usage: 
 1. To start application you either need to use **Main class** or if you use .jar file, you should use attached script **run.bat**.
 2. You should see the app right now. In the upper part of a window you should see logo, name and button with text: *settings*, lower you should see a path picker *(label: "Path:", static text field and button with text: "open")*, then lower you should see three indicators with labels *(total, processed and duplicates)* and on the right you should see empty space *(which is output log)*, then at the bottom there are three buttons *(reset, load files & compare and move files)*.
@@ -12,10 +11,9 @@
 7. Hurray, you actually prepared the app to compare. Now it's **showtime**. To start the process of processing click button labeled **Load files & compare** and wait until a process is done.
 8. When finally, after some time, the application actually mapped all the pictures you are ready to move on. There are two possible outcomes of mapping either app found duplicate, in that case you can click the move files button, or app didn't find any duplicates then you are happy that you don't have redundant pictures.
 9. If you click **Move files** button, then the application will move all the redundant files into specified in the settings directory (if you haven't specified it, then the app will move them to place where .jar file stands).
-
 ## Notes:
-- Project build system: InteliJ Idea
+- Project build system: IntelliJ IDEA
 - Jdk version: 19
-- App doesn't check if images are corrupted. So be warned about that
+- Versions with d letter suffix are un-tested
 
-Author of the code: Maksymilian Strzelczak 
+Author: [Github](https://github.com/maksik997) 

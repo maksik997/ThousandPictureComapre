@@ -1,6 +1,7 @@
 import UiViews.LocationView;
 import UiViews.SettingsView;
 import UiComponents.Utility;
+import pl.magzik.Comparer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,6 +42,12 @@ public class Controller {
             }
         });
 
+        // Changing mode
+        sView.getModeSelector().addActionListener(
+            e -> model.getComparerLayer().getPc()
+                .setMode((Comparer.Modes) sView.getModeSelector().getSelectedItem())
+        );
+
         LocationView lView = view.getLocationView();
 
         // Show settings view.
@@ -71,6 +78,7 @@ public class Controller {
             lView.getButton(Utility.Buttons.OPEN_SOURCE).setEnabled(false);
             lView.getButton(Utility.Buttons.LOAD_FILES).setEnabled(false);
             lView.getButton(Utility.Buttons.RESET).setEnabled(false);
+            sView.getModeSelector().setEnabled(false);
             model.getComparerLayer().setSourceDir(new File(lView.getPath()));
 
             loadFilesWorker.execute();
@@ -85,6 +93,7 @@ public class Controller {
             lView.getButton(Utility.Buttons.OPEN_SOURCE).setEnabled(false);
             lView.getButton(Utility.Buttons.MOVE_FILES).setEnabled(false);
             lView.getButton(Utility.Buttons.RESET).setEnabled(false);
+            sView.getModeSelector().setEnabled(false);
 
             fileTransferWorker.execute();
 
@@ -97,6 +106,7 @@ public class Controller {
 
         ComparerLayer compareLayer = model.getComparerLayer();
         LocationView lView = view.getLocationView();
+        SettingsView sView = view.getSettingsView();
 
         loadFilesWorker = new SwingWorker<>() {
             @Override
@@ -133,6 +143,8 @@ public class Controller {
 
                 lView.getButton(Utility.Buttons.OPEN_SOURCE).setEnabled(true);
                 lView.getButton(Utility.Buttons.RESET).setEnabled(true);
+                sView.getModeSelector().setEnabled(true);
+
 
                 return null;
             }
@@ -154,6 +166,8 @@ public class Controller {
 
                 lView.getButton(Utility.Buttons.OPEN_SOURCE).setEnabled(true);
                 lView.getButton(Utility.Buttons.RESET).setEnabled(true);
+                sView.getModeSelector().setEnabled(true);
+
                 return null;
             }
         };

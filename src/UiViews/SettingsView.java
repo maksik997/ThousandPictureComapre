@@ -3,6 +3,7 @@ package UiViews;
 import UiComponents.UiHeader;
 import UiComponents.UiSettings;
 import UiComponents.Utility;
+import pl.magzik.Comparer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,5 +45,9 @@ public class SettingsView extends JPanel {
 
     public JButton getPathButton() {
         return uiSettings_.getPathButton();
+    }
+
+    public JComboBox<Comparer.Modes> getModeSelector() {
+        return uiSettings_.getModeComboBox();
     }
 }

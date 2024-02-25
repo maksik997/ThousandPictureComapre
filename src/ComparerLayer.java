@@ -10,11 +10,7 @@ public class ComparerLayer {
 
     public ComparerLayer() {
         destDir = new File(System.getProperty("user.dir"));
-        try {
-            pc = new PictureComparer();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        pc = new PictureComparer();
     }
 
     public void _reset(){
@@ -23,7 +19,7 @@ public class ComparerLayer {
     }
 
     public void setUp() throws IOException{
-        pc._setUp(sourceDir, destDir);
+        pc._setUp(sourceDir, destDir, pc.getMode());
     }
 
     // This method compares all images checksums

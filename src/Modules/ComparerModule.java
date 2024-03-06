@@ -1,14 +1,16 @@
+package Modules;
+
 import pl.magzik.PictureComparer;
 
 import java.io.File;
 import java.io.IOException;
 
-public class ComparerLayer {
+public class ComparerModule {
     private File sourceDir, destDir;
 
     private final PictureComparer pc;
 
-    public ComparerLayer() {
+    public ComparerModule() {
         destDir = new File(System.getProperty("user.dir"));
         pc = new PictureComparer();
     }

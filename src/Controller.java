@@ -1,3 +1,4 @@
+import Modules.ComparerModule;
 import UiViews.LocationView;
 import UiViews.SettingsView;
 import UiComponents.Utility;
@@ -27,16 +28,26 @@ public class Controller {
     }
 
     private void initView(){
+        // Initialize header listeners for each view
+        view.getScenes().forEach( p -> {
+            p.getUiHeader_().getComparerButton().addActionListener(e ->
+                    view.toggleScene(Utility.Scene.COMPARER)
+            );
+            p.getUiHeader_().getSettingsButton().addActionListener(e ->
+                    view.toggleScene(Utility.Scene.SETTINGS)
+            );
+            p.getUiHeader_().getGalleryButton().addActionListener(e ->
+                    view.toggleScene(Utility.Scene.GALLERY)
+            );
+        });
+
         // This method initializes every interactive element of view
         SettingsView sView = view.getSettingsView();
-
-        // Show the main view.
-        sView.getBackButton().addActionListener(e-> view.toggleScene(Utility.Scene.MAIN));
 
         // destination button action listener
         sView.getPathButton().addActionListener(e->{
             if(sView.openFileChooser()) {
-                model.getComparerLayer().setDestDir(
+                model.getComparerModule().setDestDir(
                     new File(sView.getPath())
                 );
             }
@@ -44,14 +55,11 @@ public class Controller {
 
         // Changing mode
         sView.getModeSelector().addActionListener(
-            e -> model.getComparerLayer().getPc()
+            e -> model.getComparerModule().getPc()
                 .setMode((Comparer.Modes) sView.getModeSelector().getSelectedItem())
         );
 
         LocationView lView = view.getLocationView();
-
-        // Show settings view.
-        lView.getButton(Utility.Buttons.SETTINGS).addActionListener(e-> view.toggleScene(Utility.Scene.SETTINGS));
 
         // path button action listener
         lView.getButton(Utility.Buttons.OPEN_SOURCE).addActionListener(e->{ // updated
@@ -66,7 +74,7 @@ public class Controller {
 
             workersFactory();
             lView.clear();
-            model.getComparerLayer()._reset();
+            model.getComparerModule()._reset();
 
             lView.writeLine("Reset done.\n");
         });
@@ -79,7 +87,7 @@ public class Controller {
             lView.getButton(Utility.Buttons.LOAD_FILES).setEnabled(false);
             lView.getButton(Utility.Buttons.RESET).setEnabled(false);
             sView.getModeSelector().setEnabled(false);
-            model.getComparerLayer().setSourceDir(new File(lView.getPath()));
+            model.getComparerModule().setSourceDir(new File(lView.getPath()));
 
             loadFilesWorker.execute();
 
@@ -104,7 +112,7 @@ public class Controller {
     private void workersFactory(){
         // This method will create workers on-demand, which is handy in case of program restart without restart
 
-        ComparerLayer compareLayer = model.getComparerLayer();
+        ComparerModule compareLayer = model.getComparerModule();
         LocationView lView = view.getLocationView();
         SettingsView sView = view.getSettingsView();
 
@@ -176,7 +184,7 @@ public class Controller {
     private void executeProcessedObjects() {
         // This method will create a new SwingWorker that will observe for any change in ProcessedObjectCount property,
         // and will update it when needed.
-        ComparerLayer compareLayer = model.getComparerLayer();
+        ComparerModule compareLayer = model.getComparerModule();
         LocationView lView = view.getLocationView();
 
         SwingWorker<Void,Long> task = new SwingWorker<>() {

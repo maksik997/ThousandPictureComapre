@@ -5,25 +5,20 @@ import UiComponents.*;
 import javax.swing.*;
 import java.awt.*;
 
-public class LocationView extends JPanel {
-
-    private final UiHeader uiHeader_;
+public class LocationView extends AbstractView {
 
     private final UiMainPanel uiMainPanel_;
 
     private final UiFooter uiFooter_;
     
     public LocationView() {
-        this.setLayout(new BorderLayout());
+        super.uiHeader_.toggleButton(UiHeader.Button.COMPARER);
 
-        // update v0.3
-        this.uiHeader_ = new UiHeader();
         this.uiMainPanel_ = new UiMainPanel();
         this.uiFooter_ = new UiFooter();
 
-        this.add(uiHeader_, BorderLayout.NORTH);
-        this.add(uiMainPanel_);
-        this.add(uiFooter_, BorderLayout.SOUTH);
+        add(uiMainPanel_);
+        add(uiFooter_, BorderLayout.SOUTH);
     }
 
     public void clear(){

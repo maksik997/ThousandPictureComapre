@@ -62,6 +62,6 @@ public class Utility {
         SETTINGS, OPEN_SOURCE, RESET, LOAD_FILES, MOVE_FILES
     }
     public enum Scene {
-        SETTINGS, MAIN
+        SETTINGS, COMPARER, GALLERY
     }
 }

@@ -1,19 +1,39 @@
+import UiComponents.UiHeader;
+import UiViews.AbstractView;
+import UiViews.GalleryView;
 import UiViews.LocationView;
 import UiViews.SettingsView;
 import UiComponents.Utility;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 public class View extends JFrame {
 
     // Different Panels
     private final LocationView locationView;
     private final SettingsView settingsView;
+    private final GalleryView galleryView;
 
-    public View() throws HeadlessException {
-        locationView = new LocationView();
+    // UPDATE 0.4
+    private final List<AbstractView> scenes;
+
+
+    public View() throws HeadlessException, IOException {
+        scenes = new ArrayList<>();
+
+        galleryView = new GalleryView();
         settingsView = new SettingsView();
+        locationView = new LocationView();
+
+        scenes.add(galleryView);
+        scenes.add(settingsView);
+        scenes.add(locationView);
 
         ImageIcon icon = new ImageIcon("resources/thumbnail.png");
 
@@ -38,14 +58,33 @@ public class View extends JFrame {
         return settingsView;
     }
 
+    public GalleryView getGalleryView() {
+        return galleryView;
+    }
+
+    public List<AbstractView> getScenes() {
+        return List.copyOf(scenes);
+    }
+
     public void toggleScene(Utility.Scene scene) {
-        if (scene == Utility.Scene.MAIN) {
-            remove(settingsView);
-            add(locationView);
-        } else {
-            remove(locationView);
-            add(settingsView);
+        switch (scene) {
+            case SETTINGS -> {
+                remove(locationView);
+                remove(galleryView);
+                add(settingsView);
+            }
+            case COMPARER -> {
+                remove(settingsView);
+                remove(galleryView);
+                add(locationView);
+            }
+            case GALLERY -> {
+                remove(locationView);
+                remove(settingsView);
+                add(galleryView);
+            }
         }
+        
         repaint();
         revalidate();
     }

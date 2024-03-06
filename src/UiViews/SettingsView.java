@@ -7,31 +7,20 @@ import pl.magzik.Comparer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class SettingsView extends JPanel {
+public class SettingsView extends AbstractView {
 
     private final UiSettings uiSettings_;
 
-    private final JButton backButton;
-
 
     public SettingsView() {
-        this.setLayout(new BorderLayout());
+        super.uiHeader_.toggleButton(UiHeader.Button.SETTINGS);
 
-        // update v0.3
-        UiHeader uiHeader_ = new UiHeader();
         this.uiSettings_ = new UiSettings();
-        this.backButton = Utility.buttonFactory("Back", new Insets(5, 15, 5, 15));
 
-        uiHeader_.getSettingsButton().setVisible(false);
-
-        this.add(uiHeader_, BorderLayout.PAGE_START);
         this.add(uiSettings_);
-        this.add(backButton, BorderLayout.PAGE_END);
-    }
-
-    public JButton getBackButton() {
-        return backButton;
     }
 
     // Couple of easy access methods :)

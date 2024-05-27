@@ -1,27 +1,36 @@
+/* todo
+    Check if pics are available,
+*/
+
 package Modules;
 
-import javax.imageio.ImageIO;
+import Exceptions.InvalidTypeException;
+import pl.magzik.PictureComparer;
+
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.*;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GalleryModule {
 
     private static final Path imageReferenceFilePath = Path.of(".", "resources", "gallery.tp");
 
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
     private final DefaultTableModel galleryModel;
 
     private final List<Path> images;
 
+    private final PictureComparer pc;
+
+    private SwingWorker<Void, Void> mapObjects, transferObjects, removeObjects;
 
     public GalleryModule() throws IOException {
         // File Name, Size, Modification Date
@@ -32,6 +41,12 @@ public class GalleryModule {
             }
         };
 
+        galleryModel.addColumn("File name");
+        galleryModel.addColumn("Size");
+        galleryModel.addColumn("Modification time");
+
+        this.pc = new PictureComparer();
+
         images = new ArrayList<>();
         if (Files.exists(imageReferenceFilePath))
             loadFromFile();
@@ -39,24 +54,26 @@ public class GalleryModule {
 
     // Basic set of operations
 
-    public void addImage(String path) throws IOException {
+    public void addImage(String path) throws IOException, InvalidTypeException {
         Path filePath = Path.of(path);
+
+        if (!Files.exists(filePath) || !pc.filePredicate(filePath.toFile()))
+            throw new InvalidTypeException("Given file isn't a image.");
 
         images.add(filePath);
         galleryModel.addRow(new String[]{
             filePath.toFile().getName(),
-            String.valueOf(Files.size(filePath)),
-            String.valueOf(Files.getLastModifiedTime(filePath))
+            getKilobytes(Files.size(filePath)),
+            getFormattedDate(Files.getLastModifiedTime(filePath))
         });
 
         saveToFile(images);
     }
 
-    public void removeImage(String path) {
-        Path filePath = Path.of(path);
+    public void removeImage(int idx) {
+        Path filePath = images.get(idx);
 
-        galleryModel.removeRow(images.indexOf(filePath));
-
+        galleryModel.removeRow(idx);
         images.remove(filePath);
     }
 
@@ -71,15 +88,18 @@ public class GalleryModule {
 
         int idx = images.indexOf(filePath);
 
+        File oldFile = new File(path);
 
-        Path pointerPath = filePath.subpath(0, filePath.toString().lastIndexOf("/"));
-        String extension = filePath.getFileName().toString().substring(filePath.toString().lastIndexOf("."));
+        Path parentPath = filePath.getParent();
+        String extension = path.substring(path.lastIndexOf('.'));
 
-        Path newPath = Paths.get(pointerPath.toString(), newName + "." + extension);
-        images.set(idx, newPath);
-        Files.move(filePath, newPath);
+        File newFile = new File(parentPath.toString(), newName + "." + extension);
 
-        galleryModel.setValueAt(newName + "." + extension, idx, 0);
+        if (!oldFile.renameTo(newFile))
+            throw new IOException("Could not rename " + oldFile + " to " + newFile);
+
+        images.set(idx, newFile.toPath());
+        galleryModel.setValueAt(newFile.getName(), idx, 0);
     }
 
     // Special set of operations
@@ -97,16 +117,31 @@ public class GalleryModule {
 
     private void loadFromFile() throws IOException {
         try (BufferedReader reader = Files.newBufferedReader(imageReferenceFilePath)) {
-            reader.lines().map(Path::of).forEach(images::add);
+            reader.lines()
+                    .map(Path::of)
+                    .filter(Files::exists)
+                    .map(Path::toFile)
+                    .filter(pc::filePredicate)
+                    .map(File::toPath)
+                    .forEach(images::add);
         }
 
         for (Path path : images) {
             galleryModel.addRow(new String[]{
                 path.toFile().getName(),
-                String.valueOf(Files.size(path)),
-                String.valueOf(Files.getLastModifiedTime(path))
+                getKilobytes(Files.size(path)),
+                getFormattedDate(Files.getLastModifiedTime(path))
             });
         }
+
+        // To clear any unreachable images.
+        // todo It should be for now solution.
+        //  Probably app should ask user about that.
+        saveToFile(images);
+    }
+
+    public void saveToFile() throws IOException {
+        saveToFile(images);
     }
 
     private static void saveToFile(List<Path> images) throws IOException {
@@ -120,5 +155,23 @@ public class GalleryModule {
                 writer.newLine();
             }
         }
+    }
+
+    public DefaultTableModel getGalleryModel() {
+        return galleryModel;
+    }
+
+    private String getKilobytes(double bytes) {
+        return String.format("%d KB",(int)(bytes/(1024)));
+    }
+
+    private String getFormattedDate(FileTime fileTime) {
+        return dateFormat.format(fileTime.toMillis());
+    }
+
+    public void resetTasks(SwingWorker<Void, Void> mapObjects, SwingWorker<Void, Void> transferObjects, SwingWorker<Void, Void> removeObjects) {
+        this.mapObjects = mapObjects;
+        this.transferObjects = transferObjects;
+        this.removeObjects = removeObjects;
     }
 }

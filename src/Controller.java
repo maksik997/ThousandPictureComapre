@@ -1,4 +1,6 @@
+import Exceptions.InvalidTypeException;
 import Modules.ComparerModule;
+import Modules.GalleryModule;
 import Modules.SettingsModule;
 import UiComponents.Utility;
 import UiViews.*;
@@ -35,6 +37,7 @@ public class Controller {
         initMenuView();
         initComparerView();
         initSettingsView();
+        initGalleryView();
 
         // Initialize workers
 //        workersFactory();
@@ -415,6 +418,86 @@ public class Controller {
         );
     }
 
+    private void initGalleryView() {
+        GalleryView gView = view.getGalleryView();
+        GalleryModule gModule = model.getGalleryModule();
+
+        // Initialize gallery table
+        gView.getGalleryTable().setModel(gModule.getGalleryModel());
+
+        // Add Button
+        gView.getAddImageButton().addActionListener(e -> {
+            String path = gView.openFileChooser();
+
+            if (path == null)
+                return;
+
+            try {
+                gModule.addImage(path);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format("Error encountered while adding the file.%n Try again!"),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            } catch (InvalidTypeException ex) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format(ex.getMessage()),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        // Remove Button
+        gView.getRemoveImageButton().addActionListener(e -> {
+            int[] selected = gView.getGalleryTable().getSelectedRows();
+            if (selected == null || selected.length == 0) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format("You didn't pick any image to delete.%nTry again! You can do it!"),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+
+                return;
+            }
+
+            for (int idx : selected) {
+                gModule.removeImage(idx);
+            }
+
+            try {
+                gModule.saveToFile();
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format("Error encountered while saving file.%nIt's possible that image wasn't deleted.%nRestart the app and try again"),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        // Distinct Button
+        gView.getDistinctButton().addActionListener(e -> {
+            // This operation will lock gallery.
+
+            int[] selected = gView.getGalleryTable().getSelectedRows();
+            if (selected == null || selected.length < 2) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        String.format("You either didn't select any image or selected one image.%nTry again and this time select at least two images!"),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+        });
+    }
+
     private void comparerTasks() {
         // todo
         //  I should probably add some more EDT safety,
@@ -431,7 +514,7 @@ public class Controller {
                         // Probably cuz of FileVisitor
                         cView.getStateLabel().setText("Preparing...");
                         view.setCursor(
-                                Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+                            Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
                         );
 
                         try {
@@ -537,6 +620,41 @@ public class Controller {
         );
     }
 
+    private void galleryTasks() {
+        GalleryView gView = view.getGalleryView();
+        GalleryModule gModule = model.getGalleryModule();
+
+        gModule.resetTasks(
+            new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() throws Exception {
+                    view.setCursor(
+                        Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+                    );
+
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    view.setCursor(Cursor.getDefaultCursor());
+                }
+            },
+            new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() throws Exception {
+                    return null;
+                }
+            },
+            new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() throws Exception {
+                    return null;
+                }
+            }
+        );
+    }
+
 //    private void workersFactory(){
 //        // This method will create workers on-demand, which is handy in case of program restart without restart
 //
@@ -621,7 +739,8 @@ public class Controller {
         SwingWorker<Void,Long> task = new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                *//*long lastProcessedCount = compareLayer.getPc().getMappedObjects().size(); // for now
+                */
+    /*long lastProcessedCount = compareLayer.getPc().getMappedObjects().size(); // for now
                 while (!loadFilesWorker.isDone()) {
                     long thisProcessedCount = compareLayer.getPc().getMappedObjects().size(); // for now
                     if (lastProcessedCount < thisProcessedCount){
@@ -629,7 +748,8 @@ public class Controller {
 
                         publish(thisProcessedCount);
                     }
-                }*//*
+                }*/
+    /*
                 return null;
             }
 

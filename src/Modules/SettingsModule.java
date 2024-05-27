@@ -1,3 +1,7 @@
+/* todo
+    Check if specified in config.cfg paths are valid,
+ */
+
 package Modules;
 
 import java.io.BufferedWriter;

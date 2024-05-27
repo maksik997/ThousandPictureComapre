@@ -41,15 +41,6 @@ public class Model {
     }
 
     private void init() throws IOException {
-        // This method will check if meta files were created,
-        // and if not will create them.
-        // Also, will load settings
-
-        Path metaDir = Path.of(System.getProperty("user.dir") + File.separator + "meta");
-        if(!Files.exists(metaDir)) {
-            Files.createDirectory(metaDir);
-        }
-
         this.settingsModule.loadSettings();
     }
 }

@@ -1,16 +1,13 @@
 package UiViews;
 
-import UiComponents.UiGalleryButtonPanel;
-import UiComponents.UiHeader;
 import UiComponents.Utility;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.io.File;
-import java.util.List;
 
 public class GalleryView extends AbstractView {
 
@@ -24,7 +21,11 @@ public class GalleryView extends AbstractView {
 
     private final JTable galleryTable;
 
-    private final JButton addImageButton, removeImageButton, distinctButton, unifyNamesButton;
+    private final JTextField searchForImage;
+
+    private final JButton addImageButton, removeImageButton, distinctButton, unifyNamesButton, searchButton, openButton;
+
+    private final JFileChooser fileChooser;
 
     public GalleryView() {
 //        super.uiHeader_.toggleButton(UiHeader.Button.GALLERY);
@@ -52,15 +53,48 @@ public class GalleryView extends AbstractView {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.VERTICAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+
+        headerPanel.setBorder(new CompoundBorder(
+            new MatteBorder(0, 0, 1, 0, Color.GRAY),
+            new EmptyBorder(5, 0, 5, 0)
+        ));
+
         JLabel headerLabel = new JLabel("Gallery:");
         headerLabel.setFont(Utility.fontHelveticaBold);
-        headerLabel.setBorder(new MatteBorder(0, 0, 1, 0, Color.GRAY));
 
-        mainPanel.add(headerLabel, BorderLayout.NORTH);
+        headerPanel.add(headerLabel, gbc);
+        gbc.gridx++;
+        gbc.weightx = 1;
+        headerPanel.add(Box.createHorizontalGlue(), gbc);
+        gbc.weightx = 0;
+        gbc.gridx++;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.insets = new Insets(5,5, 5, 0);
+
+        searchForImage = new JTextField(25);
+        searchForImage.setFont(Utility.fontHelveticaPlain);
+
+        headerPanel.add(searchForImage, gbc);
+        gbc.gridx++;
+        gbc.insets = new Insets(5,0, 5, 5);
+
+        searchButton = Utility.buttonFactory("Search", new Insets(5, 10, 5, 10));
+        headerPanel.add(searchButton, gbc);
+
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
+        gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.NORTH;
         gbc.gridy = 0;
@@ -73,6 +107,7 @@ public class GalleryView extends AbstractView {
         removeImageButton = Utility.buttonFactory("Remove", new Insets(5, 10, 5, 10));
         distinctButton = Utility.buttonFactory("Distinct", new Insets(5, 10, 5, 10));
         unifyNamesButton = Utility.buttonFactory("Unify", new Insets(5, 10, 5, 10));
+        openButton = Utility.buttonFactory("Open", new Insets(5, 10, 5, 10));
 
         buttonPanel.add(addImageButton, gbc);
         gbc.gridy++;
@@ -81,6 +116,8 @@ public class GalleryView extends AbstractView {
         buttonPanel.add(distinctButton, gbc);
         gbc.gridy++;
         buttonPanel.add(unifyNamesButton, gbc);
+        gbc.gridy++;
+        buttonPanel.add(openButton, gbc);
         gbc.gridy++;
         gbc.weighty = 1;
         buttonPanel.add(Box.createVerticalGlue(), gbc);
@@ -92,9 +129,58 @@ public class GalleryView extends AbstractView {
         mainPanel.add(new JScrollPane(galleryTable));
 
         this.add(mainPanel);
+
+        fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+        fileChooser.setDialogTitle("Pick image you want to add:");
+        fileChooser.setApproveButtonText("Pick");
     }
 
-/*    public UiGalleryButtonPanel getUiGalleryButtonPanel() {
+    public JButton getAddImageButton() {
+        return addImageButton;
+    }
+
+    public JButton getRemoveImageButton() {
+        return removeImageButton;
+    }
+
+    public JButton getDistinctButton() {
+        return distinctButton;
+    }
+
+    public JButton getUnifyNamesButton() {
+        return unifyNamesButton;
+    }
+
+    public JButton getSearchButton() {
+        return searchButton;
+    }
+
+    public JButton getOpenButton() {
+        return openButton;
+    }
+
+    public JTable getGalleryTable() {
+        return galleryTable;
+    }
+
+    public JTextField getSearchForImage() {
+        return searchForImage;
+    }
+
+    public String openFileChooser() {
+        // Null if nothing selected
+        // String with a path if something selected
+        int file = fileChooser.showOpenDialog(this);
+        if (file == JFileChooser.APPROVE_OPTION) {
+            return fileChooser.getSelectedFile().getAbsolutePath();
+        }
+
+        return null;
+    }
+
+    /*    public UiGalleryButtonPanel getUiGalleryButtonPanel() {
         return uiGalleryButtonPanel;
     }
 

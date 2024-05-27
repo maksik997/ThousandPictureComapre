@@ -1,9 +1,7 @@
 package UiComponents;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
-import javax.swing.border.TitledBorder;
+import javax.swing.border.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
@@ -45,13 +43,16 @@ public class Utility {
 
         textField.setEditable(false);
         textField.setFocusable(false);
-        textField.setFont(fontHelveticaPlain);
+        textField.setFont(fontBigHelveticaBold);
         textField.setHorizontalAlignment(SwingConstants.CENTER);
 
         textField.setBorder(new TitledBorder(
-            new LineBorder(Color.GRAY, 2),
+            new LineBorder(
+                Color.GRAY,
+                    2
+            ),
             title,
-            TitledBorder.CENTER, TitledBorder.ABOVE_TOP,
+            TitledBorder.CENTER, TitledBorder.TOP,
             Utility.fontSmallHelveticaBold
         ));
 
@@ -59,9 +60,9 @@ public class Utility {
     }
 
     public enum Buttons {
-        SETTINGS, OPEN_SOURCE, RESET, LOAD_FILES, MOVE_FILES
+        /*SETTINGS,*/ OPEN_SOURCE, RESET, LOAD_FILES, MOVE_FILES
     }
     public enum Scene {
-        SETTINGS, COMPARER, GALLERY
+        SETTINGS, COMPARER, GALLERY, MENU
     }
 }

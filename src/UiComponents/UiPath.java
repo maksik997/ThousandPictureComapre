@@ -1,40 +1,50 @@
 package UiComponents;
 
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.*;
 import java.awt.*;
+import java.io.File;
 
 public class UiPath extends JPanel {
     private String path;
-    private final JTextField pathTextField_;
+    private final JTextField pathTextField;
     private final JButton pathButton;
-    private final JFileChooser fileChooser_;
+    private final JFileChooser fileChooser;
 
     public UiPath() {
-        this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-        this.setBorder(new EmptyBorder(5, 5, 5, 5));
+        this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+        this.setBorder(new CompoundBorder(
+                new MatteBorder(0,0,1,0, Color.GRAY),
+                new EmptyBorder(5, 10, 5, 10)
+        ));
 
-        JLabel pathLabel = new JLabel("Path: ", SwingConstants.RIGHT);
-        this.pathTextField_ = new JTextField();
-        this.pathButton = Utility.buttonFactory("Open", new Insets(10, 15, 10, 15));
-        this.fileChooser_ = new JFileChooser();
-
-        pathLabel.setFont(Utility.fontHelveticaBold);
-        this.pathTextField_.setEditable(false);
-        this.pathTextField_.setFocusable(false);
-        this.pathTextField_.setBorder(
-            new CompoundBorder(
-                this.pathTextField_.getBorder(),
-                new EmptyBorder(5, 0, 5, 0)
+        this.pathTextField = new JTextField();
+        this.pathTextField.setEditable(false);
+        this.pathTextField.setFocusable(false);
+        this.pathTextField.setBorder(
+            new TitledBorder(
+                new CompoundBorder(
+                    new LineBorder(Color.GRAY, 1, true),
+                    new EmptyBorder(5, 10, 0, 10)
+                ),
+                "Path:"
             )
         );
-        this.pathTextField_.setFont(Utility.fontHelveticaPlain);
+        this.pathTextField.setFont(Utility.fontHelveticaPlain);
 
-        this.fileChooser_.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        this.pathButton = Utility.buttonFactory(
+            "Open",
+            new Insets(5, 15, 5, 15)
+        );
 
-        this.add(pathLabel);
-        this.add(this.pathTextField_);
+        this.fileChooser = new JFileChooser();
+        this.fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        this.fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+        this.fileChooser.setDialogTitle("Pick a directory with pictures to compare:");
+        this.fileChooser.setApproveButtonText("Pick");
+
+        this.add(this.pathTextField);
+        this.add(Box.createHorizontalStrut(40));
         this.add(this.pathButton);
     }
 
@@ -46,23 +56,23 @@ public class UiPath extends JPanel {
         return path;
     }
 
-    private void updatePath(String str) {
-        this.pathTextField_.setText(str);
+    public void setPath(String str) {
+        this.pathTextField.setText(str);
         this.path = str.isEmpty() ? null : str;
+    }
+
+    public void clearPath() {
+        setPath("");
     }
 
     public boolean openFileChooser() {
         // True means that user has picked a path.
         // False means otherwise
-        int file = fileChooser_.showOpenDialog(this);
+        int file = fileChooser.showOpenDialog(this);
         if(file == JFileChooser.APPROVE_OPTION) {
-            updatePath(fileChooser_.getSelectedFile().getAbsolutePath());
+            setPath(fileChooser.getSelectedFile().getAbsolutePath());
             return true;
         }
         return false;
-    }
-
-    public void clear() {
-        updatePath("");
     }
 }

@@ -3,39 +3,41 @@ package UiComponents;
 import javax.swing.*;
 public class UiTray extends JPanel {
 
-    private final JTextField totalField_, processedField_, duplicatesField_;
+    private final JTextField totalField/*, processedField*/, duplicatesField;
 
     public UiTray() {
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-        this.totalField_ = Utility.constTextFieldFactory("Total:", "0", 6);
-        this.processedField_ = Utility.constTextFieldFactory("Processed:", "0", 6);
-        this.duplicatesField_ = Utility.constTextFieldFactory("Duplicates: ", "0", 6);
+        this.totalField = Utility.constTextFieldFactory("Total:", "0", 6);
+//        this.processedField = Utility.constTextFieldFactory("Processed:", "0", 6);
+        this.duplicatesField = Utility.constTextFieldFactory("Duplicates: ", "0", 6);
 
-        this.add(totalField_);
-        this.add(processedField_);
-        this.add(duplicatesField_);
+        this.add(totalField);
+//        this.add(Box.createHorizontalGlue());
+//        this.add(processedField);
+        this.add(Box.createHorizontalGlue());
+        this.add(duplicatesField);
     }
 
-    public void update(long total, long processed, long duplicates) {
-        totalField_.setText(String.valueOf(total));
-        processedField_.setText(String.valueOf(processed));
-        duplicatesField_.setText(String.valueOf(duplicates));
+    public void update(long total/*, long processed*/, long duplicates) {
+        totalField.setText(String.valueOf(total));
+//        processedField.setText(String.valueOf(processed));
+        duplicatesField.setText(String.valueOf(duplicates));
     }
 
     public void clear() {
-        update(0, 0, 0);
+        update(0,/* 0,*/ 0);
     }
 
-    public JTextField getTotalField_() {
-        return totalField_;
+    public JTextField getTotalField() {
+        return totalField;
     }
 
-    public JTextField getProcessedField_() {
-        return processedField_;
-    }
+//    public JTextField getProcessedField() {
+//        return processedField;
+//    }
 
-    public JTextField getDuplicatesField_() {
-        return duplicatesField_;
+    public JTextField getDuplicatesField() {
+        return duplicatesField;
     }
 }

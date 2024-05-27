@@ -1,47 +1,45 @@
-import UiComponents.UiHeader;
-import UiViews.AbstractView;
-import UiViews.GalleryView;
-import UiViews.LocationView;
-import UiViews.SettingsView;
+// todo
+//  Add loading frame for model,
+
 import UiComponents.Utility;
+import UiViews.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 public class View extends JFrame {
 
     // Different Panels
-    private final LocationView locationView;
+    private final ComparerView comparerView;
     private final SettingsView settingsView;
     private final GalleryView galleryView;
+    private final MenuView menuView;
 
-    // UPDATE 0.4
-    private final List<AbstractView> scenes;
-
+    private final List<JPanel> scenes;
 
     public View() throws HeadlessException, IOException {
         scenes = new ArrayList<>();
 
+        menuView = new MenuView();
         galleryView = new GalleryView();
         settingsView = new SettingsView();
-        locationView = new LocationView();
+        comparerView = new ComparerView();
 
         scenes.add(galleryView);
         scenes.add(settingsView);
-        scenes.add(locationView);
+        scenes.add(comparerView);
+        scenes.add(menuView);
 
         ImageIcon icon = new ImageIcon("resources/thumbnail.png");
 
-        this.add(locationView);
+        this.add(menuView);
 
-        this.setTitle("Thousand Picture Comapre v0.3.3");
+        this.setTitle("Thousand Picture `Comapre`");
         this.setIconImage(icon.getImage());
-        this.setMinimumSize(new Dimension(800, 400));
+        this.setMinimumSize(new Dimension(800, 650));
         this.pack();
         this.setVisible(true);
         this.setLocationRelativeTo(null);
@@ -50,8 +48,8 @@ public class View extends JFrame {
         new Controller(this, new Model());
     }
 
-    public LocationView getLocationView() {
-        return locationView;
+    public ComparerView getComparerView() {
+        return comparerView;
     }
 
     public SettingsView getSettingsView() {
@@ -62,27 +60,22 @@ public class View extends JFrame {
         return galleryView;
     }
 
-    public List<AbstractView> getScenes() {
+    public MenuView getMenuView() {
+        return menuView;
+    }
+
+    public List<JPanel> getScenes() {
         return List.copyOf(scenes);
     }
 
     public void toggleScene(Utility.Scene scene) {
+        scenes.forEach(this::remove);
+
         switch (scene) {
-            case SETTINGS -> {
-                remove(locationView);
-                remove(galleryView);
-                add(settingsView);
-            }
-            case COMPARER -> {
-                remove(settingsView);
-                remove(galleryView);
-                add(locationView);
-            }
-            case GALLERY -> {
-                remove(locationView);
-                remove(settingsView);
-                add(galleryView);
-            }
+            case SETTINGS -> add(settingsView);
+            case COMPARER -> add(comparerView);
+            case GALLERY -> add(galleryView);
+            case MENU -> add(menuView);
         }
         
         repaint();

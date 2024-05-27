@@ -8,12 +8,14 @@ import java.awt.*;
 
 public class UiHeader extends JPanel {
 
-    private final JButton comparerButton;
-    private final JButton galleryButton;
-    private final JButton settingsButton;
+//    private final JButton comparerButton;
+//    private final JButton galleryButton;
+//    private final JButton settingsButton;
+
+    private final JButton backButton;
 
     public UiHeader() {
-        this.setLayout(new BorderLayout());
+        this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         this.setBorder(
             new CompoundBorder(
                 new MatteBorder(0,0,1,0, Color.GRAY),
@@ -23,9 +25,14 @@ public class UiHeader extends JPanel {
 
         ImageIcon thumbnail = Utility.getScaledImage(new ImageIcon("resources/thumbnail.png"), 50, 50);
 
-        JLabel title = new JLabel("Thousand Picture Comapre", thumbnail, JLabel.LEFT);
+        JLabel title = new JLabel(
+            "Thousand Picture `Comapre`",
+            thumbnail,
+            JLabel.LEFT
+        );
+        title.setFont(Utility.fontHelveticaBold);
 
-        JPanel buttonOverlay = new JPanel();
+        /*JPanel buttonOverlay = new JPanel();
         buttonOverlay.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
 
@@ -40,38 +47,48 @@ public class UiHeader extends JPanel {
         gbc.gridy++;
         buttonOverlay.add(galleryButton, gbc);
         gbc.gridy++;
-        buttonOverlay.add(settingsButton, gbc);
+        buttonOverlay.add(settingsButton, gbc);*/
 
-        title.setFont(Utility.fontHelveticaBold);
+        backButton = Utility.buttonFactory(
+            "Back",
+            new Insets(5, 15, 5, 15)
+        );
 
-        this.add(title, BorderLayout.LINE_START);
-        this.add(buttonOverlay, BorderLayout.LINE_END);
+        this.add(title);
+        this.add(Box.createHorizontalGlue());
+        this.add(backButton);
+        //this.add(buttonOverlay, BorderLayout.LINE_END);
     }
 
-    public JButton getSettingsButton() {
-        return settingsButton;
+//    public JButton getSettingsButton() {
+//        return settingsButton;
+//    }
+//
+//    public JButton getComparerButton() {
+//        return comparerButton;
+//    }
+//
+//    public JButton getGalleryButton() {
+//        return galleryButton;
+//    }
+
+
+    public JButton getBackButton() {
+        return backButton;
     }
 
-    public JButton getComparerButton() {
-        return comparerButton;
-    }
+//    public enum Button {
+//        COMPARER, GALLERY, SETTINGS
+//    }
 
-    public JButton getGalleryButton() {
-        return galleryButton;
-    }
-
-    public enum Button {
-        COMPARER, GALLERY, SETTINGS
-    }
-
-    public void toggleButton(Button button) {
-        settingsButton.setEnabled(true);
-        comparerButton.setEnabled(true);
-        galleryButton.setEnabled(true);
-        switch (button) {
-            case COMPARER -> comparerButton.setEnabled(false);
-            case GALLERY -> galleryButton.setEnabled(false);
-            case SETTINGS -> settingsButton.setEnabled(false);
-        }
-    }
+//    public void toggleButton(Button button) {
+//        settingsButton.setEnabled(true);
+//        comparerButton.setEnabled(true);
+//        galleryButton.setEnabled(true);
+//        switch (button) {
+//            case COMPARER -> comparerButton.setEnabled(false);
+//            case GALLERY -> galleryButton.setEnabled(false);
+//            case SETTINGS -> settingsButton.setEnabled(false);
+//        }
+//    }
 }

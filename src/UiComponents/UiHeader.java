@@ -8,10 +8,10 @@ import java.awt.*;
 
 public class UiHeader extends JPanel {
 
-    private final JButton settingsButton;
+    private final JButton backButton;
 
     public UiHeader() {
-        this.setLayout(new BorderLayout());
+        this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         this.setBorder(
             new CompoundBorder(
                 new MatteBorder(0,0,1,0, Color.GRAY),
@@ -21,16 +21,25 @@ public class UiHeader extends JPanel {
 
         ImageIcon thumbnail = Utility.getScaledImage(new ImageIcon("resources/thumbnail.png"), 50, 50);
 
-        JLabel title = new JLabel("Thousand Picture Comapre", thumbnail, JLabel.LEFT);
-        this.settingsButton = Utility.buttonFactory("Settings", new Insets(5, 15, 5, 15));
-
+        JLabel title = new JLabel(
+            "Thousand Picture Comapre`",
+            thumbnail,
+            JLabel.LEFT
+        );
         title.setFont(Utility.fontHelveticaBold);
 
-        this.add(title, BorderLayout.LINE_START);
-        this.add(settingsButton, BorderLayout.LINE_END);
+        backButton = Utility.buttonFactory(
+            "Back",
+            new Insets(5, 15, 5, 15)
+        );
+
+        this.add(title);
+        this.add(Box.createHorizontalGlue());
+        this.add(backButton);
     }
 
-    public JButton getSettingsButton() {
-        return settingsButton;
+    public JButton getBackButton() {
+        return backButton;
     }
+
 }

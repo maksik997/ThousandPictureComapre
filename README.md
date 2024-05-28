@@ -64,4 +64,4 @@ Remember after any change if you want to save your settings you should click **S
 - Jdk version: 22
 - Versions with d letter suffix are un-tested
 
-Author: [GitHub](https://github.com/maksik997) 
+Author: [GitHub](https://github.com/maksik997)

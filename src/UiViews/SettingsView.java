@@ -10,8 +10,6 @@ import java.awt.*;
 
 public class SettingsView extends AbstractView {
 
-    //private final UiSettings uiSettings_;
-
     private final UiPath destinationForComparer;
 
     private final JCheckBox recursiveModeToggle;
@@ -19,11 +17,6 @@ public class SettingsView extends AbstractView {
     private final JButton saveButton;
 
     public SettingsView() {
-        //super.uiHeader_.toggleButton(UiHeader.Button.SETTINGS);
-
-        //this.uiSettings_ = new UiSettings();
-
-//        this.add(uiSettings_);
         Border botBorder = new MatteBorder(0, 0, 1, 0, Color.GRAY);
 
         JPanel settingsPanel = new JPanel();
@@ -76,24 +69,6 @@ public class SettingsView extends AbstractView {
 
         this.add(settingsPanel);
     }
-
-    // Couple of easy access methods :)
-//    public String getPath() {
-//        return uiSettings_.getPath();
-//    }
-//
-//    public boolean openFileChooser() {
-//        return uiSettings_.openFileChooser();
-//    }
-//
-//    public JButton getPathButton() {
-//        return uiSettings_.getPathButton();
-//    }
-//
-//    public JComboBox<Comparer.Modes> getModeSelector() {
-//        return uiSettings_.getModeComboBox();
-//    }
-
 
     public UiPath getDestinationForComparer() {
         return destinationForComparer;

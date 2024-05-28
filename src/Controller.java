@@ -1,32 +1,27 @@
-import Exceptions.InvalidTypeException;
 import Modules.ComparerModule;
 import Modules.GalleryModule;
 import Modules.SettingsModule;
 import UiComponents.Utility;
 import UiViews.*;
 import pl.magzik.Comparer;
-import pl.magzik.Structures.ImageRecord;
 import pl.magzik.Structures.Record;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
+import java.util.List;
 
 public class Controller {
 
     private final View view;
     private final Model model;
-//    private SwingWorker<Void, Void> loadFilesWorker, fileTransferWorker;
 
     public Controller(View view, Model model) {
         this.view = view;
@@ -38,245 +33,28 @@ public class Controller {
         initComparerView();
         initSettingsView();
         initGalleryView();
-
-        // Initialize workers
-//        workersFactory();
     }
 
     private void initView(){
-        // Initialize header listeners for each view
+        // Back buttons for each scene
         view.getScenes().forEach( p -> {
             if (p instanceof AbstractView) {
                 ((AbstractView) p)
                     .getUiHeader_()
                     .getBackButton()
-                    .addActionListener(e -> view.toggleScene(Utility.Scene.MENU));
-            }
-
-            /*((AbstractView)p).getUiHeader_().getComparerButton().addActionListener(e ->
-                    view.toggleScene(Utility.Scene.COMPARER)
-            );
-            ((AbstractView)p).getUiHeader_().getSettingsButton().addActionListener(e ->
-                    view.toggleScene(Utility.Scene.SETTINGS)
-            );
-            ((AbstractView)p).getUiHeader_().getGalleryButton().addActionListener(e ->
-                    view.toggleScene(Utility.Scene.GALLERY)
-            );*/
-        });
-
-        // Initialize gallery view
-        /*GalleryView gView = view.getGalleryView();
-
-        gView.updateTableModel(model.getGalleryModule().getSerializedData());
-
-        // add image button
-        gView.getUiGalleryButtonPanel().getAddImageButton().addActionListener(a -> {
-            File[] objs = gView.openFileChooser();
-            if(objs != null) {
-                try {
-                    model.getGalleryModule().addImages(Arrays.asList(objs));
-                } catch (IOException e) {
-                    throw new RuntimeException(e); // todo ...
-                }
-
-                gView.updateTableModel(model.getGalleryModule().getSerializedData());
+                    .addActionListener(_ -> view.toggleScene(Utility.Scene.MENU));
             }
         });
-
-        // delete image button
-        gView.getUiGalleryButtonPanel().getDeleteImageButton().addActionListener(a -> {
-            List<File> files = new ArrayList<>();
-
-            Arrays.stream(gView.getFilesTable().getSelectedRows()).forEach(i -> {
-                files.add((File) gView.getFilesTable().getValueAt(i, 0));
-            });
-
-            try {
-                model.getGalleryModule().deleteImages(files);
-            } catch (IOException e) {
-                throw new RuntimeException(e); // todo ...
-            }
-
-            gView.updateTableModel(model.getGalleryModule().getSerializedData());
-        });
-
-        // redundancy check button
-        gView.getUiGalleryButtonPanel().getRedundancyButton().addActionListener(a -> {
-            // todo
-
-            gView.getUiGalleryButtonPanel().setLocked(true);
-
-            gView.getUiGalleryButtonPanel().getRedundancyButton().setEnabled(false);
-
-//            gView.getUiHeader_().getGalleryButton().setEnabled(false);
-//            gView.getUiHeader_().getSettingsButton().setEnabled(false);
-//            gView.getUiHeader_().getComparerButton().setEnabled(false);
-
-            gView.getUiGalleryButtonPanel().getAddImageButton().setEnabled(false);
-
-
-            executeRedundancyCheck();
-
-        });
-
-        // attach tag button
-        gView.getUiGalleryButtonPanel().getAttachTagButton().addActionListener(a -> {
-            String tag = gView.openInputDialog(
-                "Which tag would you like to add?",
-                "Attach tag", model.getGalleryModule().getTags(), "Unordered"
-            );
-
-            if(tag != null && !tag.isEmpty()) {
-                //...
-                try {
-                    int[] selectedRows = gView.getFilesTable().getSelectedRows();
-                    for (int row : selectedRows) {
-                        model.getGalleryModule().attachTag(
-                            (File) gView.getFilesTable().getValueAt(row, 0),
-                            tag
-                        );
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e); // todo ...
-                }
-
-                gView.updateTableModel(model.getGalleryModule().getSerializedData());
-            }
-        });
-
-        // delete tag button
-        gView.getUiGalleryButtonPanel().getDeleteTagButton().addActionListener(a -> {
-            // todo ...
-            String tag = gView.openInputDialog(
-                "Which tag would you like to remove?", "Delete tag",
-                model.getGalleryModule().getTags(), "Unordered"
-            );
-
-            if(tag != null && !tag.isEmpty()) {
-                try {
-                    int[] selectedRows = gView.getFilesTable().getSelectedRows();
-                    for (int row : selectedRows) {
-                            model.getGalleryModule().deleteTag(
-                                (File) gView.getFilesTable().getValueAt(row, 0),
-                                tag
-                            );
-
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e); // todo ...
-                }
-            }
-
-            gView.updateTableModel(model.getGalleryModule().getSerializedData());
-        });
-
-        // open image preview on table
-        gView.getFilesTable().addMouseListener(new MouseAdapter() {
-            // todo
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if(e.getClickCount() < 2 || e.getButton() != MouseEvent.BUTTON1) return;
-
-                int row = gView.getFilesTable().rowAtPoint(e.getPoint());
-                if(row >= 0 && row < gView.getFilesTable().getRowCount()) {
-                    File selectedFile = (File) gView.getFilesTable().getValueAt(row, 0);
-                    JOptionPane.showMessageDialog(null, "W.I.P", String.format("Image preview for: %s", selectedFile.getName()), JOptionPane.PLAIN_MESSAGE);
-                }
-            }
-        });
-
-        // selection settings
-        gView.getFilesTable().getSelectionModel().addListSelectionListener(a -> {
-            if (gView.getUiGalleryButtonPanel().isLocked()) return;
-
-            boolean isAnyRowSelected = gView.getFilesTable().getSelectedRows().length != 0;
-
-            gView.getUiGalleryButtonPanel().getDeleteImageButton().setEnabled(isAnyRowSelected);
-            gView.getUiGalleryButtonPanel().getRedundancyButton().setEnabled(gView.getFilesTable().getSelectedRows().length > 1);
-            gView.getUiGalleryButtonPanel().getAttachTagButton().setEnabled(isAnyRowSelected);
-            gView.getUiGalleryButtonPanel().getDeleteTagButton().setEnabled(isAnyRowSelected);
-        });*/
-
-        // This method initializes every interactive element of view
-        //SettingsView sView = view.getSettingsView();
-
-        /*// destination button action listener
-        sView.getPathButton().addActionListener(e->{
-            if(sView.openFileChooser()) {
-                model.getComparerModule().setDestDir(
-                    new File(sView.getPath())
-                );
-            }
-        });
-
-        // Changing mode
-        sView.getModeSelector().addActionListener(
-            e -> model.getComparerModule().getPc()
-                .setMode((Comparer.Modes) sView.getModeSelector().getSelectedItem())
-        );*/
-
-        //ComparerView lView = view.getComparerView();
-
-        // path button action listener
-//        lView.getButton(Utility.Buttons.OPEN_SOURCE).addActionListener(e->{ // updated
-//            if(lView.openFileChooser()) {
-//                lView.getButton(Utility.Buttons.LOAD_FILES).setEnabled(true);
-//            }
-//        });
-
-        // reset button action listener
-//        lView.getButton(Utility.Buttons.RESET).addActionListener(e->{
-//            //lView.writeLine("Resetting...");
-//
-//            workersFactory();
-//            lView.clear();
-//            model.getComparerModule().reset();
-//
-//            //lView.writeLine("Reset done.\n");
-//        });
-//
-//        // load files button action listener
-//        lView.getButton(Utility.Buttons.LOAD_FILES).addActionListener(e->{
-//            //lView.writeLine("Loading images. It can take awhile...");
-//
-//            lView.getButton(Utility.Buttons.OPEN_SOURCE).setEnabled(false);
-//            lView.getButton(Utility.Buttons.LOAD_FILES).setEnabled(false);
-//            lView.getButton(Utility.Buttons.RESET).setEnabled(false);
-//            sView.getModeSelector().setEnabled(false);
-//            //model.getComparerModule().setSources(new File(lView.getPath()));
-//
-//            loadFilesWorker.execute();
-//
-//            view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-//        });
-//
-//        // move files button action listener
-//        lView.getButton(Utility.Buttons.MOVE_FILES).addActionListener(e->{
-//            //lView.writeLine("File transfer started. It can take awhile...");
-//
-//            lView.getButton(Utility.Buttons.OPEN_SOURCE).setEnabled(false);
-//            lView.getButton(Utility.Buttons.MOVE_FILES).setEnabled(false);
-//            lView.getButton(Utility.Buttons.RESET).setEnabled(false);
-//            sView.getModeSelector().setEnabled(false);
-//
-//            fileTransferWorker.execute();
-//
-//            view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-//        });
     }
 
     private void initMenuView() {
         MenuView mv = view.getMenuView();
 
-        mv.getComparerButton().addActionListener(e -> view.toggleScene(Utility.Scene.COMPARER));
-        mv.getGalleryButton().addActionListener(e -> view.toggleScene(Utility.Scene.GALLERY));
-        mv.getSettingsButton().addActionListener(e -> view.toggleScene(Utility.Scene.SETTINGS));
-        mv.getCreditsButton().addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    null, "Work in progress."
-            );
-        });
-        mv.getExitButton().addActionListener(e -> System.exit(0));
+        mv.getComparerButton().addActionListener(_ -> view.toggleScene(Utility.Scene.COMPARER));
+        mv.getGalleryButton().addActionListener(_ -> view.toggleScene(Utility.Scene.GALLERY));
+        mv.getSettingsButton().addActionListener(_ -> view.toggleScene(Utility.Scene.SETTINGS));
+        mv.getCreditsButton().addActionListener(_ -> view.toggleScene(Utility.Scene.CREDITS));
+        mv.getExitButton().addActionListener(_ -> System.exit(0));
     }
 
     private void initComparerView() {
@@ -284,7 +62,7 @@ public class Controller {
         ComparerModule cModule = model.getComparerModule();
 
         // Path button action listener
-        cView.getUiPath().getPathButton().addActionListener(e -> {
+        cView.getUiPath().getPathButton().addActionListener(_ -> {
             if (cView.getUiPath().openFileChooser()) {
                 model.getComparerModule().setSources(
                     new File(cView.getUiPath().getPath())
@@ -301,7 +79,7 @@ public class Controller {
         );
 
         // Load files & compare button
-        cView.getLoadButton().addActionListener(e -> {
+        cView.getLoadButton().addActionListener(_ -> {
             // Assign a user picked path for Picture Comparer
             String path = cView.getUiPath().getPath();
             if (path == null) {
@@ -326,7 +104,7 @@ public class Controller {
         });
 
         // Move files button
-        cView.getMoveButton().addActionListener(e -> {
+        cView.getMoveButton().addActionListener(_ -> {
             // Check if moving files is valid
             if (cModule.getPc().getDuplicatesObjectCount() <= 0) {
                 JOptionPane.showMessageDialog(
@@ -350,7 +128,7 @@ public class Controller {
         });
 
         // Reset Button
-        cView.getResetButton().addActionListener(e -> {
+        cView.getResetButton().addActionListener(_ -> {
             comparerTasks();
             cView.clear();
             cModule.reset();
@@ -372,7 +150,7 @@ public class Controller {
         ComparerModule cModule = model.getComparerModule();
 
         // Destination Path button
-        sView.getDestinationForComparer().getPathButton().addActionListener(e -> {
+        sView.getDestinationForComparer().getPathButton().addActionListener(_ -> {
             if (sView.getDestinationForComparer().openFileChooser()) {
                 Path path;
                 try {
@@ -393,7 +171,7 @@ public class Controller {
         });
 
         // Save Button
-        sView.getSaveButton().addActionListener(e -> {
+        sView.getSaveButton().addActionListener(_ -> {
             sModule.updateSetting(
                 "mode",
                 sView.getRecursiveModeToggle().isSelected() ? "recursive" : "not-recursive"
@@ -426,14 +204,27 @@ public class Controller {
         gView.getGalleryTable().setModel(gModule.getGalleryModel());
 
         // Add Button
-        gView.getAddImageButton().addActionListener(e -> {
-            String path = gView.openFileChooser();
+        gView.getAddImageButton().addActionListener(_ -> {
+            // This operation will lock a gallery.
+            if (gModule.isLocked()) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
+                    "Information:",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+                return;
+            }
 
-            if (path == null)
+            List<String> paths = gView.openFileChooser();
+
+            if (paths == null)
                 return;
 
             try {
-                gModule.addImage(path);
+                view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                gModule.addImage(paths);
+                view.setCursor(Cursor.getDefaultCursor());
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(
                     null,
@@ -441,19 +232,26 @@ public class Controller {
                     "Error",
                     JOptionPane.ERROR_MESSAGE
                 );
-            } catch (InvalidTypeException ex) {
-                JOptionPane.showMessageDialog(
-                    null,
-                    String.format(ex.getMessage()),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
-                );
             }
         });
 
         // Remove Button
-        gView.getRemoveImageButton().addActionListener(e -> {
+        gView.getRemoveImageButton().addActionListener(_ -> {
+            // This operation will lock a gallery.
+            if (gModule.isLocked()) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
+                    "Information:",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+                return;
+            }
+
+            // Important note!
+            // We must sort indexes and then reverse them
             int[] selected = gView.getGalleryTable().getSelectedRows();
+
             if (selected == null || selected.length == 0) {
                 JOptionPane.showMessageDialog(
                     null,
@@ -463,6 +261,16 @@ public class Controller {
                 );
 
                 return;
+            }
+
+            Arrays.sort(selected);
+            int l = 0, r = selected.length - 1;
+            while (l < r) {
+                int t = selected[l];
+                selected[l] = selected[r];
+                selected[r] = t;
+                l++;
+                r--;
             }
 
             for (int idx : selected) {
@@ -482,20 +290,98 @@ public class Controller {
         });
 
         // Distinct Button
-        gView.getDistinctButton().addActionListener(e -> {
-            // This operation will lock gallery.
+        gView.getDistinctButton().addActionListener(_ -> {
+            // This operation will lock a gallery.
+            if (gModule.isLocked()) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        String.format("You should wait until all names was updated.%nTry again after task is finished!"),
+                        "Information:",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+                return;
+            }
 
             int[] selected = gView.getGalleryTable().getSelectedRows();
             if (selected == null || selected.length < 2) {
                 JOptionPane.showMessageDialog(
-                        null,
-                        String.format("You either didn't select any image or selected one image.%nTry again and this time select at least two images!"),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
+                    null,
+                    String.format("You either didn't select any image or selected one image.%nTry again and this time select at least two images!"),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
                 );
                 return;
             }
+
+            // Lock buttons
+            gView.getAddImageButton().setEnabled(false);
+            gView.getRemoveImageButton().setEnabled(false);
+            gView.getDistinctButton().setEnabled(false);
+            gView.getUnifyNamesButton().setEnabled(false);
+            gView.getOpenButton().setEnabled(false);
+
+            galleryTasks();
+
+            gModule.getMapObjects().execute();
         });
+
+        // Unify Button
+        gView.getUnifyNamesButton().addActionListener(_ -> {
+            // This operation will lock a gallery.
+            if (gModule.isLocked()) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
+                    "Information:",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+                return;
+            }
+
+            gModule.getUnifyNames().execute();
+        });
+
+        // Open Button
+        gView.getOpenButton().addActionListener(_ -> {
+            // This operation will lock a gallery.
+            if (gModule.isLocked()) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
+                    "Information:",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+                return;
+            }
+
+            int[] selected = gView.getGalleryTable().getSelectedRows();
+            if (selected == null || selected.length == 0) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format("You didn't pick any image to open.%nTry again! You can do it!"),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            for (int idx : selected) {
+                try {
+                    gModule.openImage(idx);
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        String.format("Couldn't open image%nTry again!"),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+
+        });
+
+        // Workers
+        galleryTasks();
     }
 
     private void comparerTasks() {
@@ -576,10 +462,10 @@ public class Controller {
                 },
                 new SwingWorker<>() {
                     @Override
-                    protected Void doInBackground() throws Exception {
+                    protected Void doInBackground() {
                         cView.getStateLabel().setText("Preparing...");
                         view.setCursor(
-                                Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+                            Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
                         );
 
                         cView.getStateLabel().setText("Moving...");
@@ -622,15 +508,105 @@ public class Controller {
 
     private void galleryTasks() {
         GalleryView gView = view.getGalleryView();
+        SettingsView sView = view.getSettingsView();
         GalleryModule gModule = model.getGalleryModule();
 
         gModule.resetTasks(
             new SwingWorker<>() {
                 @Override
-                protected Void doInBackground() throws Exception {
+                protected Void doInBackground() {
                     view.setCursor(
                         Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
                     );
+
+                    try {
+                        gModule.prepareComparer(
+                            sView.getDestinationForComparer().getPath(),
+                            Arrays.stream(gView.getGalleryTable().getSelectedRows()).boxed().toList()
+                        );
+                    } catch (FileNotFoundException e) {
+                        JOptionPane.showMessageDialog(
+                            null,
+                            String.format("Error message:%n%s%nPlease restart the app!", e.getMessage()),
+                            "Error encountered!",
+                            JOptionPane.ERROR_MESSAGE
+                        );
+
+                        return null;
+                    }
+
+                    gModule.compare();
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    view.setCursor(Cursor.getDefaultCursor());
+
+                    int ans = JOptionPane.showConfirmDialog(
+                        view,
+                    "Do you want to delete all duplicates?",
+                        "What to do?",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE
+                    );
+
+                    if (ans == JOptionPane.YES_OPTION)
+                        gModule.getRemoveObjects().execute();
+                    else
+                        gModule.getTransferObjects().execute();
+
+                }
+            },
+            new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() {
+                    view.setCursor(
+                        Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+                    );
+
+                    try {
+                        gModule.moveRedundant();
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(
+                            null,
+                            String.format("Error message:%n%s%nPlease restart the app!", e.getMessage()),
+                            "Error encountered!",
+                            JOptionPane.ERROR_MESSAGE
+                        );
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    view.setCursor(Cursor.getDefaultCursor());
+                    gView.getAddImageButton().setEnabled(true);
+                    gView.getRemoveImageButton().setEnabled(true);
+                    gView.getDistinctButton().setEnabled(true);
+                    gView.getUnifyNamesButton().setEnabled(true);
+                    gView.getOpenButton().setEnabled(true);
+
+                    JOptionPane.showMessageDialog(view, "Redundant images transfer completed.");
+                }
+            },
+            new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() {
+                    view.setCursor(
+                        Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+                    );
+
+                    try {
+                        gModule.removeRedundant();
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(
+                            null,
+                            String.format("Error message:%n%s%nPlease restart the app!", e.getMessage()),
+                            "Error encountered!",
+                            JOptionPane.ERROR_MESSAGE
+                        );
+                    }
 
                     return null;
                 }
@@ -638,206 +614,15 @@ public class Controller {
                 @Override
                 protected void done() {
                     view.setCursor(Cursor.getDefaultCursor());
-                }
-            },
-            new SwingWorker<>() {
-                @Override
-                protected Void doInBackground() throws Exception {
-                    return null;
-                }
-            },
-            new SwingWorker<>() {
-                @Override
-                protected Void doInBackground() throws Exception {
-                    return null;
+                    gView.getAddImageButton().setEnabled(true);
+                    gView.getRemoveImageButton().setEnabled(true);
+                    gView.getDistinctButton().setEnabled(true);
+                    gView.getUnifyNamesButton().setEnabled(true);
+                    gView.getOpenButton().setEnabled(true);
+
+                    JOptionPane.showMessageDialog(view, "Redundant images deletion completed.");
                 }
             }
         );
     }
-
-//    private void workersFactory(){
-//        // This method will create workers on-demand, which is handy in case of program restart without restart
-//
-//        ComparerModule compareLayer = model.getComparerModule();
-//        ComparerView lView = view.getComparerView();
-//        SettingsView sView = view.getSettingsView();
-//
-//        loadFilesWorker = new SwingWorker<>() {
-//            @Override
-//            protected Void doInBackground() {
-//                //lView.writeLine("Setting up picture comparer.");
-//                try {
-//                    compareLayer.setUp();
-//                } catch (IOException e) {
-//                    JOptionPane.showMessageDialog(view, String.format("Error have occurred:%n%s", e.getMessage()));
-//
-//                    return null;
-//                }
-//                //lView.writeLine("Picture comparer ready.\nMapping files. It can take awhile...");
-//
-//                System.out.println(compareLayer.getPc().getDuplicatesObjectCount());
-//
-//                lView.updateTray(
-//                    compareLayer.getPc().getTotalObjectCount(),
-//                    0, // for now
-//                    compareLayer.getPc().getDuplicatesObjectCount()
-//                );
-//
-//                // v2
-//                // Tray updating
-//                executeProcessedObjects();
-//
-//                compareLayer.compareAndExtract();
-//
-//                //lView.writeLine("Completed checking for duplicates.");
-//                lView.setDuplicatesFieldValue(compareLayer.getPc().getDuplicatesObjectCount());
-//
-//                view.setCursor(Cursor.getDefaultCursor());
-//
-//                if(compareLayer.getPc().getDuplicatesObjectCount() > 0)
-//                    lView.getButton(Utility.Buttons.MOVE_FILES).setEnabled(true);
-//
-//                lView.getButton(Utility.Buttons.OPEN_SOURCE).setEnabled(true);
-//                lView.getButton(Utility.Buttons.RESET).setEnabled(true);
-//                sView.getModeSelector().setEnabled(true);
-//
-//
-//                return null;
-//            }
-//        };
-//
-//        fileTransferWorker = new SwingWorker<>() {
-//            @Override
-//            protected Void doInBackground() {
-//                //lView.writeLine(
-////                    String.format("Moving duplicates from %s to %s",
-////                        compareLayer.getSources(), compareLayer.getDestDir()
-////                    )
-////                );
-//
-//                compareLayer.fileTransfer();
-//                //lView.writeLine("Completed moving files.");
-//
-//                view.setCursor(Cursor.getDefaultCursor());
-//
-//                lView.getButton(Utility.Buttons.OPEN_SOURCE).setEnabled(true);
-//                lView.getButton(Utility.Buttons.RESET).setEnabled(true);
-//                sView.getModeSelector().setEnabled(true);
-//
-//                return null;
-//            }
-//        };
-//    }
-
-    /*private void executeProcessedObjects() {
-        // This method will create a new SwingWorker that will observe for any change in ProcessedObjectCount property,
-        // and will update it when needed.
-        ComparerModule compareLayer = model.getComparerModule();
-        ComparerView lView = view.getComparerView();
-        GalleryView gView = view.getGalleryView();
-
-        SwingWorker<Void,Long> task = new SwingWorker<>() {
-            @Override
-            protected Void doInBackground() {
-                */
-    /*long lastProcessedCount = compareLayer.getPc().getMappedObjects().size(); // for now
-                while (!loadFilesWorker.isDone()) {
-                    long thisProcessedCount = compareLayer.getPc().getMappedObjects().size(); // for now
-                    if (lastProcessedCount < thisProcessedCount){
-                        lastProcessedCount = thisProcessedCount;
-
-                        publish(thisProcessedCount);
-                    }
-                }*/
-    /*
-                return null;
-            }
-
-            @Override
-            protected void process(List<Long> chunks) {
-                super.process(chunks);
-                long processed = compareLayer.getPc().getMappedObjects().size(); // for now
-
-//                lView.getUiMainPanel_().getUiTray().getProcessedField().setText(
-//                        String.valueOf(processed)
-//                );
-
-                int progress = (int) ((double)processed / (double) compareLayer.getPc().getTotalObjectCount() * 100);
-
-                gView.getUiGalleryButtonPanel()
-                        .getRedundancyCheckProgressBar().setValue(progress);
-                gView.getUiGalleryButtonPanel().getRedundancyCheckProgressBar().setString(progress + "%");
-            }
-        };
-
-        task.execute();
-    }*/
-
-    /*private void executeRedundancyCheck() {
-        // todo Start here next time
-        //  Add tray :)
-        //  Add locking,
-        GalleryView gView = view.getGalleryView();
-        ComparerModule comparerModule = model.getComparerModule();
-
-        new SwingWorker<Void, Integer>() {
-
-            @Override
-            protected Void doInBackground() {
-                publish(0);
-
-                List<File> filesToCheck = new ArrayList<>();
-                int[] rows = gView.getFilesTable().getSelectedRows();
-
-                Arrays.stream(rows).forEach(
-                    i -> filesToCheck.add((File) gView.getFilesTable().getValueAt(i, 0))
-                );
-
-                comparerModule.setSources(filesToCheck);
-                try {
-                    comparerModule.setUp();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-                executeProcessedObjects();
-                comparerModule.compareAndExtract();
-
-                try {
-                    model.getGalleryModule().deleteImages(
-                        comparerModule.getPc().getDuplicates().stream()
-                                .map(ImageRecord::getFile).toList()
-                    );
-                    comparerModule.removeRedundant();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-                gView.updateTableModel(model.getGalleryModule().getSerializedData());
-
-//                gView.getUiHeader_().getComparerButton().setEnabled(true);
-//                gView.getUiHeader_().getSettingsButton().setEnabled(true);
-
-                gView.getUiGalleryButtonPanel().getAddImageButton().setEnabled(true);
-
-                gView.getUiGalleryButtonPanel().setLocked(false);
-
-                JOptionPane.showMessageDialog(
-                    view,
-                    String.format("Redundancy check completed, removed: %d images",
-                        model.getComparerModule().getPc().getDuplicates().size()
-                    ),
-                    "Success", JOptionPane.INFORMATION_MESSAGE
-                );
-
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                super.done();
-                gView.getUiGalleryButtonPanel().getRedundancyCheckProgressBar().setString("Done");
-            }
-        }.execute();
-    }*/
 }

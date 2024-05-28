@@ -17,6 +17,7 @@ public class View extends JFrame {
     private final SettingsView settingsView;
     private final GalleryView galleryView;
     private final MenuView menuView;
+    private final CreditsView creditsView;
 
     private final List<JPanel> scenes;
 
@@ -27,25 +28,24 @@ public class View extends JFrame {
         galleryView = new GalleryView();
         settingsView = new SettingsView();
         comparerView = new ComparerView();
+        creditsView = new CreditsView();
 
         scenes.add(galleryView);
         scenes.add(settingsView);
         scenes.add(comparerView);
         scenes.add(menuView);
+        scenes.add(creditsView);
 
         ImageIcon icon = new ImageIcon("resources/thumbnail.png");
 
         this.add(menuView);
 
-        this.setTitle("Thousand Picture `Comapre`");
+        this.setTitle("Thousand Picture Comapre`");
         this.setIconImage(icon.getImage());
         this.setMinimumSize(new Dimension(800, 650));
         this.pack();
-        this.setVisible(true);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-
-        new Controller(this, new Model());
     }
 
     public ComparerView getComparerView() {
@@ -76,6 +76,7 @@ public class View extends JFrame {
             case COMPARER -> add(comparerView);
             case GALLERY -> add(galleryView);
             case MENU -> add(menuView);
+            case CREDITS -> add(creditsView);
         }
         
         repaint();

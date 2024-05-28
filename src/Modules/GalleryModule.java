@@ -4,10 +4,11 @@
 
 package Modules;
 
-import Exceptions.InvalidTypeException;
 import pl.magzik.PictureComparer;
+import pl.magzik.Structures.Record;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.*;
@@ -17,6 +18,7 @@ import java.nio.file.attribute.FileTime;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GalleryModule {
 
@@ -30,14 +32,18 @@ public class GalleryModule {
 
     private final PictureComparer pc;
 
-    private SwingWorker<Void, Void> mapObjects, transferObjects, removeObjects;
+    private boolean isLocked;
+
+    private SwingWorker<Void, Void> mapObjects, transferObjects, removeObjects, unifyNames;
 
     public GalleryModule() throws IOException {
+        isLocked = false;
+
         // File Name, Size, Modification Date
         galleryModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;
+                return column == 0;
             }
         };
 
@@ -46,26 +52,133 @@ public class GalleryModule {
         galleryModel.addColumn("Modification time");
 
         this.pc = new PictureComparer();
-
         images = new ArrayList<>();
         if (Files.exists(imageReferenceFilePath))
             loadFromFile();
+
+        galleryModel.addTableModelListener(e -> {
+            // This operation will lock a gallery.
+            if (e.getType() != TableModelEvent.UPDATE) return;
+
+            if (isLocked()) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
+                    "Information:",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+                return;
+            }
+
+            int r = e.getFirstRow();
+            int c = e.getColumn();
+
+            if (c != 0) return;
+
+            String newValue = (String) galleryModel.getValueAt(r, c);
+            Path file = images.get(r);
+
+            try {
+                modifyName(file.toString(), newValue);
+
+                repairModel(); // Eh... That's unfortunately necessary... It's costly...
+
+                saveToFile();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex); // do something with this :)
+            }
+        });
+
+        resetModuleTasks();
+    }
+
+    // Comparer interaction
+    public void prepareComparer(String destPath, List<Integer> indexes) throws FileNotFoundException {
+        // Prepares Picture Comparer with destination path and source path
+
+        List<Path> toCheck = new ArrayList<>();
+        for (int i = 0; i < images.size(); i++) {
+            if (indexes.contains(i))
+                toCheck.add(images.get(i));
+        }
+
+        pc._setUp(
+            new File(destPath),
+            toCheck.stream()
+                .map(Path::toFile)
+                .toList()
+        );
+    }
+
+    public void compare() {
+        // Finds all redundant images
+        // Do not call before setUp
+
+        pc.map();
+        pc.compare();
+    }
+
+
+
+    public void removeRedundant() throws IOException {
+        performReduction();
+        // Removes all the redundant images
+        AtomicBoolean deletedAll = new AtomicBoolean(true);
+
+        pc.getDuplicates().stream()
+                .map(Record::getFile)
+                .map(File::toPath)
+                .map(p -> {
+                    try {
+                        Files.deleteIfExists(p);
+                    } catch (IOException e) {
+                        return false;
+                    }
+                    return true;
+                })
+                .filter(b -> !b)
+                .findAny()
+                .ifPresent(_ -> deletedAll.set(false));
+        if (!deletedAll.get())
+            throw new IOException("Couldn't delete all files.");
+    }
+
+    public void moveRedundant() throws IOException {
+        performReduction();
+        // Moves all the redundant images
+        pc.move();
     }
 
     // Basic set of operations
 
-    public void addImage(String path) throws IOException, InvalidTypeException {
-        Path filePath = Path.of(path);
+    public void addImage(String... paths) throws IOException {
+        addImage(Arrays.asList(paths));
+    }
 
-        if (!Files.exists(filePath) || !pc.filePredicate(filePath.toFile()))
-            throw new InvalidTypeException("Given file isn't a image.");
+    public void addImage(List<String> paths) throws IOException {
+        // This method could take awhile,
+        // I should probably move it to some worker.
+        // But that's a todo for now.
 
-        images.add(filePath);
-        galleryModel.addRow(new String[]{
-            filePath.toFile().getName(),
-            getKilobytes(Files.size(filePath)),
-            getFormattedDate(Files.getLastModifiedTime(filePath))
-        });
+        for (String path : paths) {
+            Path filePath = Path.of(path);
+
+            if (!Files.exists(filePath))
+                continue;
+
+            if (filePath.toFile().isDirectory()) {
+                addImage(filePath.toFile().list());
+            } else {
+                if (!pc.filePredicate(filePath.toFile())) continue;
+
+                images.add(filePath);
+                galleryModel.addRow(new String[]{
+                        filePath.toFile().getName(),
+                        getKilobytes(Files.size(filePath)),
+                        getFormattedDate(Files.getLastModifiedTime(filePath))
+                });
+            }
+        }
 
         saveToFile(images);
     }
@@ -77,8 +190,8 @@ public class GalleryModule {
         images.remove(filePath);
     }
 
-    public void openImage(String path) throws IOException {
-        Path filePath = Path.of(path);
+    public void openImage(int idx) throws IOException {
+        Path filePath = images.get(idx);
 
         Desktop.getDesktop().open(filePath.toFile());
     }
@@ -91,29 +204,110 @@ public class GalleryModule {
         File oldFile = new File(path);
 
         Path parentPath = filePath.getParent();
-        String extension = path.substring(path.lastIndexOf('.'));
 
-        File newFile = new File(parentPath.toString(), newName + "." + extension);
+        File newFile = new File(parentPath.toString(), newName);
 
-        if (!oldFile.renameTo(newFile))
-            throw new IOException("Could not rename " + oldFile + " to " + newFile);
+        if (oldFile.equals(newFile)) return;
+
+        Files.move(oldFile.toPath(), newFile.toPath());
 
         images.set(idx, newFile.toPath());
-        galleryModel.setValueAt(newFile.getName(), idx, 0);
     }
 
     // Special set of operations
 
-    public void unifyNames() throws IOException {
-        String pattern = "img";
+    private void unifyNames() throws IOException {
+        String pattern = "tp_img_";
         int i = 0;
 
         for (Path filePath : images) {
-            modifyName(filePath.toString(), pattern + i);
+            String ext = filePath.toString().substring(filePath.toString().lastIndexOf("."));
+            modifyName(filePath.toString(), pattern + ++i + "_" + System.currentTimeMillis() + ext);
+        }
+    }
+
+    private void repairModel() throws IOException {
+        // This method will clear all models, and rewrite it with an image list.
+        // This method should be called if many operations were invoked outside EDT.
+        // Or if there is a risk that you'll find yourself inside a call loop.
+
+        while (galleryModel.getRowCount() > 0) galleryModel.removeRow(0);
+
+        for (Path p : images) {
+            String name = p.toFile().getName();
+            String kb = getKilobytes(Files.size(p));
+            String date = getFormattedDate(Files.getLastModifiedTime(p));
+
+            galleryModel.addRow(new String[]{name, kb, date});
         }
     }
 
     // todo more of this...
+
+    // Other important methods...
+
+    private void performReduction() throws IOException {
+        if (pc.getDuplicates().isEmpty())
+            return;
+
+        List<Integer> indexes = new ArrayList<>();
+        List<Path> files = pc.getDuplicates().stream().map(Record::getFile).map(File::toPath).toList();
+        for (Path f : files)
+            indexes.add(images.indexOf(f));
+
+        indexes.stream().map(images::get).forEach(images::remove);
+
+        indexes.forEach(galleryModel::removeRow);
+
+        saveToFile();
+    }
+
+    private void resetModuleTasks() {
+        // This worker will be used to safely update a gallery model, after a task is finished
+        unifyNames = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground()  {
+                isLocked = true;
+                try {
+                    unifyNames();
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        String.format("Error: %s", e.getMessage()),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    repairModel();
+                    saveToFile();
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "Couldn't repair model or save, please restart the app!",
+                        "Error:",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format("Names are unified now.%nYay!"),
+                    "Information:",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+
+                isLocked = false;
+                resetModuleTasks();
+            }
+        };
+    }
 
     private void loadFromFile() throws IOException {
         try (BufferedReader reader = Files.newBufferedReader(imageReferenceFilePath)) {
@@ -157,17 +351,43 @@ public class GalleryModule {
         }
     }
 
+    // Getters
+
     public DefaultTableModel getGalleryModel() {
         return galleryModel;
     }
 
     private String getKilobytes(double bytes) {
-        return String.format("%d KB",(int)(bytes/(1024)));
+        return ((int)(bytes/(1024))) == 0 ?
+                    String.format("%.2f KB",(bytes/(1024))) :
+                    String.format("%d KB",(int)(bytes/(1024)));
     }
 
     private String getFormattedDate(FileTime fileTime) {
         return dateFormat.format(fileTime.toMillis());
     }
+
+    public SwingWorker<Void, Void> getMapObjects() {
+        return mapObjects;
+    }
+
+    public SwingWorker<Void, Void> getTransferObjects() {
+        return transferObjects;
+    }
+
+    public SwingWorker<Void, Void> getRemoveObjects() {
+        return removeObjects;
+    }
+
+    public SwingWorker<Void, Void> getUnifyNames() {
+        return unifyNames;
+    }
+
+    public boolean isLocked() {
+        return isLocked;
+    }
+
+    // Resetting tasks...
 
     public void resetTasks(SwingWorker<Void, Void> mapObjects, SwingWorker<Void, Void> transferObjects, SwingWorker<Void, Void> removeObjects) {
         this.mapObjects = mapObjects;

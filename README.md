@@ -1,19 +1,67 @@
 ![logo](resources/thumbnail.png) 
-# Thousand Picture Comapre
-### Version tag: 0.3.3f
+# Thousand Picture Compare`
+### Version tag: 0.4.2d
+
+## Description: 
+**Warning!
+This version of this app contains some bugs.**
+However, if you want to use it, you should know that your data is safe.
+If you don't trust comparer, you could always move your images instead of removing them (Gallery feature).
+
+If you want to find or remove redundant images, and you want to do it somehow automatic, then this app is for you.
+App features with: 
+
+- Comparer which will help you find those images that are duplicates of existing ones,
+- Gallery which will help you in a kind of comfortable way to manage your images.
+
+Both of them are easy to use, and they're relatively fast. 
+
+**Comparer** features with comfortable view of all loaded images and duplicates that were found.
+Additionally, you can see how many of both were found.
+There is an option to use recursive search for images,
+which could be handy if you use many directories where you store your images.
+
+**Gallery** features with a list of your loaded images, with some options: Distinct, Unify, Open. Distinct will let you find any duplicates in selection and will ask if you want to remove them or move. Unify will let you standardise your image names in format: `tp_img_[n]_[timestamp].[extension]`. And last but not the least Open button, which let you open your images in your system image viewer.  
+
+This is my first bigger project, and I'm thrilled how it looks.
+It's a buggy from time to time,
+but I hope that with some more time I will be able to remove all bugs and create a great user experience.
+
+And for those that read the source code: Yes, there are a lot of todo comments there :P
+
 ## Instruction of usage: 
-1. To start application you either need to use **Main class** or if you use .jar file, you should use attached script **run.bat**.
-2. You should see the app right now. In the upper part of a window you should see logo, name and button with text: *settings*, lower you should see a path picker *(label: "Path:", static text field and button with text: "open")*, then lower you should see three indicators with labels *(total, processed and duplicates)* and on the right you should see empty space *(which is output log)*, then at the bottom there are three buttons *(reset, load files & compare and move files)*.
-3. Now when you have full knowledge about the main panel, we can move forward. **Preparing stage**. Firstly, you should move to a settings panel, to do so click **settings button**.
-4. **Setting up destination directory**, in simple words *where duplicates will be moved*. In the settings panel you should see the same kind of component like in the main panel (labeled "path"), click it and pick your desired destination directory.
-5. Now when you've picked your destination, it's time to move on and get back to the main panel, to do so click **back button** at the bottom of the window.
-6. The Next stage stands for **picking directory with pictures to compare**. To do so, click the button with label **open** and pick desired directory.
-7. Hurray, you actually prepared the app to compare. Now it's **showtime**. To start the process of processing click button labeled **Load files & compare** and wait until a process is done.
-8. When finally, after some time, the application actually mapped all the pictures you are ready to move on. There are two possible outcomes of mapping either app found duplicate, in that case you can click the move files button, or app didn't find any duplicates then you are happy that you don't have redundant pictures.
-9. If you click **Move files** button, then the application will move all the redundant files into specified in the settings directory (if you haven't specified it, then the app will move them to place where .jar file stands).
+1. Run the app.
+2. You can choose either to open a Comparer or Gallery or Settings.
+
+### Comparer
+1. You can pick directory where you want to search for images,
+2. Then you're able to click **Load & compare** button, which will lock most Comparer functions for time it's working.
+3. After waiting for some time, you will see that **Total** and **Duplicates** values will change, and you will be able to see that **Loaded originals** and **Duplicates found** changed (Duplicates only if any duplicate was found).
+4. Now you can perform **Move** action which will move those duplicates to the directory you specified.
+5. Then, if you want to use this Comparer instance, again you have to click **Reset** button.
+
+### Gallery 
+You will see a table and five buttons.
+To add images, you should click **Add** button, and pick there any file you want to add
+(the app will check if this is a valid picture, where valid means that image is supported by Picture Comparer).
+To remove image, you should click **Remove** button, which will remove all the selected images in table.
+To remove duplicates, you should click **Distinct** button, which require at least two pictures selected.
+Next there is **Unify** button which will rename all of your loaded images with specified format:
+`tp_img_[n]_[timestamp].[extension]`.
+And lastly, there is **Open** button, which will open your image in your system image viewer.
+
+### Settings
+Here you can change your destination for your Comparer output (for both Comparer and Gallery),
+and you can pick if you want to recursively search for images.
+Remember after any change if you want to save your settings you should click **Save settings** button.
+
+## Running app:
+1. Click .exe file.
+2. End...
+
 ## Notes:
 - Project build system: IntelliJ IDEA
-- Jdk version: 19
+- Jdk version: 22
 - Versions with d letter suffix are un-tested
 
-Author: [Github](https://github.com/maksik997) 
+Author: [GitHub](https://github.com/maksik997) 

@@ -2,13 +2,7 @@ import Modules.ComparerModule;
 import Modules.GalleryModule;
 import Modules.SettingsModule;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class Model {
 
@@ -20,12 +14,16 @@ public class Model {
 
     private final SettingsModule settingsModule;
 
+    private boolean isLoaded;
+
     public Model() throws IOException {
+        isLoaded = false;
         this.settingsModule = new SettingsModule(configPath);
-        init();
+        this.settingsModule.loadSettings();
 
         this.comparerModule = new ComparerModule();
         this.galleryModule = new GalleryModule();
+        isLoaded = true;
     }
 
     public ComparerModule getComparerModule() {
@@ -40,7 +38,7 @@ public class Model {
         return settingsModule;
     }
 
-    private void init() throws IOException {
-        this.settingsModule.loadSettings();
+    public boolean isLoaded() {
+        return isLoaded;
     }
 }

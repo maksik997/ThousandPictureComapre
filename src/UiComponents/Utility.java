@@ -59,10 +59,7 @@ public class Utility {
         return textField;
     }
 
-    public enum Buttons {
-        /*SETTINGS,*/ OPEN_SOURCE, RESET, LOAD_FILES, MOVE_FILES
-    }
     public enum Scene {
-        SETTINGS, COMPARER, GALLERY, MENU
+        SETTINGS, COMPARER, GALLERY, MENU, CREDITS
     }
 }

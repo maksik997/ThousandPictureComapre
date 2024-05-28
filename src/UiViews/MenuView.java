@@ -21,7 +21,7 @@ public class MenuView extends JPanel {
         ImageIcon icon = Utility.getScaledImage(new ImageIcon("resources/thumbnail.png"), 200, 200);
         JLabel iconLabel = new JLabel(icon);
 
-        JLabel title = new JLabel("Thousand Picture `Comapre`");
+        JLabel title = new JLabel("Thousand Picture Comapre`");
         title.setFont(Utility.fontBigHelveticaBold);
         title.setBorder(
                 new MatteBorder(0,0,1,0, Color.GRAY)

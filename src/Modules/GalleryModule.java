@@ -118,8 +118,6 @@ public class GalleryModule {
         pc.compare();
     }
 
-
-
     public void removeRedundant() throws IOException {
         performReduction();
         // Removes all the redundant images

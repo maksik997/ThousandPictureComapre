@@ -15,7 +15,7 @@ public class GalleryView extends AbstractView {
 
     private final JTable galleryTable;
 
-    private final JButton addImageButton, removeImageButton, distinctButton, unifyNamesButton, openButton;
+    private final JButton addImageButton, removeImageButton, deleteImageButton, distinctButton, unifyNamesButton, openButton, addTag, removeTag;
 
     private final JFileChooser fileChooser;
 
@@ -48,21 +48,30 @@ public class GalleryView extends AbstractView {
 
         buttonPanel.setBorder(new MatteBorder(0, 1, 0, 0, Color.GRAY));
 
-        addImageButton = Utility.buttonFactory("Add", new Insets(5, 10, 5, 10));
-        removeImageButton = Utility.buttonFactory("Remove", new Insets(5, 10, 5, 10));
+        addImageButton = Utility.buttonFactory("Add image", new Insets(5, 10, 5, 10));
+        removeImageButton = Utility.buttonFactory("Remove image", new Insets(5, 10, 5, 10));
+        deleteImageButton = Utility.buttonFactory("Delete image", new Insets(5, 10, 5, 10));
         distinctButton = Utility.buttonFactory("Distinct", new Insets(5, 10, 5, 10));
-        unifyNamesButton = Utility.buttonFactory("Unify", new Insets(5, 10, 5, 10));
-        openButton = Utility.buttonFactory("Open", new Insets(5, 10, 5, 10));
+        unifyNamesButton = Utility.buttonFactory("Unify names", new Insets(5, 10, 5, 10));
+        openButton = Utility.buttonFactory("Open image", new Insets(5, 10, 5, 10));
+        addTag = Utility.buttonFactory("Add Tag", new Insets(5, 10, 5, 10));
+        removeTag = Utility.buttonFactory("Remove Tag", new Insets(5, 10, 5, 10));
 
         buttonPanel.add(addImageButton, gbc);
         gbc.gridy++;
         buttonPanel.add(removeImageButton, gbc);
+        gbc.gridy++;
+        buttonPanel.add(deleteImageButton, gbc);
         gbc.gridy++;
         buttonPanel.add(distinctButton, gbc);
         gbc.gridy++;
         buttonPanel.add(unifyNamesButton, gbc);
         gbc.gridy++;
         buttonPanel.add(openButton, gbc);
+        gbc.gridy++;
+        buttonPanel.add(addTag, gbc);
+        gbc.gridy++;
+        buttonPanel.add(removeTag, gbc);
         gbc.gridy++;
         gbc.weighty = 1;
         buttonPanel.add(Box.createVerticalGlue(), gbc);
@@ -91,6 +100,10 @@ public class GalleryView extends AbstractView {
         return removeImageButton;
     }
 
+    public JButton getDeleteImageButton() {
+        return deleteImageButton;
+    }
+
     public JButton getDistinctButton() {
         return distinctButton;
     }
@@ -101,6 +114,14 @@ public class GalleryView extends AbstractView {
 
     public JButton getOpenButton() {
         return openButton;
+    }
+
+    public JButton getAddTag() {
+        return addTag;
+    }
+
+    public JButton getRemoveTag() {
+        return removeTag;
     }
 
     public JTable getGalleryTable() {

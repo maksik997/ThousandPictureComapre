@@ -7,7 +7,11 @@ import pl.magzik.Comparer;
 import pl.magzik.Structures.Record;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -221,16 +225,17 @@ public class Controller {
             if (paths == null)
                 return;
 
+
             try {
                 view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 gModule.addImage(paths);
                 view.setCursor(Cursor.getDefaultCursor());
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(
-                    null,
-                    String.format("Error encountered while adding the file.%n Try again!"),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
+                        null,
+                        String.format("Error encountered while adding the file.%n Try again!"),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
                 );
             }
         });
@@ -287,6 +292,66 @@ public class Controller {
                     JOptionPane.ERROR_MESSAGE
                 );
             }
+        });
+
+        // Delete Button
+        gView.getDeleteImageButton().addActionListener(_ -> {
+            if (gModule.isLocked()) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
+                    "Information:",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+                return;
+            }
+
+            int[] selected = gView.getGalleryTable().getSelectedRows();
+
+            if (selected == null || selected.length == 0) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    String.format("You didn't pick any image to delete.%nTry again! You can do it!"),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+
+                return;
+            }
+
+            int a = JOptionPane.showConfirmDialog(
+                view,
+                "Are you sure you want to delete these images?",
+                "Are you sure???",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            if (a == JOptionPane.YES_OPTION) {
+                try {
+                    gModule.getGalleryTableModel().deleteImage(selected[0]);
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        String.format("Couldn't delete image!%nPlease restart the app!"),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+
+                try {
+                    gModule.saveToFile();
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        String.format("Error encountered while saving file.%nIt's possible that image wasn't deleted.%nRestart the app and try again"),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+
+
         });
 
         // Distinct Button
@@ -378,6 +443,40 @@ public class Controller {
                 }
             }
 
+        });
+
+        // Table click on cell
+        gView.getGalleryTable().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                JTable table = gView.getGalleryTable();
+
+                int r = table.rowAtPoint(e.getPoint());
+                int c = table.columnAtPoint(e.getPoint());
+
+                if (table.isCellEditable(r, c)) {
+                    table.editCellAt(r, c);
+                    Component editor = table.getEditorComponent();
+                    editor.requestFocus();
+                }
+            }
+        });
+
+        gModule.getGalleryTableModel().addTableModelListener(e -> {
+            int c = e.getColumn();
+
+            if (c == 0 && e.getType() == TableModelEvent.UPDATE) {
+                try {
+                    gModule.saveToFile();
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        String.format("Couldn't save changes%nRestart the app!"),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
         });
 
         // Workers

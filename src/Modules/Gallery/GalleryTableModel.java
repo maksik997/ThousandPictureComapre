@@ -1,5 +1,6 @@
 package Modules.Gallery;
 
+import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.io.File;
@@ -51,6 +52,24 @@ public class GalleryTableModel extends AbstractTableModel {
             case 3 -> entry.getTags().isEmpty() ? "" : entry.getTags();
             default -> throw new IndexOutOfBoundsException();
         };
+    }
+
+    @Override
+    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+        try {
+            modifyName(rowIndex, (String) aValue);
+        } catch (IOException e) {
+            // todo for now!
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
+
+        fireTableCellUpdated(rowIndex, columnIndex);
+    }
+
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+        return columnIndex == 0;
     }
 
     public void addEntry(Entry entry) {

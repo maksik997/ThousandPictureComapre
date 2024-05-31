@@ -10,9 +10,6 @@ import pl.magzik.PictureComparer;
 import pl.magzik.Structures.Record;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 public class GalleryModule {
 
@@ -39,6 +37,9 @@ public class GalleryModule {
     private boolean isLocked;
 
     private SwingWorker<Void, Void> mapObjects, transferObjects, removeObjects, unifyNames;
+
+    // Helpers for exception handling while loading.
+    private boolean massAction, isFirstTime;
 
     public GalleryModule() throws IOException {
         isLocked = false;
@@ -60,8 +61,9 @@ public class GalleryModule {
         this.pc = new PictureComparer();
 //        images = new ArrayList<>();
 
-        if (Files.exists(imageReferenceFilePath))
+        if (Files.exists(imageReferenceFilePath)) {
             loadFromFile();
+        }
 
 //        galleryModel.addTableModelListener(e -> {
 //            // This operation will lock a gallery.
@@ -330,23 +332,49 @@ public class GalleryModule {
     }
 
     private void loadFromFile() throws IOException {
+        Function<String, Entry> separateLine = l -> {
+            // Line comes in format: path->tag[,tag]*
+            // Split the line.
+            String[] split = l.split("->");
+
+            // Create a path from the first part of split.
+            Path p = Path.of(split[0]);
+
+            // Add tags to a Set
+            Set<String> tags = split.length == 1 ? Set.of() : Set.of(split[1].split(","));
+
+            // Create entry
+            try {
+                return new Entry(p, tags);
+            } catch (IOException e) {
+                if (!massAction) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        String.format("Couldn't find image: %s.%nSkipping this file. Consider adding it again when you find it.", p),
+                        "Error:",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+
+                if (isFirstTime) {
+                    int i = JOptionPane.showConfirmDialog(
+                        null,
+                        String.format("Do you want to skip all images that app couldn't locate?%nOr you want to see it every single time?"),
+                        "Question?",
+                        JOptionPane.YES_NO_OPTION
+                    );
+                    if (i == JOptionPane.NO_OPTION)
+                        setMassAction();
+                    setFirstTime();
+                }
+                return null;
+            }
+        };
+
         try (BufferedReader reader = Files.newBufferedReader(imageReferenceFilePath)) {
             reader.lines()
-                    .map(l -> {
-                        String[] split = l.split("->");
-                        Path p = Path.of(split[0]);
-                        Set<String> tags;
-                        if (split.length > 1)
-                            tags = Set.of(split[1].split(","));
-                        else
-                            tags = Collections.emptySet();
-
-                        try {
-                            return new Entry(p, tags);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e); // todo...
-                        }
-                    })
+                    .map(separateLine)
+                    .filter(Objects::nonNull)
                     //.map(Path::of)
                     .filter(e -> Files.exists(e.getPath()))
                     //.map(Path::toFile)
@@ -427,6 +455,14 @@ public class GalleryModule {
 
     public boolean isLocked() {
         return isLocked;
+    }
+
+    private void setFirstTime() {
+        isFirstTime = false;
+    }
+
+    private void setMassAction() {
+        this.massAction = true;
     }
 
     // Resetting tasks...

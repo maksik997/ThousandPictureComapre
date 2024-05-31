@@ -166,7 +166,7 @@ public class Controller {
                 }
 
                 sModule.updateSetting("destination-for-pc", path.toString());
-                cModule.setSources(path.toFile());
+                cModule.setDestDir(path.toFile());
             }
         });
 
@@ -201,7 +201,7 @@ public class Controller {
         GalleryModule gModule = model.getGalleryModule();
 
         // Initialize gallery table
-        gView.getGalleryTable().setModel(gModule.getGalleryModel());
+        gView.getGalleryTable().setModel(gModule.getGalleryTableModel());
 
         // Add Button
         gView.getAddImageButton().addActionListener(_ -> {

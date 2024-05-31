@@ -1,8 +1,15 @@
 package Modules.Gallery;
 
 import javax.swing.table.AbstractTableModel;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class GalleryTableModel extends AbstractTableModel {
 
@@ -12,6 +19,10 @@ public class GalleryTableModel extends AbstractTableModel {
 
     public GalleryTableModel() {
         this.images = new ArrayList<>();
+    }
+
+    public List<Entry> getImages() {
+        return images;
     }
 
     @Override
@@ -36,21 +47,89 @@ public class GalleryTableModel extends AbstractTableModel {
         return switch (columnIndex) {
             case 0 -> entry.getName();
             case 1 -> entry.getSize();
-            case 2 -> entry.getTags();
-            case 3 -> entry.getModificationDate();
+            case 2 -> entry.getModificationDate();
+            case 3 -> entry.getTags().isEmpty() ? "" : entry.getTags();
             default -> throw new IndexOutOfBoundsException();
         };
     }
 
     public void addEntry(Entry entry) {
+        // This method will add entry to show in table and to easily manage it.
+
         images.add(entry);
         fireTableRowsInserted(images.size() - 1, images.size() - 1);
     }
 
-    public void removeEntry(Entry entry) {
-        images.remove(entry);
+    public void removeEntry(int row) {
+        // This method will remove entry from table. But won't delete it from disk.
+        images.remove(row);
         fireTableRowsDeleted(images.size() - 1, images.size() - 1);
     }
 
+    public void deleteImage(int row) throws IOException {
+        // This method will remove entry from table and will delete image from disk.
+        Entry entry = images.get(row);
+        removeEntry(row);
 
+        Path path = entry.getPath();
+        Files.delete(path);
+    }
+
+    public void openEntry(int row) throws IOException {
+        File file = images.get(row).getPath().toFile();
+        Desktop.getDesktop().open(file);
+    }
+
+    public void modifyName(int row, String newName) throws IOException {
+        Set<String> tags = images.get(row).getTags();
+        Path oldPath = images.get(row).getPath();
+
+        Path parent = oldPath.getParent();
+        Path newPath = new File(parent.toFile(), newName).toPath();
+
+        if (newPath.equals(oldPath)) return;
+
+        Files.move(oldPath, newPath, StandardCopyOption.ATOMIC_MOVE);
+
+        images.set(row, new Entry(newPath, tags));
+
+        fireTableRowsUpdated(row, row);
+    }
+
+    public void addTags(int row, Set<String> tags) {
+        images.get(row).getTags().addAll(tags);
+
+        fireTableRowsUpdated(row, row);
+    }
+
+    public void removeTags(int row, Set<String> tags) {
+        images.get(row).getTags().removeAll(tags);
+
+        fireTableRowsUpdated(row, row);
+    }
+
+    // Group functions
+    public void unifyNames() throws IOException {
+        String pattern = "tp_img_";
+        int i = 0;
+
+        for (Path path : images.stream().map(Entry::getPath).toList()) {
+            String ext = path.toString().substring(path.toString().lastIndexOf("."));
+            int idx = images.stream().map(Entry::getPath).toList().indexOf(path);
+
+            modifyName(idx, String.format("%s%s_%s%s", pattern, ++i, System.currentTimeMillis(), ext));
+        }
+    }
+
+    public void reduction(List<Path> paths) throws IOException {
+        List<Integer> ids = new ArrayList<>();
+        for (Path path : paths)
+            ids.add(images.stream().map(Entry::getPath).toList().indexOf(path));
+
+        ids.stream().map(images::get).forEach(images::remove);
+
+        for (Integer id : ids) {
+            deleteImage(id);
+        }
+    }
 }

@@ -12,11 +12,15 @@ public class Utility {
         if (bytes < 1024)
             return bytes + " B";
 
-        return bytes > Math.pow(1024, 3) ?
-                formatInto(bytes, Sizes.GIGA)
-                : bytes > Math.pow(bytes, 2) ?
-                    formatInto(bytes, Sizes.MEGA) :
-                    formatInto(bytes, Sizes.KILO);
+        String formatted;
+        if (bytes >= 1024*1024*1024)
+            formatted = formatInto(bytes, Sizes.GIGA);
+        else if (bytes >= 1024*1024)
+            formatted = formatInto(bytes, Sizes.MEGA);
+        else
+            formatted = formatInto(bytes, Sizes.KILO);
+
+        return formatted;
     }
 
     public static String formatInto(double bytes, Sizes size) {

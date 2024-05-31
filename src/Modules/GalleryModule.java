@@ -4,6 +4,8 @@
 
 package Modules;
 
+import Modules.Gallery.Entry;
+import Modules.Gallery.GalleryTableModel;
 import pl.magzik.PictureComparer;
 import pl.magzik.Structures.Record;
 
@@ -26,9 +28,11 @@ public class GalleryModule {
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
-    private final DefaultTableModel galleryModel;
+    //private final DefaultTableModel galleryModel;
 
-    private final List<Path> images;
+    private final GalleryTableModel galleryTableModel;
+
+    //private final List<Path> images;
 
     private final PictureComparer pc;
 
@@ -39,55 +43,58 @@ public class GalleryModule {
     public GalleryModule() throws IOException {
         isLocked = false;
 
-        // File Name, Size, Modification Date
-        galleryModel = new DefaultTableModel() {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return column == 0;
-            }
-        };
+        galleryTableModel = new GalleryTableModel();
 
-        galleryModel.addColumn("File name");
-        galleryModel.addColumn("Size");
-        galleryModel.addColumn("Modification time");
+        // File Name, Size, Modification Date
+//        galleryModel = new DefaultTableModel() {
+//            @Override
+//            public boolean isCellEditable(int row, int column) {
+//                return column == 0;
+//            }
+//        };
+//
+//        galleryModel.addColumn("File name");
+//        galleryModel.addColumn("Size");
+//        galleryModel.addColumn("Modification time");
 
         this.pc = new PictureComparer();
-        images = new ArrayList<>();
+//        images = new ArrayList<>();
+
         if (Files.exists(imageReferenceFilePath))
             loadFromFile();
 
-        galleryModel.addTableModelListener(e -> {
-            // This operation will lock a gallery.
-            if (e.getType() != TableModelEvent.UPDATE) return;
-
-            if (isLocked()) {
-                JOptionPane.showMessageDialog(
-                    null,
-                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
-                    "Information:",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-                return;
-            }
-
-            int r = e.getFirstRow();
-            int c = e.getColumn();
-
-            if (c != 0) return;
-
-            String newValue = (String) galleryModel.getValueAt(r, c);
-            Path file = images.get(r);
-
-            try {
-                modifyName(file.toString(), newValue);
-
-                repairModel(); // Eh... That's unfortunately necessary... It's costly...
-
-                saveToFile();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex); // do something with this :)
-            }
-        });
+//        galleryModel.addTableModelListener(e -> {
+//            // This operation will lock a gallery.
+//            if (e.getType() != TableModelEvent.UPDATE) return;
+//
+//            if (isLocked()) {
+//                JOptionPane.showMessageDialog(
+//                    null,
+//                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
+//                    "Information:",
+//                    JOptionPane.INFORMATION_MESSAGE
+//                );
+//                return;
+//            }
+//
+//            int r = e.getFirstRow();
+//            int c = e.getColumn();
+//
+//            if (c != 0) return;
+//
+//            String newValue = (String) galleryModel.getValueAt(r, c);
+//            Path file = images.get(r);
+//
+//            try {
+//                modifyName(file.toString(), newValue);
+//
+//                repairModel(); // Eh... That's unfortunately necessary... It's costly...
+//
+//                saveToFile();
+//            } catch (IOException ex) {
+//                throw new RuntimeException(ex); // do something with this :)
+//            }
+//        });
 
         resetModuleTasks();
     }
@@ -97,9 +104,9 @@ public class GalleryModule {
         // Prepares Picture Comparer with destination path and source path
 
         List<Path> toCheck = new ArrayList<>();
-        for (int i = 0; i < images.size(); i++) {
+        for (int i = 0; i < galleryTableModel.getImages().size(); i++) {
             if (indexes.contains(i))
-                toCheck.add(images.get(i));
+                toCheck.add(galleryTableModel.getImages().get(i).getPath());
         }
 
         pc._setUp(
@@ -153,13 +160,15 @@ public class GalleryModule {
         addImage(Arrays.asList(paths));
     }
 
-    public void addImage(List<String> paths) throws IOException {
+    public void addImage(List<String> entries) throws IOException {
         // This method could take awhile,
         // I should probably move it to some worker.
         // But that's a todo for now.
 
-        for (String path : paths) {
-            Path filePath = Path.of(path);
+        for (String e : entries) {
+            String[] split = e.split("->");
+
+            Path filePath = Path.of(split[0]);
 
             if (!Files.exists(filePath))
                 continue;
@@ -169,76 +178,87 @@ public class GalleryModule {
             } else {
                 if (!pc.filePredicate(filePath.toFile())) continue;
 
-                images.add(filePath);
-                galleryModel.addRow(new String[]{
-                        filePath.toFile().getName(),
-                        getKilobytes(Files.size(filePath)),
-                        getFormattedDate(Files.getLastModifiedTime(filePath))
-                });
+                Set<String> tags = split.length == 1 ? Set.of() : Set.of(split[1].split(","));
+
+                Entry entry = new Entry(filePath, tags);
+
+                galleryTableModel.addEntry(entry);
+//                images.add(filePath);
+//                galleryModel.addRow(new String[]{
+//                        filePath.toFile().getName(),
+//                        getKilobytes(Files.size(filePath)),
+//                        getFormattedDate(Files.getLastModifiedTime(filePath))
+//                });
             }
         }
 
-        saveToFile(images);
+        saveToFile(galleryTableModel.getImages());
     }
 
     public void removeImage(int idx) {
-        Path filePath = images.get(idx);
-
-        galleryModel.removeRow(idx);
-        images.remove(filePath);
+//        Path filePath = images.get(idx);
+//
+//        galleryModel.removeRow(idx);
+//        images.remove(filePath);
+        galleryTableModel.removeEntry(idx);
     }
 
     public void openImage(int idx) throws IOException {
-        Path filePath = images.get(idx);
-
-        Desktop.getDesktop().open(filePath.toFile());
+//        Path filePath = images.get(idx);
+//
+//        Desktop.getDesktop().open(filePath.toFile());
+        galleryTableModel.openEntry(idx);
     }
 
-    public void modifyName(String path, String newName) throws IOException {
-        Path filePath = Path.of(path);
+    public void modifyName(int idx, String newName) throws IOException {
+//        Path filePath = Path.of(path);
+//
+//        int idx = images.indexOf(filePath);
+//
+//        File oldFile = new File(path);
+//
+//        Path parentPath = filePath.getParent();
+//
+//        File newFile = new File(parentPath.toString(), newName);
+//
+//        if (oldFile.equals(newFile)) return;
+//
+//        Files.move(oldFile.toPath(), newFile.toPath());
+//
+//        images.set(idx, newFile.toPath());
 
-        int idx = images.indexOf(filePath);
 
-        File oldFile = new File(path);
-
-        Path parentPath = filePath.getParent();
-
-        File newFile = new File(parentPath.toString(), newName);
-
-        if (oldFile.equals(newFile)) return;
-
-        Files.move(oldFile.toPath(), newFile.toPath());
-
-        images.set(idx, newFile.toPath());
+        galleryTableModel.modifyName(idx, newName);
     }
 
     // Special set of operations
 
     private void unifyNames() throws IOException {
-        String pattern = "tp_img_";
-        int i = 0;
-
-        for (Path filePath : images) {
-            String ext = filePath.toString().substring(filePath.toString().lastIndexOf("."));
-            modifyName(filePath.toString(), pattern + ++i + "_" + System.currentTimeMillis() + ext);
-        }
+//        String pattern = "tp_img_";
+//        int i = 0;
+//
+//        for (Path filePath : images) {
+//            String ext = filePath.toString().substring(filePath.toString().lastIndexOf("."));
+//            modifyName(filePath.toString(), pattern + ++i + "_" + System.currentTimeMillis() + ext);
+//        }
+        galleryTableModel.unifyNames();
     }
 
-    private void repairModel() throws IOException {
-        // This method will clear all models, and rewrite it with an image list.
-        // This method should be called if many operations were invoked outside EDT.
-        // Or if there is a risk that you'll find yourself inside a call loop.
-
-        while (galleryModel.getRowCount() > 0) galleryModel.removeRow(0);
-
-        for (Path p : images) {
-            String name = p.toFile().getName();
-            String kb = getKilobytes(Files.size(p));
-            String date = getFormattedDate(Files.getLastModifiedTime(p));
-
-            galleryModel.addRow(new String[]{name, kb, date});
-        }
-    }
+//    private void repairModel() throws IOException {
+//        // This method will clear all models, and rewrite it with an image list.
+//        // This method should be called if many operations were invoked outside EDT.
+//        // Or if there is a risk that you'll find yourself inside a call loop.
+//
+//        while (galleryModel.getRowCount() > 0) galleryModel.removeRow(0);
+//
+//        for (Path p : images) {
+//            String name = p.toFile().getName();
+//            String kb = getKilobytes(Files.size(p));
+//            String date = getFormattedDate(Files.getLastModifiedTime(p));
+//
+//            galleryModel.addRow(new String[]{name, kb, date});
+//        }
+//    }
 
     // todo more of this...
 
@@ -248,14 +268,16 @@ public class GalleryModule {
         if (pc.getDuplicates().isEmpty())
             return;
 
-        List<Integer> indexes = new ArrayList<>();
+//        List<Integer> indexes = new ArrayList<>();
         List<Path> files = pc.getDuplicates().stream().map(Record::getFile).map(File::toPath).toList();
-        for (Path f : files)
-            indexes.add(images.indexOf(f));
+//        for (Path f : files)
+//            indexes.add(images.indexOf(f));
+//
+//        indexes.stream().map(images::get).forEach(images::remove);
+//
+//        indexes.forEach(galleryModel::removeRow);
 
-        indexes.stream().map(images::get).forEach(images::remove);
-
-        indexes.forEach(galleryModel::removeRow);
+        galleryTableModel.reduction(files);
 
         saveToFile();
     }
@@ -283,7 +305,7 @@ public class GalleryModule {
             @Override
             protected void done() {
                 try {
-                    repairModel();
+                    //repairModel();
                     saveToFile();
                 } catch (IOException e) {
                     JOptionPane.showMessageDialog(
@@ -310,38 +332,55 @@ public class GalleryModule {
     private void loadFromFile() throws IOException {
         try (BufferedReader reader = Files.newBufferedReader(imageReferenceFilePath)) {
             reader.lines()
-                    .map(Path::of)
-                    .filter(Files::exists)
-                    .map(Path::toFile)
-                    .filter(pc::filePredicate)
-                    .map(File::toPath)
-                    .forEach(images::add);
+                    .map(l -> {
+                        String[] split = l.split("->");
+                        Path p = Path.of(split[0]);
+                        Set<String> tags;
+                        if (split.length > 1)
+                            tags = Set.of(split[1].split(","));
+                        else
+                            tags = Collections.emptySet();
+
+                        try {
+                            return new Entry(p, tags);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e); // todo...
+                        }
+                    })
+                    //.map(Path::of)
+                    .filter(e -> Files.exists(e.getPath()))
+                    //.map(Path::toFile)
+                    .filter(e -> pc.filePredicate(e.getPath().toFile()))
+                    //.map(File::toPath)
+                    .forEach(galleryTableModel::addEntry);
         }
 
-        for (Path path : images) {
-            galleryModel.addRow(new String[]{
-                path.toFile().getName(),
-                getKilobytes(Files.size(path)),
-                getFormattedDate(Files.getLastModifiedTime(path))
-            });
-        }
+//        for (Path path : images) {
+//            galleryModel.addRow(new String[]{
+//                path.toFile().getName(),
+//                getKilobytes(Files.size(path)),
+//                getFormattedDate(Files.getLastModifiedTime(path))
+//            });
+//        }
 
         // To clear any unreachable images.
         // todo It should be for now solution.
         //  Probably app should ask user about that.
-        saveToFile(images);
+        saveToFile(galleryTableModel.getImages());
     }
 
     public void saveToFile() throws IOException {
-        saveToFile(images);
+        saveToFile(galleryTableModel.getImages());
     }
 
-    private static void saveToFile(List<Path> images) throws IOException {
+    private static void saveToFile(List<Entry> images) throws IOException {
         try (BufferedWriter writer = Files.newBufferedWriter(imageReferenceFilePath)) {
             List<String> toSave = images.stream()
-                                        .map(Path::toAbsolutePath)
-                                        .map(Path::toString)
+                    .map(e -> String.format("%s->%s", e.getPath(), String.join(",", e.getTags())))
+//                                        .map(Path::toAbsolutePath)
+//                                        .map(Path::toString)
                                         .toList();
+
             for (String image : toSave) {
                 writer.write(image);
                 writer.newLine();
@@ -351,8 +390,13 @@ public class GalleryModule {
 
     // Getters
 
-    public DefaultTableModel getGalleryModel() {
-        return galleryModel;
+//    public DefaultTableModel getGalleryModel() {
+//        return galleryModel;
+//    }
+
+
+    public GalleryTableModel getGalleryTableModel() {
+        return galleryTableModel;
     }
 
     private String getKilobytes(double bytes) {

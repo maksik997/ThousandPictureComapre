@@ -29,4 +29,5 @@ bin/
 ### Mac OS ###
 .DS_Store
 /logs/
-resources/config.cfg
+/resources/config.cfg
+/resources/gallery.tp

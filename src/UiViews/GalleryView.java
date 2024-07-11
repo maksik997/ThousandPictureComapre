@@ -17,6 +17,8 @@ public class GalleryView extends AbstractView {
 
     private final JButton addImageButton, removeImageButton, deleteImageButton, distinctButton, unifyNamesButton, openButton, addTag, removeTag;
 
+    private final JButton[] buttons;
+
     private final JFileChooser fileChooser;
 
     public GalleryView() {
@@ -90,6 +92,17 @@ public class GalleryView extends AbstractView {
         fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
         fileChooser.setDialogTitle("Pick image you want to add:");
         fileChooser.setApproveButtonText("Pick");
+
+        buttons = new JButton[] {
+            addImageButton,
+            removeImageButton,
+            deleteImageButton,
+            distinctButton,
+            unifyNamesButton,
+            openButton,
+            addTag,
+            removeTag
+        };
     }
 
     public JButton getAddImageButton() {
@@ -138,5 +151,13 @@ public class GalleryView extends AbstractView {
         }
 
         return null;
+    }
+
+    public void lockModule() {
+        for (JButton button : buttons) button.setEnabled(false);
+    }
+
+    public void unlockModule() {
+        for (JButton button : buttons) button.setEnabled(true);
     }
 }

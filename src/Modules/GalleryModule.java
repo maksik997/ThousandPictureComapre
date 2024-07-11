@@ -26,15 +26,9 @@ public class GalleryModule {
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
-    //private final DefaultTableModel galleryModel;
-
     private final GalleryTableModel galleryTableModel;
 
-    //private final List<Path> images;
-
     private final PictureComparer pc;
-
-    private boolean isLocked;
 
     private SwingWorker<Void, Void> mapObjects, transferObjects, removeObjects, unifyNames;
 
@@ -42,63 +36,14 @@ public class GalleryModule {
     private boolean massAction, isFirstTime;
 
     public GalleryModule() throws IOException {
-        isLocked = false;
-
         galleryTableModel = new GalleryTableModel();
 
-        // File Name, Size, Modification Date
-//        galleryModel = new DefaultTableModel() {
-//            @Override
-//            public boolean isCellEditable(int row, int column) {
-//                return column == 0;
-//            }
-//        };
-//
-//        galleryModel.addColumn("File name");
-//        galleryModel.addColumn("Size");
-//        galleryModel.addColumn("Modification time");
-
         this.pc = new PictureComparer();
-//        images = new ArrayList<>();
-
         if (Files.exists(imageReferenceFilePath)) {
             loadFromFile();
         }
 
-//        galleryModel.addTableModelListener(e -> {
-//            // This operation will lock a gallery.
-//            if (e.getType() != TableModelEvent.UPDATE) return;
-//
-//            if (isLocked()) {
-//                JOptionPane.showMessageDialog(
-//                    null,
-//                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
-//                    "Information:",
-//                    JOptionPane.INFORMATION_MESSAGE
-//                );
-//                return;
-//            }
-//
-//            int r = e.getFirstRow();
-//            int c = e.getColumn();
-//
-//            if (c != 0) return;
-//
-//            String newValue = (String) galleryModel.getValueAt(r, c);
-//            Path file = images.get(r);
-//
-//            try {
-//                modifyName(file.toString(), newValue);
-//
-//                repairModel(); // Eh... That's unfortunately necessary... It's costly...
-//
-//                saveToFile();
-//            } catch (IOException ex) {
-//                throw new RuntimeException(ex); // do something with this :)
-//            }
-//        });
-
-        resetModuleTasks();
+        //resetModuleTasks();
     }
 
     // Comparer interaction
@@ -185,12 +130,6 @@ public class GalleryModule {
                 Entry entry = new Entry(filePath, tags);
 
                 galleryTableModel.addEntry(entry);
-//                images.add(filePath);
-//                galleryModel.addRow(new String[]{
-//                        filePath.toFile().getName(),
-//                        getKilobytes(Files.size(filePath)),
-//                        getFormattedDate(Files.getLastModifiedTime(filePath))
-//                });
             }
         }
 
@@ -198,69 +137,26 @@ public class GalleryModule {
     }
 
     public void removeImage(int idx) {
-//        Path filePath = images.get(idx);
-//
-//        galleryModel.removeRow(idx);
-//        images.remove(filePath);
         galleryTableModel.removeEntry(idx);
     }
 
+    public void deleteImage(int idx) throws IOException {
+        galleryTableModel.deleteImage(idx);
+    }
+
     public void openImage(int idx) throws IOException {
-//        Path filePath = images.get(idx);
-//
-//        Desktop.getDesktop().open(filePath.toFile());
         galleryTableModel.openEntry(idx);
     }
 
     public void modifyName(int idx, String newName) throws IOException {
-//        Path filePath = Path.of(path);
-//
-//        int idx = images.indexOf(filePath);
-//
-//        File oldFile = new File(path);
-//
-//        Path parentPath = filePath.getParent();
-//
-//        File newFile = new File(parentPath.toString(), newName);
-//
-//        if (oldFile.equals(newFile)) return;
-//
-//        Files.move(oldFile.toPath(), newFile.toPath());
-//
-//        images.set(idx, newFile.toPath());
-
-
         galleryTableModel.modifyName(idx, newName);
     }
 
     // Special set of operations
 
-    private void unifyNames() throws IOException {
-//        String pattern = "tp_img_";
-//        int i = 0;
-//
-//        for (Path filePath : images) {
-//            String ext = filePath.toString().substring(filePath.toString().lastIndexOf("."));
-//            modifyName(filePath.toString(), pattern + ++i + "_" + System.currentTimeMillis() + ext);
-//        }
+    public void unifyNames() throws IOException {
         galleryTableModel.unifyNames();
     }
-
-//    private void repairModel() throws IOException {
-//        // This method will clear all models, and rewrite it with an image list.
-//        // This method should be called if many operations were invoked outside EDT.
-//        // Or if there is a risk that you'll find yourself inside a call loop.
-//
-//        while (galleryModel.getRowCount() > 0) galleryModel.removeRow(0);
-//
-//        for (Path p : images) {
-//            String name = p.toFile().getName();
-//            String kb = getKilobytes(Files.size(p));
-//            String date = getFormattedDate(Files.getLastModifiedTime(p));
-//
-//            galleryModel.addRow(new String[]{name, kb, date});
-//        }
-//    }
 
     // todo more of this...
 
@@ -270,26 +166,18 @@ public class GalleryModule {
         if (pc.getDuplicates().isEmpty())
             return;
 
-//        List<Integer> indexes = new ArrayList<>();
         List<Path> files = pc.getDuplicates().stream().map(Record::getFile).map(File::toPath).toList();
-//        for (Path f : files)
-//            indexes.add(images.indexOf(f));
-//
-//        indexes.stream().map(images::get).forEach(images::remove);
-//
-//        indexes.forEach(galleryModel::removeRow);
 
         galleryTableModel.reduction(files);
 
         saveToFile();
     }
 
-    private void resetModuleTasks() {
+   /* private void resetModuleTasks() {
         // This worker will be used to safely update a gallery model, after a task is finished
         unifyNames = new SwingWorker<>() {
             @Override
             protected Void doInBackground()  {
-                isLocked = true;
                 try {
                     unifyNames();
                 } catch (IOException e) {
@@ -325,11 +213,10 @@ public class GalleryModule {
                     JOptionPane.INFORMATION_MESSAGE
                 );
 
-                isLocked = false;
                 resetModuleTasks();
             }
         };
-    }
+    }*/
 
     private void loadFromFile() throws IOException {
         Function<String, Entry> separateLine = l -> {
@@ -453,8 +340,8 @@ public class GalleryModule {
         return unifyNames;
     }
 
-    public boolean isLocked() {
-        return isLocked;
+    public void setUnifyNames(SwingWorker<Void, Void> unifyNames) {
+        this.unifyNames = unifyNames;
     }
 
     private void setFirstTime() {

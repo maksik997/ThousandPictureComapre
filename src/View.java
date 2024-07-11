@@ -82,4 +82,13 @@ public class View extends JFrame {
         repaint();
         revalidate();
     }
+
+    public void moduleLocked() {
+        JOptionPane.showMessageDialog(
+        this,
+            String.format("Currently this operation is forbidden.%nPlease wait until other task are finished."),
+            "Module is locked. Please wait...",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+    }
 }

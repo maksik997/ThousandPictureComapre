@@ -145,7 +145,9 @@ public class GalleryTableModel extends AbstractTableModel {
         for (Path path : paths)
             ids.add(images.stream().map(Entry::getPath).toList().indexOf(path));
 
-        ids.stream().map(images::get).forEach(images::remove);
+        //ids.stream().map(images::get).forEach(images::remove);
+
+        System.out.println(ids);
 
         for (Integer id : ids) {
             deleteImage(id);

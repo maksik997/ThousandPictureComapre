@@ -9,6 +9,7 @@ import pl.magzik.Structures.Record;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -384,12 +385,6 @@ public class Controller {
 
         // Open Button
         gView.getOpenButton().addActionListener(_ -> {
-            // This operation will lock a gallery.
-            /*if (gModule.isLocked()) {
-                view.moduleLocked();
-                return;
-            }*/
-
             int[] selected = gView.getGalleryTable().getSelectedRows();
             if (selected == null || selected.length == 0) {
                 JOptionPane.showMessageDialog(

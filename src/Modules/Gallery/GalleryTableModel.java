@@ -10,13 +10,12 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class GalleryTableModel extends AbstractTableModel {
 
     private final List<Entry> images;
 
-    private static final String[] columnNames = { "Name", "Size", "Modification date", "Tags" };
+    private static final String[] columnNames = { "Name", "Size", "Modification date" };
 
     public GalleryTableModel() {
         this.images = new ArrayList<>();
@@ -49,7 +48,6 @@ public class GalleryTableModel extends AbstractTableModel {
             case 0 -> entry.getName();
             case 1 -> entry.getSize();
             case 2 -> entry.getModificationDate();
-            case 3 -> entry.getTags().isEmpty() ? "" : entry.getTags();
             default -> throw new IndexOutOfBoundsException();
         };
     }
@@ -74,6 +72,8 @@ public class GalleryTableModel extends AbstractTableModel {
 
     public void addEntry(Entry entry) {
         // This method will add entry to show in table and to easily manage it.
+
+        if (images.contains(entry)) return;
 
         images.add(entry);
         fireTableRowsInserted(images.size() - 1, images.size() - 1);
@@ -100,7 +100,6 @@ public class GalleryTableModel extends AbstractTableModel {
     }
 
     public void modifyName(int row, String newName) throws IOException {
-        Set<String> tags = images.get(row).getTags();
         Path oldPath = images.get(row).getPath();
 
         Path parent = oldPath.getParent();
@@ -110,19 +109,7 @@ public class GalleryTableModel extends AbstractTableModel {
 
         Files.move(oldPath, newPath, StandardCopyOption.ATOMIC_MOVE);
 
-        images.set(row, new Entry(newPath, tags));
-
-        fireTableRowsUpdated(row, row);
-    }
-
-    public void addTags(int row, Set<String> tags) {
-        images.get(row).getTags().addAll(tags);
-
-        fireTableRowsUpdated(row, row);
-    }
-
-    public void removeTags(int row, Set<String> tags) {
-        images.get(row).getTags().removeAll(tags);
+        images.set(row, new Entry(newPath));
 
         fireTableRowsUpdated(row, row);
     }
@@ -144,10 +131,6 @@ public class GalleryTableModel extends AbstractTableModel {
         List<Integer> ids = new ArrayList<>();
         for (Path path : paths)
             ids.add(images.stream().map(Entry::getPath).toList().indexOf(path));
-
-        //ids.stream().map(images::get).forEach(images::remove);
-
-        System.out.println(ids);
 
         for (Integer id : ids) {
             deleteImage(id);

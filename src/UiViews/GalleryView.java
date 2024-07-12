@@ -15,7 +15,7 @@ public class GalleryView extends AbstractView {
 
     private final JTable galleryTable;
 
-    private final JButton addImageButton, removeImageButton, deleteImageButton, distinctButton, unifyNamesButton, openButton, addTag, removeTag;
+    private final JButton addImageButton, removeImageButton, deleteImageButton, distinctButton, unifyNamesButton, openButton;
 
     private final JButton[] buttons;
 
@@ -29,12 +29,11 @@ public class GalleryView extends AbstractView {
 
         headerPanel.setBorder(new CompoundBorder(
             new MatteBorder(0, 0, 1, 0, Color.GRAY),
-            new EmptyBorder(5, 0, 5, 0)
+            new EmptyBorder(5, 5, 5, 5)
         ));
 
         JLabel headerLabel = new JLabel("Gallery:");
         headerLabel.setFont(Utility.fontHelveticaBold);
-
         headerPanel.add(headerLabel);
 
         mainPanel.add(headerPanel, BorderLayout.NORTH);
@@ -56,8 +55,6 @@ public class GalleryView extends AbstractView {
         distinctButton = Utility.buttonFactory("Distinct", new Insets(5, 10, 5, 10));
         unifyNamesButton = Utility.buttonFactory("Unify names", new Insets(5, 10, 5, 10));
         openButton = Utility.buttonFactory("Open image", new Insets(5, 10, 5, 10));
-        addTag = Utility.buttonFactory("Add Tag", new Insets(5, 10, 5, 10));
-        removeTag = Utility.buttonFactory("Remove Tag", new Insets(5, 10, 5, 10));
 
         buttonPanel.add(addImageButton, gbc);
         gbc.gridy++;
@@ -70,10 +67,6 @@ public class GalleryView extends AbstractView {
         buttonPanel.add(unifyNamesButton, gbc);
         gbc.gridy++;
         buttonPanel.add(openButton, gbc);
-        gbc.gridy++;
-        buttonPanel.add(addTag, gbc);
-        gbc.gridy++;
-        buttonPanel.add(removeTag, gbc);
         gbc.gridy++;
         gbc.weighty = 1;
         buttonPanel.add(Box.createVerticalGlue(), gbc);
@@ -100,8 +93,6 @@ public class GalleryView extends AbstractView {
             distinctButton,
             unifyNamesButton,
             openButton,
-            addTag,
-            removeTag
         };
     }
 
@@ -127,14 +118,6 @@ public class GalleryView extends AbstractView {
 
     public JButton getOpenButton() {
         return openButton;
-    }
-
-    public JButton getAddTag() {
-        return addTag;
-    }
-
-    public JButton getRemoveTag() {
-        return removeTag;
     }
 
     public JTable getGalleryTable() {

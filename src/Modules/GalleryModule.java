@@ -1,7 +1,3 @@
-/* todo
-    Check if pics are available,
-*/
-
 package Modules;
 
 import Modules.Gallery.Entry;
@@ -13,8 +9,6 @@ import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,8 +17,6 @@ import java.util.function.Function;
 public class GalleryModule {
 
     private static final Path imageReferenceFilePath = Path.of(".", "resources", "gallery.tp");
-
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
     private final GalleryTableModel galleryTableModel;
 
@@ -125,9 +117,7 @@ public class GalleryModule {
             } else {
                 if (!pc.filePredicate(filePath.toFile())) continue;
 
-                Set<String> tags = split.length == 1 ? Set.of() : Set.of(split[1].split(","));
-
-                Entry entry = new Entry(filePath, tags);
+                Entry entry = new Entry(filePath);
 
                 galleryTableModel.addEntry(entry);
             }
@@ -146,10 +136,6 @@ public class GalleryModule {
 
     public void openImage(int idx) throws IOException {
         galleryTableModel.openEntry(idx);
-    }
-
-    public void modifyName(int idx, String newName) throws IOException {
-        galleryTableModel.modifyName(idx, newName);
     }
 
     // Special set of operations
@@ -173,66 +159,14 @@ public class GalleryModule {
         saveToFile();
     }
 
-   /* private void resetModuleTasks() {
-        // This worker will be used to safely update a gallery model, after a task is finished
-        unifyNames = new SwingWorker<>() {
-            @Override
-            protected Void doInBackground()  {
-                try {
-                    unifyNames();
-                } catch (IOException e) {
-                    JOptionPane.showMessageDialog(
-                        null,
-                        String.format("Error: %s", e.getMessage()),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                }
-
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    //repairModel();
-                    saveToFile();
-                } catch (IOException e) {
-                    JOptionPane.showMessageDialog(
-                        null,
-                        "Couldn't repair model or save, please restart the app!",
-                        "Error:",
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                }
-
-                JOptionPane.showMessageDialog(
-                    null,
-                    String.format("Names are unified now.%nYay!"),
-                    "Information:",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-
-                resetModuleTasks();
-            }
-        };
-    }*/
-
     private void loadFromFile() throws IOException {
         Function<String, Entry> separateLine = l -> {
-            // Line comes in format: path->tag[,tag]*
-            // Split the line.
-            String[] split = l.split("->");
-
-            // Create a path from the first part of split.
-            Path p = Path.of(split[0]);
-
-            // Add tags to a Set
-            Set<String> tags = split.length == 1 ? Set.of() : Set.of(split[1].split(","));
+            // Create a path
+            Path p = Path.of(l);
 
             // Create entry
             try {
-                return new Entry(p, tags);
+                return new Entry(p);
             } catch (IOException e) {
                 if (!massAction) {
                     JOptionPane.showMessageDialog(
@@ -262,21 +196,10 @@ public class GalleryModule {
             reader.lines()
                     .map(separateLine)
                     .filter(Objects::nonNull)
-                    //.map(Path::of)
                     .filter(e -> Files.exists(e.getPath()))
-                    //.map(Path::toFile)
                     .filter(e -> pc.filePredicate(e.getPath().toFile()))
-                    //.map(File::toPath)
                     .forEach(galleryTableModel::addEntry);
         }
-
-//        for (Path path : images) {
-//            galleryModel.addRow(new String[]{
-//                path.toFile().getName(),
-//                getKilobytes(Files.size(path)),
-//                getFormattedDate(Files.getLastModifiedTime(path))
-//            });
-//        }
 
         // To clear any unreachable images.
         // todo It should be for now solution.
@@ -291,10 +214,9 @@ public class GalleryModule {
     private static void saveToFile(List<Entry> images) throws IOException {
         try (BufferedWriter writer = Files.newBufferedWriter(imageReferenceFilePath)) {
             List<String> toSave = images.stream()
-                    .map(e -> String.format("%s->%s", e.getPath(), String.join(",", e.getTags())))
-//                                        .map(Path::toAbsolutePath)
-//                                        .map(Path::toString)
-                                        .toList();
+                    .map(Entry::getPath)
+                    .map(Path::toString)
+                    .toList();
 
             for (String image : toSave) {
                 writer.write(image);
@@ -303,25 +225,8 @@ public class GalleryModule {
         }
     }
 
-    // Getters
-
-//    public DefaultTableModel getGalleryModel() {
-//        return galleryModel;
-//    }
-
-
     public GalleryTableModel getGalleryTableModel() {
         return galleryTableModel;
-    }
-
-    private String getKilobytes(double bytes) {
-        return ((int)(bytes/(1024))) == 0 ?
-                    String.format("%.2f KB",(bytes/(1024))) :
-                    String.format("%d KB",(int)(bytes/(1024)));
-    }
-
-    private String getFormattedDate(FileTime fileTime) {
-        return dateFormat.format(fileTime.toMillis());
     }
 
     public SwingWorker<Void, Void> getMapObjects() {

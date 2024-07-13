@@ -1,4 +1,5 @@
 import UiComponents.Utility;
+import UiViews.LoadingFrame;
 import com.formdev.flatlaf.FlatDarculaLaf;
 
 import javax.swing.*;
@@ -76,7 +77,7 @@ public class Main {
         return model.get();
     }
 
-    static class LoadingFrame extends JFrame {
+    /*static class LoadingFrame extends JFrame {
         public LoadingFrame() {
             JLabel label = new JLabel("Loading... Please wait...");
             label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -89,7 +90,7 @@ public class Main {
             this.setLocationRelativeTo(null);
             this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         }
-    }
+    }*/
 }
 
 

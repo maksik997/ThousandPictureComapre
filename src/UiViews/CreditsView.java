@@ -7,10 +7,11 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class CreditsView extends AbstractView {
 
@@ -19,17 +20,19 @@ public class CreditsView extends AbstractView {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.NORTH;
+        c.anchor = GridBagConstraints.CENTER;
         c.fill = GridBagConstraints.HORIZONTAL;
-        c.weightx = 0;
+        c.weightx = 1;
         c.weighty = 0;
         c.gridy = 0;
 
         JLabel desc = new JLabel("Thank you for downloading app!!!");
-        desc.setFont(Utility.fontSmallHelveticaBold);
+        desc.setFont(Utility.fontHelveticaBold);
         desc.setHorizontalAlignment(SwingConstants.CENTER);
-        JLabel desc2 = new JLabel("Please leave your feedback on Github!");
-        desc2.setFont(Utility.fontSmallHelveticaBold);
+        desc.setBorder(new EmptyBorder(10, 0, 0, 0));
+
+        JLabel desc2 = new JLabel("Please leave your feedback on GitHub!");
+        desc2.setFont(Utility.fontHelveticaPlain);
         desc2.setHorizontalAlignment(SwingConstants.CENTER);
         desc2.setBorder(new CompoundBorder(
             new MatteBorder(0,0,1,0, Color.GRAY),
@@ -38,25 +41,48 @@ public class CreditsView extends AbstractView {
 
         JLabel authorLabel = new JLabel("Author:");
         authorLabel.setBorder(new CompoundBorder(
-                new MatteBorder(0, 0, 1, 0, Color.gray),
-                new EmptyBorder(5, 5, 5, 5)
+            new MatteBorder(1, 0, 0, 0, Color.gray),
+            new EmptyBorder(10, 0, 0, 0)
         ));
         authorLabel.setFont(Utility.fontHelveticaBold);
+        authorLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        JTextField authorTextField = getTextField("~~maksik997~~");
-        authorTextField.setHorizontalAlignment(SwingConstants.CENTER);
+        JLabel authorText = new JLabel("Maksymilian Strzelczak");
+        authorText.setBorder(new CompoundBorder(
+            new MatteBorder(0, 0, 1, 0, Color.gray),
+            new EmptyBorder(0, 0, 10, 0)
+        ));
+        authorText.setFont(Utility.fontHelveticaPlain);
+        authorText.setHorizontalAlignment(SwingConstants.CENTER);
 
-        JLabel githubLabel = new JLabel("Github:");
+        JLabel githubLabel = new JLabel("GitHub:");
         githubLabel.setBorder(new CompoundBorder(
-                new MatteBorder(0, 0, 1, 0, Color.gray),
-                new EmptyBorder(5, 5, 5, 5)
+            new MatteBorder(1, 0, 0, 0, Color.gray),
+            new EmptyBorder(10, 0, 0, 0)
         ));
         githubLabel.setFont(Utility.fontHelveticaBold);
+        githubLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        JTextField githubTextField = getTextField("https://github.com/maksik997");
-        githubTextField.setHorizontalAlignment(SwingConstants.CENTER);
+        JLabel githubHyperlink = new JLabel("<html><a href=''>Click here to open my GitHub page</a></html>");
+        githubHyperlink.setFont(Utility.fontHelveticaPlain);
+        githubHyperlink.setBorder(new CompoundBorder(
+            new MatteBorder(0, 0, 1, 0, Color.gray),
+            new EmptyBorder(0, 0, 10, 0)
+        ));
+        githubHyperlink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        githubHyperlink.setHorizontalAlignment(SwingConstants.CENTER);
+        githubHyperlink.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    Desktop.getDesktop().browse(new URI("https://github.com/maksik997"));
+                } catch (IOException | URISyntaxException ex) {
+                    throw new RuntimeException(ex); // todo for now
+                }
+            }
+        });
 
-        JLabel versionLabel = new JLabel("Version: 0.4.2");
+        JLabel versionLabel = new JLabel("Version: 0.5");
         versionLabel.setBorder(new CompoundBorder(
             new MatteBorder(1, 0, 0, 0, Color.GRAY),
             new EmptyBorder(5, 0, 5, 0)
@@ -64,49 +90,30 @@ public class CreditsView extends AbstractView {
         versionLabel.setFont(Utility.fontSmallHelveticaBold);
         versionLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        c.gridy++;
         mainPanel.add(desc, c);
         c.gridy++;
         mainPanel.add(desc2, c);
         c.gridy++;
+        c.weighty = 1;
+        mainPanel.add(Box.createVerticalBox(), c);
+        c.gridy++;
+        c.weighty = 0;
         mainPanel.add(authorLabel, c);
         c.gridy++;
-        mainPanel.add(authorTextField, c);
+        mainPanel.add(authorText, c);
         c.gridy++;
-
         mainPanel.add(githubLabel, c);
         c.gridy++;
-        mainPanel.add(githubTextField, c);
-        c.gridy++;
-
-        mainPanel.add(versionLabel, c);
+        mainPanel.add(githubHyperlink, c);
         c.gridy++;
         c.weighty = 1;
-
+        mainPanel.add(Box.createVerticalBox(), c);
+        c.gridy++;
+        c.weighty = 0;
+        mainPanel.add(versionLabel, c);
+        c.gridy++;
         mainPanel.add(Box.createVerticalGlue(), c);
 
         this.add(mainPanel, BorderLayout.CENTER);
-    }
-
-    private JTextField getTextField(String value) {
-        JTextField textField = new JTextField(value);
-        textField.setEditable(false);
-        textField.setFont(Utility.fontHelveticaPlain);
-
-        textField.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                textField.setFocusable(true);
-            }
-        });
-
-        textField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                textField.selectAll();
-            }
-        });
-
-        return textField;
     }
 }

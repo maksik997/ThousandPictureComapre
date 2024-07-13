@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class GalleryTableModel extends AbstractTableModel {
@@ -72,11 +74,28 @@ public class GalleryTableModel extends AbstractTableModel {
 
     public void addEntry(Entry entry) {
         // This method will add entry to show in table and to easily manage it.
-
         if (images.contains(entry)) return;
 
         images.add(entry);
         fireTableRowsInserted(images.size() - 1, images.size() - 1);
+    }
+
+    public void addAllEntries(Entry... entries) {
+        addAllEntries(Arrays.asList(entries));
+    }
+
+    public void addAllEntries(Collection<Entry> entries) {
+        if (entries.isEmpty()) return;
+
+        int idx = images.size();
+
+        images.addAll(
+            entries.stream()
+            .filter(image -> !images.contains(image))
+            .toList()
+        );
+
+        fireTableRowsInserted(idx, images.size() - 1);
     }
 
     public void removeEntry(int row) {

@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class GalleryModule {
 
@@ -22,7 +23,7 @@ public class GalleryModule {
 
     private final PictureComparer pc;
 
-    private SwingWorker<Void, Void> mapObjects, transferObjects, removeObjects, unifyNames;
+    private SwingWorker<Void, Void> mapObjects, transferObjects, removeObjects, unifyNames, addImages, removeImages;
 
     // Helpers for exception handling while loading.
     private boolean massAction, isFirstTime;
@@ -98,26 +99,61 @@ public class GalleryModule {
     }
 
     public void addImage(List<String> entries) throws IOException {
-        // This method could take awhile,
-        // I should probably move it to some worker.
-        // But that's a todo for now.
+        if (entries.isEmpty()) return;
+        else if (entries.size() == 1) {
+            Path p = Path.of(entries.getFirst());
 
-        for (String e : entries) {
-            String[] split = e.split("->");
+            if (!Files.exists(p)) return;
 
-            Path filePath = Path.of(split[0]);
+            if (Files.isDirectory(p)) {
+                addImage(
+                    Arrays.stream(
+                        Objects.requireNonNull(p.toFile().list())
+                    )
+                    .map(s -> Path.of(p.toString(), s))
+                    .map(Path::toString)
+                    .toList()
+                );
+            }
+            else {
+                if (!pc.filePredicate(p.toFile())) return;
 
-            if (!Files.exists(filePath))
-                continue;
+                galleryTableModel.addEntry(new Entry(p));
+            }
+        } else {
+            // Directories
+            addImage(
+                entries.stream()
+                .map(Path::of)
+                .filter(Files::exists)
+                .filter(Files::isDirectory)
+                .map(Path::toFile)
+                .map(File::list)
+                .flatMap(Stream::of)
+                .toList()
+            );
 
-            if (filePath.toFile().isDirectory()) {
-                addImage(filePath.toFile().list());
-            } else {
-                if (!pc.filePredicate(filePath.toFile())) continue;
-
-                Entry entry = new Entry(filePath);
-
-                galleryTableModel.addEntry(entry);
+            // Files
+            try {
+                galleryTableModel.addAllEntries(
+                    entries.stream()
+                    .map(Path::of)
+                    .filter(Files::exists)
+                    .filter(Files::isRegularFile)
+                    .map(Path::toFile)
+                    .filter(pc::filePredicate)
+                    .map(File::toPath)
+                    .map(p -> {
+                        try {
+                            return new Entry(p);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    })
+                    .toList()
+                );
+            } catch (UncheckedIOException e) {
+                throw e.getCause();
             }
         }
 
@@ -242,8 +278,36 @@ public class GalleryModule {
         return unifyNames;
     }
 
+    public SwingWorker<Void, Void> getAddImages() {
+        return addImages;
+    }
+
+    public SwingWorker<Void, Void> getRemoveImages() {
+        return removeImages;
+    }
+
     public void setUnifyNames(SwingWorker<Void, Void> unifyNames) {
         this.unifyNames = unifyNames;
+    }
+
+    public void setMapObjects(SwingWorker<Void, Void> mapObjects) {
+        this.mapObjects = mapObjects;
+    }
+
+    public void setTransferObjects(SwingWorker<Void, Void> transferObjects) {
+        this.transferObjects = transferObjects;
+    }
+
+    public void setRemoveObjects(SwingWorker<Void, Void> removeObjects) {
+        this.removeObjects = removeObjects;
+    }
+
+    public void setAddImages(SwingWorker<Void, Void> addImages) {
+        this.addImages = addImages;
+    }
+
+    public void setRemoveImages(SwingWorker<Void, Void> removeImages) {
+        this.removeImages = removeImages;
     }
 
     private void setFirstTime() {
@@ -252,13 +316,5 @@ public class GalleryModule {
 
     private void setMassAction() {
         this.massAction = true;
-    }
-
-    // Resetting tasks...
-
-    public void resetTasks(SwingWorker<Void, Void> mapObjects, SwingWorker<Void, Void> transferObjects, SwingWorker<Void, Void> removeObjects) {
-        this.mapObjects = mapObjects;
-        this.transferObjects = transferObjects;
-        this.removeObjects = removeObjects;
     }
 }

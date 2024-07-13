@@ -7,7 +7,12 @@ import pl.magzik.Comparer;
 import pl.magzik.Structures.Record;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -166,7 +171,7 @@ public class Controller {
                 }
 
                 sModule.updateSetting("destination-for-pc", path.toString());
-                cModule.setSources(path.toFile());
+                cModule.setDestDir(path.toFile());
             }
         });
 
@@ -201,25 +206,13 @@ public class Controller {
         GalleryModule gModule = model.getGalleryModule();
 
         // Initialize gallery table
-        gView.getGalleryTable().setModel(gModule.getGalleryModel());
+        gView.getGalleryTable().setModel(gModule.getGalleryTableModel());
 
         // Add Button
         gView.getAddImageButton().addActionListener(_ -> {
-            // This operation will lock a gallery.
-            if (gModule.isLocked()) {
-                JOptionPane.showMessageDialog(
-                    null,
-                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
-                    "Information:",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-                return;
-            }
-
             List<String> paths = gView.openFileChooser();
 
-            if (paths == null)
-                return;
+            if (paths == null) return;
 
             try {
                 view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -227,27 +220,16 @@ public class Controller {
                 view.setCursor(Cursor.getDefaultCursor());
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(
-                    null,
-                    String.format("Error encountered while adding the file.%n Try again!"),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
+                        null,
+                        String.format("Error encountered while adding the file.%n Try again!"),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
                 );
             }
         });
 
         // Remove Button
         gView.getRemoveImageButton().addActionListener(_ -> {
-            // This operation will lock a gallery.
-            if (gModule.isLocked()) {
-                JOptionPane.showMessageDialog(
-                    null,
-                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
-                    "Information:",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-                return;
-            }
-
             // Important note!
             // We must sort indexes and then reverse them
             int[] selected = gView.getGalleryTable().getSelectedRows();
@@ -289,19 +271,59 @@ public class Controller {
             }
         });
 
-        // Distinct Button
-        gView.getDistinctButton().addActionListener(_ -> {
-            // This operation will lock a gallery.
-            if (gModule.isLocked()) {
+        // Delete Button
+        gView.getDeleteImageButton().addActionListener(_ -> {
+            int[] selected = gView.getGalleryTable().getSelectedRows();
+
+            if (selected == null || selected.length == 0) {
                 JOptionPane.showMessageDialog(
-                        null,
-                        String.format("You should wait until all names was updated.%nTry again after task is finished!"),
-                        "Information:",
-                        JOptionPane.INFORMATION_MESSAGE
+                    null,
+                    String.format("You didn't pick any image to delete.%nTry again! You can do it!"),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
                 );
+
                 return;
             }
 
+            int a = JOptionPane.showConfirmDialog(
+                view,
+                "Are you sure you want to delete these images?",
+                "Are you sure???",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            if (a == JOptionPane.YES_OPTION) {
+                for (int idx : selected) {
+                    try {
+                        gModule.deleteImage(idx);
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(
+                            null,
+                            String.format("Couldn't delete image!%nPlease restart the app!"),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE
+                        );
+                    }
+                }
+
+                try {
+                    gModule.saveToFile();
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        String.format("Error encountered while saving file.%nIt's possible that image wasn't deleted.%nRestart the app and try again"),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+
+
+        });
+
+        // Distinct Button
+        gView.getDistinctButton().addActionListener(_ -> {
             int[] selected = gView.getGalleryTable().getSelectedRows();
             if (selected == null || selected.length < 2) {
                 JOptionPane.showMessageDialog(
@@ -314,11 +336,7 @@ public class Controller {
             }
 
             // Lock buttons
-            gView.getAddImageButton().setEnabled(false);
-            gView.getRemoveImageButton().setEnabled(false);
-            gView.getDistinctButton().setEnabled(false);
-            gView.getUnifyNamesButton().setEnabled(false);
-            gView.getOpenButton().setEnabled(false);
+            gView.lockModule();
 
             galleryTasks();
 
@@ -327,33 +345,13 @@ public class Controller {
 
         // Unify Button
         gView.getUnifyNamesButton().addActionListener(_ -> {
-            // This operation will lock a gallery.
-            if (gModule.isLocked()) {
-                JOptionPane.showMessageDialog(
-                    null,
-                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
-                    "Information:",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-                return;
-            }
+            gView.lockModule();
 
             gModule.getUnifyNames().execute();
         });
 
         // Open Button
         gView.getOpenButton().addActionListener(_ -> {
-            // This operation will lock a gallery.
-            if (gModule.isLocked()) {
-                JOptionPane.showMessageDialog(
-                    null,
-                    String.format("You should wait until all names was updated.%nTry again after task is finished!"),
-                    "Information:",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-                return;
-            }
-
             int[] selected = gView.getGalleryTable().getSelectedRows();
             if (selected == null || selected.length == 0) {
                 JOptionPane.showMessageDialog(
@@ -378,6 +376,40 @@ public class Controller {
                 }
             }
 
+        });
+
+        // Table click on cell
+        gView.getGalleryTable().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                JTable table = gView.getGalleryTable();
+
+                int r = table.rowAtPoint(e.getPoint());
+                int c = table.columnAtPoint(e.getPoint());
+
+                if (table.isCellEditable(r, c)) {
+                    table.editCellAt(r, c);
+                    Component editor = table.getEditorComponent();
+                    editor.requestFocus();
+                }
+            }
+        });
+
+        gModule.getGalleryTableModel().addTableModelListener(e -> {
+            int c = e.getColumn();
+
+            if (c == 0 && e.getType() == TableModelEvent.UPDATE) {
+                try {
+                    gModule.saveToFile();
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        String.format("Couldn't save changes%nRestart the app!"),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
         });
 
         // Workers
@@ -581,11 +613,7 @@ public class Controller {
                 @Override
                 protected void done() {
                     view.setCursor(Cursor.getDefaultCursor());
-                    gView.getAddImageButton().setEnabled(true);
-                    gView.getRemoveImageButton().setEnabled(true);
-                    gView.getDistinctButton().setEnabled(true);
-                    gView.getUnifyNamesButton().setEnabled(true);
-                    gView.getOpenButton().setEnabled(true);
+                    gView.unlockModule();
 
                     JOptionPane.showMessageDialog(view, "Redundant images transfer completed.");
                 }
@@ -614,15 +642,56 @@ public class Controller {
                 @Override
                 protected void done() {
                     view.setCursor(Cursor.getDefaultCursor());
-                    gView.getAddImageButton().setEnabled(true);
-                    gView.getRemoveImageButton().setEnabled(true);
-                    gView.getDistinctButton().setEnabled(true);
-                    gView.getUnifyNamesButton().setEnabled(true);
-                    gView.getOpenButton().setEnabled(true);
+                    gView.unlockModule();
 
                     JOptionPane.showMessageDialog(view, "Redundant images deletion completed.");
                 }
             }
         );
+
+        gModule.setUnifyNames(new SwingWorker<>() {
+            @Override
+            protected Void doInBackground()  {
+                try {
+                    gModule.unifyNames();
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(
+                            null,
+                            String.format("Error: %s", e.getMessage()),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    //repairModel();
+                    gModule.saveToFile();
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(
+                            null,
+                            "Couldn't repair model or save, please restart the app!",
+                            "Error:",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+
+                JOptionPane.showMessageDialog(
+                        null,
+                        String.format("Names are unified now.%nYay!"),
+                        "Information:",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+
+                gView.unlockModule();
+
+                galleryTasks();
+            }
+        });
     }
 }

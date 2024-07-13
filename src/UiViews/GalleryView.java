@@ -15,7 +15,9 @@ public class GalleryView extends AbstractView {
 
     private final JTable galleryTable;
 
-    private final JButton addImageButton, removeImageButton, distinctButton, unifyNamesButton, openButton;
+    private final JButton addImageButton, removeImageButton, deleteImageButton, distinctButton, unifyNamesButton, openButton;
+
+    private final JButton[] buttons;
 
     private final JFileChooser fileChooser;
 
@@ -27,12 +29,11 @@ public class GalleryView extends AbstractView {
 
         headerPanel.setBorder(new CompoundBorder(
             new MatteBorder(0, 0, 1, 0, Color.GRAY),
-            new EmptyBorder(5, 0, 5, 0)
+            new EmptyBorder(5, 5, 5, 5)
         ));
 
         JLabel headerLabel = new JLabel("Gallery:");
         headerLabel.setFont(Utility.fontHelveticaBold);
-
         headerPanel.add(headerLabel);
 
         mainPanel.add(headerPanel, BorderLayout.NORTH);
@@ -48,15 +49,18 @@ public class GalleryView extends AbstractView {
 
         buttonPanel.setBorder(new MatteBorder(0, 1, 0, 0, Color.GRAY));
 
-        addImageButton = Utility.buttonFactory("Add", new Insets(5, 10, 5, 10));
-        removeImageButton = Utility.buttonFactory("Remove", new Insets(5, 10, 5, 10));
+        addImageButton = Utility.buttonFactory("Add image", new Insets(5, 10, 5, 10));
+        removeImageButton = Utility.buttonFactory("Remove image", new Insets(5, 10, 5, 10));
+        deleteImageButton = Utility.buttonFactory("Delete image", new Insets(5, 10, 5, 10));
         distinctButton = Utility.buttonFactory("Distinct", new Insets(5, 10, 5, 10));
-        unifyNamesButton = Utility.buttonFactory("Unify", new Insets(5, 10, 5, 10));
-        openButton = Utility.buttonFactory("Open", new Insets(5, 10, 5, 10));
+        unifyNamesButton = Utility.buttonFactory("Unify names", new Insets(5, 10, 5, 10));
+        openButton = Utility.buttonFactory("Open image", new Insets(5, 10, 5, 10));
 
         buttonPanel.add(addImageButton, gbc);
         gbc.gridy++;
         buttonPanel.add(removeImageButton, gbc);
+        gbc.gridy++;
+        buttonPanel.add(deleteImageButton, gbc);
         gbc.gridy++;
         buttonPanel.add(distinctButton, gbc);
         gbc.gridy++;
@@ -81,6 +85,15 @@ public class GalleryView extends AbstractView {
         fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
         fileChooser.setDialogTitle("Pick image you want to add:");
         fileChooser.setApproveButtonText("Pick");
+
+        buttons = new JButton[] {
+            addImageButton,
+            removeImageButton,
+            deleteImageButton,
+            distinctButton,
+            unifyNamesButton,
+            openButton,
+        };
     }
 
     public JButton getAddImageButton() {
@@ -89,6 +102,10 @@ public class GalleryView extends AbstractView {
 
     public JButton getRemoveImageButton() {
         return removeImageButton;
+    }
+
+    public JButton getDeleteImageButton() {
+        return deleteImageButton;
     }
 
     public JButton getDistinctButton() {
@@ -117,5 +134,13 @@ public class GalleryView extends AbstractView {
         }
 
         return null;
+    }
+
+    public void lockModule() {
+        for (JButton button : buttons) button.setEnabled(false);
+    }
+
+    public void unlockModule() {
+        for (JButton button : buttons) button.setEnabled(true);
     }
 }

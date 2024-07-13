@@ -210,12 +210,6 @@ public class Controller {
 
         // Add Button
         gView.getAddImageButton().addActionListener(_ -> {
-            // This operation will lock a gallery.
-            /*if (gModule.isLocked()) {
-                view.moduleLocked();
-                return;
-            }*/
-
             List<String> paths = gView.openFileChooser();
 
             if (paths == null) return;
@@ -236,12 +230,6 @@ public class Controller {
 
         // Remove Button
         gView.getRemoveImageButton().addActionListener(_ -> {
-            // This operation will lock a gallery.
-            /*if (gModule.isLocked()) {
-                view.moduleLocked();
-                return;
-            }*/
-
             // Important note!
             // We must sort indexes and then reverse them
             int[] selected = gView.getGalleryTable().getSelectedRows();
@@ -285,11 +273,6 @@ public class Controller {
 
         // Delete Button
         gView.getDeleteImageButton().addActionListener(_ -> {
-            /*if (gModule.isLocked()) {
-                view.moduleLocked();
-                return;
-            }*/
-
             int[] selected = gView.getGalleryTable().getSelectedRows();
 
             if (selected == null || selected.length == 0) {
@@ -341,12 +324,6 @@ public class Controller {
 
         // Distinct Button
         gView.getDistinctButton().addActionListener(_ -> {
-            // This operation will lock a gallery.
-            /*if (gModule.isLocked()) {
-                view.moduleLocked();
-                return;
-            }*/
-
             int[] selected = gView.getGalleryTable().getSelectedRows();
             if (selected == null || selected.length < 2) {
                 JOptionPane.showMessageDialog(
@@ -360,11 +337,6 @@ public class Controller {
 
             // Lock buttons
             gView.lockModule();
-            /*gView.getAddImageButton().setEnabled(false);
-            gView.getRemoveImageButton().setEnabled(false);
-            gView.getDistinctButton().setEnabled(false);
-            gView.getUnifyNamesButton().setEnabled(false);
-            gView.getOpenButton().setEnabled(false);*/
 
             galleryTasks();
 
@@ -373,11 +345,6 @@ public class Controller {
 
         // Unify Button
         gView.getUnifyNamesButton().addActionListener(_ -> {
-            // This operation will lock a gallery.
-            /*if (gModule.isLocked()) {
-                view.moduleLocked();
-                return;
-            }*/
             gView.lockModule();
 
             gModule.getUnifyNames().execute();

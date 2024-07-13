@@ -34,8 +34,6 @@ public class GalleryModule {
         if (Files.exists(imageReferenceFilePath)) {
             loadFromFile();
         }
-
-        //resetModuleTasks();
     }
 
     // Comparer interaction
@@ -153,7 +151,6 @@ public class GalleryModule {
             return;
 
         List<Path> files = pc.getDuplicates().stream().map(Record::getFile).map(File::toPath).toList();
-
         galleryTableModel.reduction(files);
 
         saveToFile();

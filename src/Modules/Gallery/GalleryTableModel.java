@@ -127,13 +127,15 @@ public class GalleryTableModel extends AbstractTableModel {
         }
     }
 
-    public void reduction(List<Path> paths) throws IOException {
-        List<Integer> ids = new ArrayList<>();
-        for (Path path : paths)
-            ids.add(images.stream().map(Entry::getPath).toList().indexOf(path));
+    public void reduction(List<Path> paths) {
+        images.removeAll(paths.stream().map(p -> {
+            try {
+                return new Entry(p);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }).toList());
 
-        for (Integer id : ids) {
-            deleteImage(id);
-        }
+        fireTableDataChanged();
     }
 }

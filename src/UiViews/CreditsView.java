@@ -26,12 +26,12 @@ public class CreditsView extends AbstractView {
         c.weighty = 0;
         c.gridy = 0;
 
-        JLabel desc = new JLabel("Thank you for downloading app!!!");
+        JLabel desc = new JLabel("LOC_CREDITS_VIEW_DESC");
         desc.setFont(Utility.fontHelveticaBold);
         desc.setHorizontalAlignment(SwingConstants.CENTER);
         desc.setBorder(new EmptyBorder(10, 0, 0, 0));
 
-        JLabel desc2 = new JLabel("Please leave your feedback on GitHub!");
+        JLabel desc2 = new JLabel("LOC_CREDITS_VIEW_DESC_2");
         desc2.setFont(Utility.fontHelveticaPlain);
         desc2.setHorizontalAlignment(SwingConstants.CENTER);
         desc2.setBorder(new CompoundBorder(
@@ -39,7 +39,7 @@ public class CreditsView extends AbstractView {
             new EmptyBorder(0, 0, 10, 0)
         ));
 
-        JLabel authorLabel = new JLabel("Author:");
+        JLabel authorLabel = new JLabel("LOC_CREDITS_VIEW_AUTHOR_LABEL");
         authorLabel.setBorder(new CompoundBorder(
             new MatteBorder(1, 0, 0, 0, Color.gray),
             new EmptyBorder(10, 0, 0, 0)
@@ -47,7 +47,7 @@ public class CreditsView extends AbstractView {
         authorLabel.setFont(Utility.fontHelveticaBold);
         authorLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        JLabel authorText = new JLabel("Maksymilian Strzelczak");
+        JLabel authorText = new JLabel("LOC_CREDITS_VIEW_AUTHOR");
         authorText.setBorder(new CompoundBorder(
             new MatteBorder(0, 0, 1, 0, Color.gray),
             new EmptyBorder(0, 0, 10, 0)
@@ -55,7 +55,7 @@ public class CreditsView extends AbstractView {
         authorText.setFont(Utility.fontHelveticaPlain);
         authorText.setHorizontalAlignment(SwingConstants.CENTER);
 
-        JLabel githubLabel = new JLabel("GitHub:");
+        JLabel githubLabel = new JLabel("LOC_CREDITS_VIEW_GITHUB_LABEL");
         githubLabel.setBorder(new CompoundBorder(
             new MatteBorder(1, 0, 0, 0, Color.gray),
             new EmptyBorder(10, 0, 0, 0)
@@ -63,7 +63,7 @@ public class CreditsView extends AbstractView {
         githubLabel.setFont(Utility.fontHelveticaBold);
         githubLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        JLabel githubHyperlink = new JLabel("<html><a href=''>Click here to open my GitHub page</a></html>");
+        JLabel githubHyperlink = new JLabel("LOC_CREDITS_VIEW_GITHUB_LINK");
         githubHyperlink.setFont(Utility.fontHelveticaPlain);
         githubHyperlink.setBorder(new CompoundBorder(
             new MatteBorder(0, 0, 1, 0, Color.gray),
@@ -82,7 +82,7 @@ public class CreditsView extends AbstractView {
             }
         });
 
-        JLabel versionLabel = new JLabel("Version: 0.5");
+        JLabel versionLabel = new JLabel("VERSION_TAG");
         versionLabel.setBorder(new CompoundBorder(
             new MatteBorder(1, 0, 0, 0, Color.GRAY),
             new EmptyBorder(5, 0, 5, 0)

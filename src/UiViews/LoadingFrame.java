@@ -6,21 +6,26 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.io.File;
 import java.io.IOException;
+import java.util.ResourceBundle;
 
 public class LoadingFrame extends JFrame {
     public LoadingFrame() {
         this.add(new BackgroundPanel());
 
-        ImageIcon icon = new ImageIcon("resources/thumbnail.png");
+        ImageIcon icon = new ImageIcon("resources/thumbnail_64x64.png");
         this.setIconImage(icon.getImage());
         this.setUndecorated(true);
         this.setSize(new Dimension(800, 650));
-//        this.pack();
+        this.setResizable(false);
+        this.setShape(new RoundRectangle2D.Double(0,0, getWidth(), getHeight(), 20, 20));
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
+
+
 }
 
 class BackgroundPanel extends JPanel {
@@ -38,13 +43,13 @@ class BackgroundPanel extends JPanel {
         bottomPanel.setBackground(Color.DARK_GRAY);
         bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
 
-        JLabel loadingLabel = new JLabel("Loading...");
+        JLabel loadingLabel = new JLabel("LOC_LOADING_FRAME_TOP_LABEL");
         loadingLabel.setAlignmentX(RIGHT_ALIGNMENT);
         loadingLabel.setFont(Utility.fontBigHelveticaBold);
         loadingLabel.setBorder(new EmptyBorder(20, 0, 0, 10));
         bottomPanel.add(loadingLabel);
 
-        JLabel loadingText = new JLabel("Please wait until loading is finished :)");
+        JLabel loadingText = new JLabel("LOC_LOADING_FRAME_BOTTOM_LABEL");
         loadingText.setAlignmentX(Component.RIGHT_ALIGNMENT);
         loadingText.setFont(Utility.fontHelveticaPlain);
         loadingText.setBorder(new EmptyBorder(0, 0, 20, 10));

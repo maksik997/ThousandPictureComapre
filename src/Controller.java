@@ -18,6 +18,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 import java.util.List;
 
@@ -25,10 +26,12 @@ public class Controller {
 
     private final View view;
     private final Model model;
+    private final ResourceBundle resourceBundle;
 
-    public Controller(View view, Model model) {
+    public Controller(View view, Model model, ResourceBundle resourceBundle) {
         this.view = view;
         this.model = model;
+        this.resourceBundle = resourceBundle;
 
         // Initialize view controllable elements
         initView();
@@ -38,12 +41,20 @@ public class Controller {
         initGalleryView();
     }
 
+    private String translate(String key) {
+        // FOR RESOURCE BUNDLES USAGE
+        if (key != null && resourceBundle.containsKey(key)) {
+            return resourceBundle.getString(key);
+        }
+        return key;
+    }
+
     private void initView(){
         // Back buttons for each scene
         view.getScenes().forEach( p -> {
             if (p instanceof AbstractView) {
                 ((AbstractView) p)
-                    .getUiHeader_()
+//                    .getUiHeader_()
                     .getBackButton()
                     .addActionListener(_ -> view.toggleScene(Utility.Scene.MENU));
             }
@@ -87,9 +98,9 @@ public class Controller {
             String path = cView.getUiPath().getPath();
             if (path == null) {
                 JOptionPane.showMessageDialog(
-                    null,
-                    String.format("You didn't pick a directory with images to compare%nPick your path and try again."),
-                    "Error",
+                    view,
+                    String.format(translate("LOC_ERROR_DESC_0")),
+                    translate("LOC_ERROR_TITLE_0"),
                     JOptionPane.ERROR_MESSAGE
                 );
 
@@ -112,8 +123,8 @@ public class Controller {
             if (cModule.getPc().getDuplicatesObjectCount() <= 0) {
                 JOptionPane.showMessageDialog(
                         null,
-                        String.format("You didn't load your files.%n Pick them, then load and try again."),
-                        "Error",
+                        String.format(translate("LOC_ERROR_DESC_1")),
+                        translate("LOC_ERROR_TITLE_1"),
                         JOptionPane.ERROR_MESSAGE
                 );
 
@@ -139,7 +150,7 @@ public class Controller {
             cView.getLoadButton().setEnabled(true);
             cView.getMoveButton().setEnabled(true);
 
-            cView.getStateLabel().setText("Ready.");
+            cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_READY"));
         });
 
         // Workers
@@ -161,8 +172,8 @@ public class Controller {
                 } catch (InvalidPathException ex) {
                     JOptionPane.showMessageDialog(
                         null,
-                        String.format("You've picked invalid path.%nTry again!"),
-                        "Error",
+                        String.format(translate("LOC_ERROR_DESC_2")),
+                        translate("LOC_ERROR_TITLE_2"),
                         JOptionPane.ERROR_MESSAGE
                     );
                     return;
@@ -225,8 +236,8 @@ public class Controller {
             if (selected == null || selected.length == 0) {
                 JOptionPane.showMessageDialog(
                     null,
-                    String.format("You didn't pick any image to delete.%nTry again! You can do it!"),
-                    "Error",
+                    String.format(translate("LOC_ERROR_DESC_3")),
+                    translate("LOC_ERROR_TITLE_3"),
                     JOptionPane.ERROR_MESSAGE
                 );
 
@@ -235,8 +246,8 @@ public class Controller {
 
             int a = JOptionPane.showConfirmDialog(
                 view,
-                "Are you sure you want to delete these images?",
-                "Are you sure???",
+                translate("LOC_CONFIRMATION_DESC_0"),
+                translate("LOC_CONFIRMATION_TITLE_0"),
                 JOptionPane.YES_NO_OPTION
             );
 
@@ -247,8 +258,8 @@ public class Controller {
                     } catch (IOException e) {
                         JOptionPane.showMessageDialog(
                             null,
-                            String.format("Couldn't delete image!%nPlease restart the app!"),
-                            "Error",
+                            String.format(translate("LOC_ERROR_DESC_4")),
+                            translate("LOC_ERROR_TITLE_4"),
                             JOptionPane.ERROR_MESSAGE
                         );
                     }
@@ -259,8 +270,8 @@ public class Controller {
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(
                         null,
-                        String.format("Error encountered while saving file.%nIt's possible that image wasn't deleted.%nRestart the app and try again"),
-                        "Error",
+                        String.format(translate("LOC_ERROR_DESC_5")),
+                        translate("LOC_ERROR_TITLE_5"),
                         JOptionPane.ERROR_MESSAGE
                     );
                 }
@@ -275,8 +286,8 @@ public class Controller {
             if (selected == null || selected.length < 2) {
                 JOptionPane.showMessageDialog(
                     null,
-                    String.format("You either didn't select any image or selected one image.%nTry again and this time select at least two images!"),
-                    "Error",
+                    String.format(translate("LOC_ERROR_DESC_6")),
+                    translate("LOC_ERROR_TITLE_6"),
                     JOptionPane.ERROR_MESSAGE
                 );
                 return;
@@ -303,8 +314,8 @@ public class Controller {
             if (selected == null || selected.length == 0) {
                 JOptionPane.showMessageDialog(
                     null,
-                    String.format("You didn't pick any image to open.%nTry again! You can do it!"),
-                    "Error",
+                    String.format(translate("LOC_ERROR_DESC_7")),
+                    translate("LOC_ERROR_TITLE_7"),
                     JOptionPane.ERROR_MESSAGE
                 );
                 return;
@@ -316,8 +327,8 @@ public class Controller {
                 } catch (IOException e) {
                     JOptionPane.showMessageDialog(
                         null,
-                        String.format("Couldn't open image%nTry again!"),
-                        "Error",
+                        String.format(translate("LOC_ERROR_DESC_8")),
+                        translate("LOC_ERROR_TITLE_8"),
                         JOptionPane.ERROR_MESSAGE
                     );
                 }
@@ -351,8 +362,8 @@ public class Controller {
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(
                         null,
-                        String.format("Couldn't save changes%nRestart the app!"),
-                        "Error",
+                        String.format(translate("LOC_ERROR_DESC_9")),
+                        translate("LOC_ERROR_TITLE_9"),
                         JOptionPane.ERROR_MESSAGE
                     );
                 }
@@ -380,7 +391,7 @@ public class Controller {
                     protected Void doInBackground() {
                         // If a task stays in this state, that means that Picture Comparer failed the task.
                         // Probably cuz of FileVisitor
-                        cView.getStateLabel().setText("Preparing...");
+                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_PREPARE"));
                         view.setCursor(
                             Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
                         );
@@ -390,8 +401,8 @@ public class Controller {
                         } catch (IOException ex) {
                             JOptionPane.showMessageDialog(
                                     null,
-                                    String.format("Error message:%n%s%nPlease restart the app!", ex.getMessage()),
-                                    "Error encountered!",
+                                    String.format(translate("LOC_ERROR_DESC_10"), ex.getMessage()),
+                                    translate("LOC_ERROR_TITLE_10"),
                                     JOptionPane.ERROR_MESSAGE
                             );
 
@@ -409,7 +420,7 @@ public class Controller {
                                         .toList()
                         );
 
-                        cView.getStateLabel().setText("Mapping...");
+                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_MAP"));
                         cModule.compareAndExtract();
 
                         return null;
@@ -420,7 +431,7 @@ public class Controller {
                         if (state() == State.CANCELLED)
                             return;
 
-                        cView.getStateLabel().setText("Updating...");
+                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_UPDATE"));
                         cView.getUiTray().update(
                                 cModule.getPc().getTotalObjectCount(),
                                 cModule.getPc().getDuplicatesObjectCount()
@@ -438,19 +449,19 @@ public class Controller {
                         cView.getResetButton().setEnabled(true);
                         cView.getUiPath().getPathButton().setEnabled(true);
 
-                        cView.getStateLabel().setText("Done.");
+                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_DONE"));
                         view.setCursor(Cursor.getDefaultCursor());
                     }
                 },
                 new SwingWorker<>() {
                     @Override
                     protected Void doInBackground() {
-                        cView.getStateLabel().setText("Preparing...");
+                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_PREPARE"));
                         view.setCursor(
                             Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
                         );
 
-                        cView.getStateLabel().setText("Moving...");
+                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_MOVE"));
                         cModule.fileTransfer();
                         return null;
                     }
@@ -463,13 +474,13 @@ public class Controller {
                         cView.getResetButton().setEnabled(true);
                         cView.getUiPath().getPathButton().setEnabled(true);
 
-                        cView.getStateLabel().setText("Done.");
+                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_DONE"));
                         view.setCursor(Cursor.getDefaultCursor());
 
                         int option = JOptionPane.showConfirmDialog(
                             null,
-                            "Do you want to reset comparer?",
-                            "Choose an option:",
+                            translate("LOC_CONFIRMATION_DESC_1"),
+                            translate("LOC_CONFIRMATION_TITLE_1"),
                             JOptionPane.YES_NO_OPTION
                         );
 
@@ -481,7 +492,7 @@ public class Controller {
                             cView.getLoadButton().setEnabled(true);
                             cView.getMoveButton().setEnabled(true);
 
-                            cView.getStateLabel().setText("Ready.");
+                            cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_READY"));
                         }
                     }
                 }
@@ -510,8 +521,8 @@ public class Controller {
                 } catch (FileNotFoundException e) {
                     JOptionPane.showMessageDialog(
                         view,
-                        String.format("Error message:%n%s%nPlease restart the app!", e.getMessage()),
-                        "Error encountered!",
+                        String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
+                        translate("LOC_ERROR_TITLE_10"),
                         JOptionPane.ERROR_MESSAGE
                     );
 
@@ -528,8 +539,8 @@ public class Controller {
 
                 int ans = JOptionPane.showConfirmDialog(
                         view,
-                        "Do you want to delete all duplicates?",
-                        "What to do?",
+                        translate("LOC_CONFIRMATION_DESC_2"),
+                        translate("LOC_CONFIRMATION_TITLE_2"),
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE
                 );
@@ -553,8 +564,8 @@ public class Controller {
                 } catch (IOException e) {
                     JOptionPane.showMessageDialog(
                             view,
-                            String.format("Error message:%n%s%nPlease restart the app!", e.getMessage()),
-                            "Error encountered!",
+                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
+                            translate("LOC_ERROR_TITLE_10"),
                             JOptionPane.ERROR_MESSAGE
                     );
                 }
@@ -567,7 +578,7 @@ public class Controller {
                 view.setCursor(Cursor.getDefaultCursor());
                 gView.unlockModule();
 
-                JOptionPane.showMessageDialog(view, "Redundant images deletion completed.");
+                JOptionPane.showMessageDialog(view, translate("LOC_MESSAGE_0"));
                 resetGalleryDistinctTasks();
             }
         });
@@ -583,8 +594,8 @@ public class Controller {
                 } catch (IOException e) {
                     JOptionPane.showMessageDialog(
                             view,
-                            String.format("Error message:%n%s%nPlease restart the app!", e.getMessage()),
-                            "Error encountered!",
+                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
+                            translate("LOC_ERROR_TITLE_10"),
                             JOptionPane.ERROR_MESSAGE
                     );
                 }
@@ -596,7 +607,7 @@ public class Controller {
                 view.setCursor(Cursor.getDefaultCursor());
                 gView.unlockModule();
 
-                JOptionPane.showMessageDialog(view, "Redundant images transfer completed.");
+                JOptionPane.showMessageDialog(view, translate("LOC_MESSAGE_1"));
                 resetGalleryDistinctTasks();
             }
         });
@@ -618,8 +629,8 @@ public class Controller {
                 } catch (IOException e) {
                     JOptionPane.showMessageDialog(
                             view,
-                            String.format("Error: %s", e.getMessage()),
-                            "Error",
+                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
+                            translate("LOC_ERROR_TITLE_10"),
                             JOptionPane.ERROR_MESSAGE
                     );
                 }
@@ -629,8 +640,8 @@ public class Controller {
                 } catch (IOException e) {
                     JOptionPane.showMessageDialog(
                         view,
-                        "Couldn't save, please restart the app!",
-                        "Error:",
+                        translate("LOC_ERROR_DESC_11"),
+                        translate("LOC_ERROR_TITLE_11"),
                         JOptionPane.ERROR_MESSAGE
                     );
                 }
@@ -640,12 +651,7 @@ public class Controller {
 
             @Override
             protected void done() {
-                JOptionPane.showMessageDialog(
-                        view,
-                        String.format("Names are unified now.%nYay!"),
-                        "Information:",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
+                JOptionPane.showMessageDialog(view, String.format(translate("LOC_MESSAGE_2")));
 
                 gView.unlockModule();
                 view.setCursor(Cursor.getDefaultCursor());
@@ -673,8 +679,8 @@ public class Controller {
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(
                         view,
-                        String.format("Error encountered while adding the file.%n Try again!"),
-                        "Error",
+                        String.format(translate("LOC_ERROR_DESC_12")),
+                        translate("LOC_ERROR_TITLE_12"),
                         JOptionPane.ERROR_MESSAGE
                     );
                 }
@@ -709,8 +715,8 @@ public class Controller {
                 if (selected == null || selected.length == 0) {
                     JOptionPane.showMessageDialog(
                             null,
-                            String.format("You didn't pick any image to delete.%nTry again! You can do it!"),
-                            "Error",
+                            String.format(translate("LOC_ERROR_DESC_3")),
+                            translate("LOC_ERROR_TITLE_3"),
                             JOptionPane.ERROR_MESSAGE
                     );
                     return null;
@@ -735,8 +741,8 @@ public class Controller {
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(
                         null,
-                        String.format("Error encountered while saving file.%nIt's possible that image wasn't deleted.%nRestart the app and try again"),
-                        "Error",
+                        String.format(translate("LOC_ERROR_DESC_13")),
+                        translate("LOC_ERROR_TITLE_13"),
                         JOptionPane.ERROR_MESSAGE
                     );
                 }

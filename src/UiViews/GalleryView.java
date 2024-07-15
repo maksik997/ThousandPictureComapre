@@ -32,7 +32,7 @@ public class GalleryView extends AbstractView {
             new EmptyBorder(5, 5, 5, 5)
         ));
 
-        JLabel headerLabel = new JLabel("Gallery:");
+        JLabel headerLabel = new JLabel("LOC_GALLERY_VIEW_HEADER_LABEL");
         headerLabel.setFont(Utility.fontHelveticaBold);
         headerPanel.add(headerLabel);
 
@@ -49,12 +49,12 @@ public class GalleryView extends AbstractView {
 
         buttonPanel.setBorder(new MatteBorder(0, 1, 0, 0, Color.GRAY));
 
-        addImageButton = Utility.buttonFactory("Add image", new Insets(5, 10, 5, 10));
-        removeImageButton = Utility.buttonFactory("Remove image", new Insets(5, 10, 5, 10));
-        deleteImageButton = Utility.buttonFactory("Delete image", new Insets(5, 10, 5, 10));
-        distinctButton = Utility.buttonFactory("Distinct", new Insets(5, 10, 5, 10));
-        unifyNamesButton = Utility.buttonFactory("Unify names", new Insets(5, 10, 5, 10));
-        openButton = Utility.buttonFactory("Open image", new Insets(5, 10, 5, 10));
+        addImageButton = Utility.buttonFactory("LOC_GALLERY_VIEW_ADD_IMAGE_BUTTON", new Insets(5, 10, 5, 10));
+        removeImageButton = Utility.buttonFactory("LOC_GALLERY_VIEW_REMOVE_IMAGE_BUTTON", new Insets(5, 10, 5, 10));
+        deleteImageButton = Utility.buttonFactory("LOC_GALLERY_VIEW_DELETE_IMAGE_BUTTON", new Insets(5, 10, 5, 10));
+        distinctButton = Utility.buttonFactory("LOC_GALLERY_VIEW_DISTINCT_BUTTON", new Insets(5, 10, 5, 10));
+        unifyNamesButton = Utility.buttonFactory("LOC_GALLERY_VIEW_UNIFY_NAMES_BUTTON", new Insets(5, 10, 5, 10));
+        openButton = Utility.buttonFactory("LOC_GALLERY_VIEW_OPEN_IMAGE_BUTTON", new Insets(5, 10, 5, 10));
 
         buttonPanel.add(addImageButton, gbc);
         gbc.gridy++;
@@ -83,8 +83,8 @@ public class GalleryView extends AbstractView {
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         fileChooser.setMultiSelectionEnabled(true);
         fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-        fileChooser.setDialogTitle("Pick image you want to add:");
-        fileChooser.setApproveButtonText("Pick");
+        fileChooser.setDialogTitle("LOC_GALLERY_VIEW_FILE_CHOOSER_DIALOG_TITLE");
+        fileChooser.setApproveButtonText("LOC_GALLERY_VIEW_FILE_CHOOSER_APPROVE_BUTTON_TEXT");
 
         buttons = new JButton[] {
             addImageButton,
@@ -122,6 +122,10 @@ public class GalleryView extends AbstractView {
 
     public JTable getGalleryTable() {
         return galleryTable;
+    }
+
+    public JFileChooser getFileChooser() {
+        return fileChooser;
     }
 
     public List<String> openFileChooser() {

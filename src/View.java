@@ -1,6 +1,3 @@
-// todo
-//  Add loading frame for model,
-
 import UiComponents.Utility;
 import UiViews.*;
 
@@ -36,11 +33,11 @@ public class View extends JFrame {
         scenes.add(menuView);
         scenes.add(creditsView);
 
-        ImageIcon icon = new ImageIcon("resources/thumbnail.png");
+        ImageIcon icon = new ImageIcon("resources/thumbnail_64x64.png");
 
         this.add(menuView);
 
-        this.setTitle("Thousand Picture Comapre`");
+        this.setTitle("TITLE_TAG");
         this.setIconImage(icon.getImage());
         this.setMinimumSize(new Dimension(800, 650));
         this.pack();
@@ -81,14 +78,5 @@ public class View extends JFrame {
         
         repaint();
         revalidate();
-    }
-
-    public void moduleLocked() {
-        JOptionPane.showMessageDialog(
-        this,
-            String.format("Currently this operation is forbidden.%nPlease wait until other task are finished."),
-            "Module is locked. Please wait...",
-            JOptionPane.INFORMATION_MESSAGE
-        );
     }
 }

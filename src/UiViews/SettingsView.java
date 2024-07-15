@@ -29,7 +29,7 @@ public class SettingsView extends AbstractView {
         gbc.weighty = 0;
         gbc.insets = new Insets(5, 10, 5, 10);
 
-        JLabel headerLabel = new JLabel("Settings");
+        JLabel headerLabel = new JLabel("LOC_SETTINGS_VIEW_HEADER_LABEL");
         headerLabel.setFont(Utility.fontBigHelveticaBold);
         headerLabel.setBorder(botBorder);
         headerLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -37,7 +37,7 @@ public class SettingsView extends AbstractView {
         settingsPanel.add(headerLabel, gbc);
         gbc.gridy++;
 
-        JLabel destinationLabel = new JLabel("Destination for Comparer output:");
+        JLabel destinationLabel = new JLabel("LOC_SETTINGS_VIEW_DESTINATION_LABEL");
         destinationLabel.setFont(Utility.fontHelveticaPlain);
         destinationLabel.setBorder(botBorder);
 
@@ -48,20 +48,20 @@ public class SettingsView extends AbstractView {
         settingsPanel.add(destinationForComparer, gbc);
         gbc.gridy++;
 
-        JLabel modeToggleLabel = new JLabel("Mode toggle:");
+        JLabel modeToggleLabel = new JLabel("LOC_SETTINGS_VIEW_MODE_TOGGLE_LABEL");
         modeToggleLabel.setFont(Utility.fontHelveticaPlain);
         modeToggleLabel.setBorder(botBorder);
 
         settingsPanel.add(modeToggleLabel, gbc);
         gbc.gridy++;
 
-        recursiveModeToggle = new JCheckBox("Recursive mode");
+        recursiveModeToggle = new JCheckBox("LOC_SETTINGS_VIEW_RECURSIVE_MODE_TOGGLE");
         recursiveModeToggle.setFont(Utility.fontHelveticaPlain);
         recursiveModeToggle.setBorder(botBorder);
         settingsPanel.add(recursiveModeToggle, gbc);
         gbc.gridy++;
 
-        saveButton = Utility.buttonFactory("Save settings", new Insets(5, 10, 5, 10));
+        saveButton = Utility.buttonFactory("LOC_SETTINGS_VIEW_SAVE_BUTTON", new Insets(5, 10, 5, 10));
 
         gbc.anchor = GridBagConstraints.SOUTH;
         gbc.weighty = 1;

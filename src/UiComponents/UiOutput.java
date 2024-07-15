@@ -19,7 +19,7 @@ public class UiOutput extends JPanel {
 
         mappedObjectPanel.add(new JScrollPane(mappedObjectList));
 
-        tabbedPane.addTab("Loaded originals", mappedObjectPanel);
+        tabbedPane.addTab("LOC_COMPARER_VIEW_MAPPED_OBJECTS_TAB_TITLE", mappedObjectPanel);
 
         JPanel duplicatePanel = new JPanel(new BorderLayout());
 
@@ -28,7 +28,7 @@ public class UiOutput extends JPanel {
 
         duplicatePanel.add(new JScrollPane(duplicateList));
 
-        tabbedPane.addTab("Duplicates found", duplicatePanel);
+        tabbedPane.addTab("LOC_COMPARER_VIEW_DUPLICATES_TAB_TITLE", duplicatePanel);
 
         this.add(tabbedPane);
     }

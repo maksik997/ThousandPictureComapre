@@ -17,7 +17,7 @@ public class GalleryTableModel extends AbstractTableModel {
 
     private final List<Entry> images;
 
-    private static final String[] columnNames = { "Name", "Size", "Modification date" };
+    private static final String[] columnNames = { "LOC_GALLERY_TABLE_MODEL_COLUMN_NAME", "LOC_GALLERY_TABLE_MODEL_COLUMN_SIZE", "LOC_GALLERY_TABLE_MODEL_COLUMN_MODIFICATION_DATE" };
 
     public GalleryTableModel() {
         this.images = new ArrayList<>();
@@ -40,6 +40,10 @@ public class GalleryTableModel extends AbstractTableModel {
     @Override
     public String getColumnName(int column) {
         return columnNames[column];
+    }
+
+    public void setColumnName(int column, String name) {
+        columnNames[column] = name;
     }
 
     @Override
@@ -156,5 +160,9 @@ public class GalleryTableModel extends AbstractTableModel {
         }).toList());
 
         fireTableDataChanged();
+    }
+
+    public void refresh() {
+        fireTableStructureChanged();
     }
 }

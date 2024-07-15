@@ -1,10 +1,13 @@
-import UiComponents.Utility;
+import Modules.Gallery.GalleryTableModel;
 import UiViews.LoadingFrame;
 import com.formdev.flatlaf.FlatDarculaLaf;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.io.IOException;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -15,15 +18,22 @@ public class Main {
         FlatDarculaLaf.setup();
         setUIManagerProperties();
 
-        LoadingFrame frame = new LoadingFrame();
-        SwingUtilities.invokeLater(() -> frame.setVisible(true));
+        Locale locale = Locale.getDefault(); // Connect with settings.
+        ResourceBundle resources = ResourceBundle.getBundle("localization", locale);
+
+        LoadingFrame loadingFrame = new LoadingFrame();
+        updateComponents(loadingFrame.getContentPane(), resources);
+
+        SwingUtilities.invokeLater(() -> loadingFrame.setVisible(true));
 
         try {
-            View view = new View();
+            View view = initView(resources);
             Model model = initModelAsync();
-            Controller controller = new Controller(view, model);
+            Controller controller = new Controller(view, model, resources);
 
-            frame.dispose();
+            updateAfterwardsComponents(model, resources);
+
+            loadingFrame.dispose();
             SwingUtilities.invokeLater(() -> view.setVisible(true));
 
         } catch (IOException e) {
@@ -33,9 +43,9 @@ public class Main {
     }
 
     private static void setUIManagerProperties(){
-        UIManager.put( "TextComponent.arc", 10 );
-        UIManager.put( "Component.focusWidth", 1 );
-        UIManager.put( "Button.innerFocusWidth", 0 );
+        UIManager.put("TextComponent.arc", 10);
+        UIManager.put("Component.focusWidth", 1);
+        UIManager.put("Button.innerFocusWidth", 0);
     }
 
     private static Model initModelAsync() {
@@ -77,20 +87,76 @@ public class Main {
         return model.get();
     }
 
-    /*static class LoadingFrame extends JFrame {
-        public LoadingFrame() {
-            JLabel label = new JLabel("Loading... Please wait...");
-            label.setHorizontalAlignment(SwingConstants.CENTER);
-            label.setFont(Utility.fontBigHelveticaBold);
-            this.add(label);
+    private static View initView(ResourceBundle resources) throws IOException {
+        View view = new View();
+        view.setTitle(resources.getString(view.getTitle()));
 
-            this.setUndecorated(true);
-            this.setMinimumSize(new Dimension(800, 650));
-            this.pack();
-            this.setLocationRelativeTo(null);
-            this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        // Translate file choosers:
+        JFileChooser[] fcs = {
+            view.getComparerView().getUiPath().getFileChooser(),
+            view.getSettingsView().getDestinationForComparer().getFileChooser(),
+            view.getGalleryView().getFileChooser()
+        };
+
+        for (JFileChooser fc : fcs) {
+              String titleKey = fc.getDialogTitle();
+              if (titleKey != null && resources.containsKey(titleKey)) {
+                  fc.setDialogTitle(resources.getString(titleKey));
+              }
+              String approveButtonKey = fc.getApproveButtonText();
+              if (approveButtonKey != null && resources.containsKey(approveButtonKey)) {
+                  fc.setApproveButtonText(resources.getString(approveButtonKey));
+              }
         }
-    }*/
+
+        for(JPanel p : view.getScenes()) updateComponents(p, resources);
+        return view;
+    }
+
+    private static void updateComponents(Container container, ResourceBundle resources) {
+        String key;
+        for (Component component : container.getComponents()) {
+            if (component instanceof JComponent c) {
+                if (c.getBorder() instanceof TitledBorder border) {
+                    key = border.getTitle();
+                    if (key != null && resources.containsKey(key))
+                        border.setTitle(resources.getString(key));
+                }
+            }
+
+            if (component instanceof JLabel label) {
+                key = label.getText();
+                if (key != null && resources.containsKey(key))
+                    label.setText(resources.getString(key));
+            } else if (component instanceof JButton button) {
+                key = button.getText();
+                if (key != null && resources.containsKey(key))
+                    button.setText(resources.getString(key));
+            } else if (component instanceof JCheckBox checkBox) {
+                key = checkBox.getText();
+                if (key != null && resources.containsKey(key))
+                    checkBox.setText(resources.getString(key));
+            } else if (component instanceof JTabbedPane tabbedPane) {
+                for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+                    key = tabbedPane.getTitleAt(i);
+                    if (key != null && resources.containsKey(key))
+                        tabbedPane.setTitleAt(i, resources.getString(key));
+                }
+            } else if (component instanceof Container) {
+                updateComponents((Container) component, resources);
+            }
+        }
+    }
+
+    private static void updateAfterwardsComponents(Model model, ResourceBundle resources) {
+        GalleryTableModel gtm = model.getGalleryModule().getGalleryTableModel();
+        String key;
+        for (int i = 0; i < gtm.getColumnCount(); i++) {
+            key = gtm.getColumnName(i);
+            if (key != null && resources.containsKey(key)) gtm.setColumnName(i, resources.getString(key));
+        }
+        gtm.refresh();
+    }
 }
 
 

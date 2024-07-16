@@ -3,8 +3,6 @@ import Modules.GalleryModule;
 import Modules.SettingsModule;
 import UiComponents.Utility;
 import UiViews.*;
-import pl.magzik.Comparer;
-import pl.magzik.Structures.Record;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -19,6 +17,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.List;
 
@@ -120,7 +120,7 @@ public class Controller {
         // Move files button
         cView.getMoveButton().addActionListener(_ -> {
             // Check if moving files is valid
-            if (cModule.getPc().getDuplicatesObjectCount() <= 0) {
+            if (cModule.getComparerOutputSize() <= 0) {
                 JOptionPane.showMessageDialog(
                         null,
                         String.format(translate("LOC_ERROR_DESC_1")),
@@ -180,7 +180,7 @@ public class Controller {
                 }
 
                 sModule.updateSetting("destination-for-pc", path.toString());
-                cModule.setDestDir(path.toFile());
+                cModule.setDestination(path.toFile());
             }
         });
 
@@ -193,9 +193,9 @@ public class Controller {
 
             sModule.saveSettings();
 
-            model.getComparerModule().getPc().setMode(
+            model.getComparerModule().setMode(
                 sModule.getSetting("mode").equals("not-recursive") ?
-                Comparer.Modes.NOT_RECURSIVE : Comparer.Modes.RECURSIVE
+                ComparerModule.Mode.NON_RECURSIVE : ComparerModule.Mode.RECURSIVE
             );
 
             // In general, there is no need to change anything else.
@@ -385,118 +385,139 @@ public class Controller {
         ComparerView cView = view.getComparerView();
         ComparerModule cModule = model.getComparerModule();
 
-        cModule.resetTasks(
-                new SwingWorker<>() {
-                    @Override
-                    protected Void doInBackground() {
-                        // If a task stays in this state, that means that Picture Comparer failed the task.
-                        // Probably cuz of FileVisitor
-                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_PREPARE"));
-                        view.setCursor(
-                            Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
-                        );
+        cModule.setMapObjects(new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() {
+                // If a task stays in this state, that means that Picture Comparer failed the task.
+                // Probably cuz of FileVisitor
+                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_PREPARE"));
+                view.setCursor(
+                        Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+                );
 
-                        try {
-                            cModule.setUp();
-                        } catch (IOException ex) {
-                            JOptionPane.showMessageDialog(
-                                    null,
-                                    String.format(translate("LOC_ERROR_DESC_10"), ex.getMessage()),
-                                    translate("LOC_ERROR_TITLE_10"),
-                                    JOptionPane.ERROR_MESSAGE
-                            );
+                try {
+                    cModule.load();
+                } catch (IOException | InterruptedException | TimeoutException e) {
+                    JOptionPane.showMessageDialog(
+                        view,
+                        String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
+                        translate("LOC_ERROR_TITLE_10"),
+                        JOptionPane.ERROR_MESSAGE
+                    );
 
-                            return null;
-                        }
-
-                        cView.getUiTray().update(
-                                cModule.getPc().getTotalObjectCount(),
-                                0
-                        );
-
-                        cModule.getMappedListModel().addAll(
-                                cModule.getPc().getSourceFiles().stream()
-                                        .map(File::getName)
-                                        .toList()
-                        );
-
-                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_MAP"));
-                        cModule.compareAndExtract();
-
-                        return null;
-                    }
-
-                    @Override
-                    protected void done() {
-                        if (state() == State.CANCELLED)
-                            return;
-
-                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_UPDATE"));
-                        cView.getUiTray().update(
-                                cModule.getPc().getTotalObjectCount(),
-                                cModule.getPc().getDuplicatesObjectCount()
-                        );
-
-                        cModule.getDuplicateListModel().addAll(
-                                cModule.getPc().getDuplicates().stream()
-                                        .map(Record::getFile)
-                                        .map(File::getName)
-                                        .collect(Collectors.toList())
-                        );
-
-                        if (cModule.getPc().getDuplicatesObjectCount() > 0)
-                            cView.getMoveButton().setEnabled(true);
-                        cView.getResetButton().setEnabled(true);
-                        cView.getUiPath().getPathButton().setEnabled(true);
-
-                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_DONE"));
-                        view.setCursor(Cursor.getDefaultCursor());
-                    }
-                },
-                new SwingWorker<>() {
-                    @Override
-                    protected Void doInBackground() {
-                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_PREPARE"));
-                        view.setCursor(
-                            Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
-                        );
-
-                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_MOVE"));
-                        cModule.fileTransfer();
-                        return null;
-                    }
-
-                    @Override
-                    protected void done() {
-                        if (state() == State.CANCELLED)
-                            return;
-
-                        cView.getResetButton().setEnabled(true);
-                        cView.getUiPath().getPathButton().setEnabled(true);
-
-                        cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_DONE"));
-                        view.setCursor(Cursor.getDefaultCursor());
-
-                        int option = JOptionPane.showConfirmDialog(
-                            null,
-                            translate("LOC_CONFIRMATION_DESC_1"),
-                            translate("LOC_CONFIRMATION_TITLE_1"),
-                            JOptionPane.YES_NO_OPTION
-                        );
-
-                        if (option == JOptionPane.OK_OPTION) {
-                            comparerTasks();
-                            cView.clear();
-                            cModule.reset();
-
-                            cView.getLoadButton().setEnabled(true);
-                            cView.getMoveButton().setEnabled(true);
-
-                            cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_READY"));
-                        }
-                    }
+                    return null;
                 }
-        );
+
+                cView.getUiTray().update(
+                        cModule.getSourcesSize(),
+                        0
+                );
+
+                cModule.getMappedListModel().addAll(
+                        cModule.getSources().stream()
+                                .map(File::getName)
+                                .toList()
+                );
+
+                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_MAP"));
+
+                try {
+                    cModule.compareAndExtract();
+                } catch (IOException | ExecutionException e) {
+                    JOptionPane.showMessageDialog(
+                            view,
+                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
+                            translate("LOC_ERROR_TITLE_10"),
+                            JOptionPane.ERROR_MESSAGE
+                    );
+
+                    return null;
+                }
+
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                if (state() == State.CANCELLED)
+                    return;
+
+                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_UPDATE"));
+                cView.getUiTray().update(
+                        cModule.getSourcesSize(),
+                        cModule.getComparerOutputSize()
+                );
+
+                cModule.getDuplicateListModel().addAll(
+                        cModule.getComparerOutput().stream()
+//                                        .map(Record::getFile)
+                                .map(File::getName)
+                                .collect(Collectors.toList())
+                );
+
+                if (cModule.getComparerOutputSize() > 0)
+                    cView.getMoveButton().setEnabled(true);
+                cView.getResetButton().setEnabled(true);
+                cView.getUiPath().getPathButton().setEnabled(true);
+
+                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_DONE"));
+                view.setCursor(Cursor.getDefaultCursor());
+            }
+        });
+        cModule.setTransferObjects(new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() {
+                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_PREPARE"));
+                view.setCursor(
+                        Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+                );
+
+                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_MOVE"));
+                try {
+                    cModule.fileTransfer();
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(
+                            view,
+                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
+                            translate("LOC_ERROR_TITLE_10"),
+                            JOptionPane.ERROR_MESSAGE
+                    );
+
+                    return null;
+                }
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                if (state() == State.CANCELLED)
+                    return;
+
+                cView.getResetButton().setEnabled(true);
+                cView.getUiPath().getPathButton().setEnabled(true);
+
+                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_DONE"));
+                view.setCursor(Cursor.getDefaultCursor());
+
+                int option = JOptionPane.showConfirmDialog(
+                        null,
+                        translate("LOC_CONFIRMATION_DESC_1"),
+                        translate("LOC_CONFIRMATION_TITLE_1"),
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                if (option == JOptionPane.OK_OPTION) {
+                    comparerTasks();
+                    cView.clear();
+                    cModule.reset();
+
+                    cView.getLoadButton().setEnabled(true);
+                    cView.getMoveButton().setEnabled(true);
+
+                    cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_READY"));
+                }
+            }
+        });
     }
 
     private void resetGalleryDistinctTasks() {
@@ -518,7 +539,7 @@ public class Controller {
                         sView.getDestinationForComparer().getPath(),
                         Arrays.stream(gView.getGalleryTable().getSelectedRows()).boxed().toList()
                     );
-                } catch (FileNotFoundException e) {
+                } catch (IOException | InterruptedException | TimeoutException e) {
                     JOptionPane.showMessageDialog(
                         view,
                         String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
@@ -529,7 +550,18 @@ public class Controller {
                     return null;
                 }
 
-                gModule.compare();
+                try {
+                    gModule.compare();
+                } catch (IOException | ExecutionException e) {
+                    JOptionPane.showMessageDialog(
+                            view,
+                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
+                            translate("LOC_ERROR_TITLE_10"),
+                            JOptionPane.ERROR_MESSAGE
+                    );
+
+                    return null;
+                }
                 return null;
             }
 
@@ -668,7 +700,7 @@ public class Controller {
 
         gModule.setAddImages(new SwingWorker<>() {
             @Override
-            protected Void doInBackground() throws Exception {
+            protected Void doInBackground() {
                 view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
                 List<String> paths = gView.openFileChooser();
@@ -705,7 +737,7 @@ public class Controller {
 
         gModule.setRemoveImages(new SwingWorker<>() {
             @Override
-            protected Void doInBackground() throws Exception {
+            protected Void doInBackground() {
                 view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
                 // Important note!

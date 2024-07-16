@@ -2,16 +2,22 @@ package Modules;
 
 import Modules.Gallery.Entry;
 import Modules.Gallery.GalleryTableModel;
-import pl.magzik.PictureComparer;
+import pl.magzik.Comparator.FilePredicate;
+import pl.magzik.Comparator.ImageFilePredicate;
+import pl.magzik.IO.FileOperator;
+import pl.magzik.Structures.ImageRecord;
 import pl.magzik.Structures.Record;
 
 import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -21,7 +27,17 @@ public class GalleryModule {
 
     private final GalleryTableModel galleryTableModel;
 
-    private final PictureComparer pc;
+//    private final PictureComparer pc;
+
+    private final FileOperator fileOperator;
+
+    private File destination;
+
+    private List<File> sources;
+
+    private List<File> comparerOutput;
+
+    private final static FilePredicate filePredicate = new ImageFilePredicate();
 
     private SwingWorker<Void, Void> mapObjects, transferObjects, removeObjects, unifyNames, addImages, removeImages;
 
@@ -30,15 +46,18 @@ public class GalleryModule {
 
     public GalleryModule() throws IOException {
         galleryTableModel = new GalleryTableModel();
-
-        this.pc = new PictureComparer();
         if (Files.exists(imageReferenceFilePath)) {
             loadFromFile();
         }
+
+        fileOperator = new FileOperator();
+        destination = new File(System.getProperty("user.home")); // todo TMP
+        sources = new LinkedList<>();
+        comparerOutput = null;
     }
 
     // Comparer interaction
-    public void prepareComparer(String destPath, List<Integer> indexes) throws FileNotFoundException {
+    public void prepareComparer(String destPath, List<Integer> indexes) throws IOException, InterruptedException, TimeoutException {
         // Prepares Picture Comparer with destination path and source path
 
         List<Path> toCheck = new ArrayList<>();
@@ -47,49 +66,67 @@ public class GalleryModule {
                 toCheck.add(galleryTableModel.getImages().get(i).getPath());
         }
 
-        pc._setUp(
-            new File(destPath),
-            toCheck.stream()
-                .map(Path::toFile)
-                .toList()
-        );
+        destination = new File(destPath);
+        sources = fileOperator.loadFiles(1, filePredicate, toCheck.stream().map(Path::toFile).toList());
     }
 
-    public void compare() {
+    public void compare() throws IOException, ExecutionException {
         // Finds all redundant images
         // Do not call before setUp
+        Objects.requireNonNull(sources);
 
-        pc.map();
-        pc.compare();
+        comparerOutput = Record.process(sources, ComparerModule.imageRecordFunction, ImageRecord.pHashFunction, ImageRecord.pixelByPixelFunction)
+            .values().stream()
+            .filter(list -> list.size() > 1)
+            .flatMap(Collection::stream)
+            .map(Record::getFile)
+            .toList();
     }
 
     public void removeRedundant() throws IOException {
-        performReduction();
-        // Removes all the redundant images
-        AtomicBoolean deletedAll = new AtomicBoolean(true);
+        Objects.requireNonNull(destination);
+        Objects.requireNonNull(comparerOutput);
 
-        pc.getDuplicates().stream()
-                .map(Record::getFile)
-                .map(File::toPath)
-                .map(p -> {
-                    try {
-                        Files.deleteIfExists(p);
-                    } catch (IOException e) {
-                        return false;
-                    }
-                    return true;
-                })
-                .filter(b -> !b)
-                .findAny()
-                .ifPresent(_ -> deletedAll.set(false));
-        if (!deletedAll.get())
-            throw new IOException("Couldn't delete all files.");
+        if (comparerOutput.isEmpty()) return;
+
+        performReduction();
+
+        // Removes all the redundant images
+        try {
+            comparerOutput.parallelStream().forEach(file -> {
+                try {
+                    Files.delete(file.toPath());
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
+        }
     }
 
     public void moveRedundant() throws IOException {
+        Objects.requireNonNull(destination);
+        Objects.requireNonNull(comparerOutput);
+
+        if (comparerOutput.isEmpty()) return;
+
         performReduction();
+
         // Moves all the redundant images
-        pc.move();
+        String separator = File.pathSeparator;
+
+        try {
+            comparerOutput.parallelStream().forEach(file -> {
+                try {
+                    Files.move(file.toPath(), Paths.get(destination + separator + file.getName()), StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
+        }
     }
 
     // Basic set of operations
@@ -116,7 +153,7 @@ public class GalleryModule {
                 );
             }
             else {
-                if (!pc.filePredicate(p.toFile())) return;
+                if (!filePredicate.test(p.toFile())) return;
 
                 galleryTableModel.addEntry(new Entry(p));
             }
@@ -141,7 +178,13 @@ public class GalleryModule {
                     .filter(Files::exists)
                     .filter(Files::isRegularFile)
                     .map(Path::toFile)
-                    .filter(pc::filePredicate)
+                    .filter(f -> {
+                        try {
+                            return filePredicate.test(f);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    })
                     .map(File::toPath)
                     .map(p -> {
                         try {
@@ -183,10 +226,10 @@ public class GalleryModule {
     // Other important methods...
 
     private void performReduction() throws IOException {
-        if (pc.getDuplicates().isEmpty())
+        if (comparerOutput.isEmpty())
             return;
 
-        List<Path> files = pc.getDuplicates().stream().map(Record::getFile).map(File::toPath).toList();
+        List<Path> files = comparerOutput.stream().map(File::toPath).toList();
         galleryTableModel.reduction(files);
 
         saveToFile();
@@ -230,8 +273,16 @@ public class GalleryModule {
                     .map(separateLine)
                     .filter(Objects::nonNull)
                     .filter(e -> Files.exists(e.getPath()))
-                    .filter(e -> pc.filePredicate(e.getPath().toFile()))
+                    .filter(e -> {
+                        try {
+                            return filePredicate.test(e.getPath().toFile());
+                        } catch (IOException ex) {
+                            throw new UncheckedIOException(ex);
+                        }
+                    })
                     .forEach(galleryTableModel::addEntry);
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
         }
 
         // To clear any unreachable images.

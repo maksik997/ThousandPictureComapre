@@ -18,7 +18,7 @@ public class MenuView extends JPanel {
         gbc.anchor = GridBagConstraints.CENTER;
 
 
-        ImageIcon icon = Utility.getScaledImage(new ImageIcon("resources/thumbnail.png"), 200, 200);
+        ImageIcon icon = Utility.getScaledImage(new ImageIcon("data/thumbnail.png"), 200, 200);
         JLabel iconLabel = new JLabel(icon);
 
         JLabel title = new JLabel("TITLE_TAG");

@@ -1,4 +1,4 @@
-![logo](resources/thumbnail.png) 
+![logo](data/thumbnail.png) 
 # Thousand Picture Compare`
 ### Version tag: 0.4.2d
 

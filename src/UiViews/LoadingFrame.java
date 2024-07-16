@@ -15,7 +15,7 @@ public class LoadingFrame extends JFrame {
     public LoadingFrame() {
         this.add(new BackgroundPanel());
 
-        ImageIcon icon = new ImageIcon("resources/thumbnail_64x64.png");
+        ImageIcon icon = new ImageIcon("data/thumbnail_64x64.png");
         this.setIconImage(icon.getImage());
         this.setUndecorated(true);
         this.setSize(new Dimension(800, 650));
@@ -33,7 +33,7 @@ class BackgroundPanel extends JPanel {
 
     public BackgroundPanel() {
         try {
-            background = ImageIO.read(new File("resources/loadingImage.jpg"));
+            background = ImageIO.read(new File("data/loadingImage.jpg"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

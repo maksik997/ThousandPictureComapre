@@ -7,7 +7,7 @@ import java.util.Locale;
 
 public class Model {
 
-    private static final String configPath = "./resources/config.cfg";
+    private static final String configPath = "./data/config.cfg";
 
     private final ComparerModule comparerModule;
 

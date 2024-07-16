@@ -23,7 +23,7 @@ public abstract class AbstractView extends JPanel {
             )
         );
 
-        ImageIcon thumbnail = Utility.getScaledImage(new ImageIcon("resources/thumbnail.png"), 50, 50);
+        ImageIcon thumbnail = Utility.getScaledImage(new ImageIcon("data/thumbnail.png"), 50, 50);
         JLabel title = new JLabel(
                 "TITLE_TAG",
                 thumbnail,

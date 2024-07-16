@@ -33,7 +33,7 @@ public class View extends JFrame {
         scenes.add(menuView);
         scenes.add(creditsView);
 
-        ImageIcon icon = new ImageIcon("resources/thumbnail_64x64.png");
+        ImageIcon icon = new ImageIcon("data/thumbnail_64x64.png");
 
         this.add(menuView);
 

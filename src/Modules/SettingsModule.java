@@ -28,7 +28,7 @@ public class SettingsModule {
 
     private void defaultSettings() {
         setts.add(Entry.create(
-            "language", Locale.getDefault().getLanguage()
+            "language", Locale.getDefault().getLanguage()+"-"+Locale.getDefault().getCountry()
         ));
         setts.add(Entry.create(
             "languages", String.join(",", "pl-PL", "en-US")

@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 
 public class GalleryModule {
 
-    private static final Path imageReferenceFilePath = Path.of(".", "resources", "gallery.tp");
+    private static final Path imageReferenceFilePath = Path.of(".", "data", "gallery.tp");
 
     private final GalleryTableModel galleryTableModel;
 

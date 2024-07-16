@@ -16,7 +16,6 @@ import java.net.URISyntaxException;
 public class CreditsView extends AbstractView {
 
     public CreditsView() {
-
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();

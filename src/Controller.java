@@ -3,6 +3,8 @@ import Modules.GalleryModule;
 import Modules.SettingsModule;
 import UiComponents.Utility;
 import UiViews.*;
+import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -10,11 +12,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
@@ -159,54 +157,221 @@ public class Controller {
     }
 
     private void initSettingsView() {
+        // TODO LESS REDUNDANCY
+
         SettingsView sView = view.getSettingsView();
         SettingsModule sModule = model.getSettingsModule();
         ComparerModule cModule = model.getComparerModule();
+        GalleryModule gModule = model.getGalleryModule();
 
         // Destination Path button
-        sView.getDestinationForComparer().getPathButton().addActionListener(_ -> {
-            if (sView.getDestinationForComparer().openFileChooser()) {
-                Path path;
-                try {
-                    path = Paths.get(sView.getDestinationForComparer().getPath());
-                } catch (InvalidPathException ex) {
-                    JOptionPane.showMessageDialog(
-                        null,
-                        String.format(translate("LOC_ERROR_DESC_2")),
-                        translate("LOC_ERROR_TITLE_2"),
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                    return;
-                }
-
-                sModule.updateSetting("destination-for-pc", path.toString());
-                cModule.setDestination(path.toFile());
-            }
+        sView.getDestinationOpenButton().addActionListener(_ -> {
+            sView.openDestinationFileChooser();
         });
 
         // Save Button
         sView.getSaveButton().addActionListener(_ -> {
+            boolean messageNeeded = false;
+
+            String lang = resourceBundle.getString("LOC_SETTINGS_LANG_" + sModule.getSetting("language"));
+            if (!lang.equals(sView.getLanguageComboBox().getSelectedItem())) {
+                messageNeeded = true;
+
+                String newLang = (String) sView.getLanguageComboBox().getSelectedItem();
+
+                resourceBundle.keySet().stream()
+                    .filter(k -> resourceBundle.getString(k).equals(newLang))
+                    .findFirst()
+                    .ifPresentOrElse(k -> {
+                        String[] ks = k.split("_");
+                        sModule.updateSetting("language", ks[ks.length-1]);
+                    }, () -> {
+                        throw new RuntimeException(); // TODO
+                });
+            }
+
+            String theme = resourceBundle.getString("LOC_SETTINGS_THEME_" + sModule.getSetting("theme"));
+            if (!theme.equals(sView.getThemeComboBox().getSelectedItem())) {
+                messageNeeded = true;
+
+                String newTheme = (String) sView.getThemeComboBox().getSelectedItem();
+                resourceBundle.keySet().stream()
+                    .filter(k -> resourceBundle.getString(k).equals(newTheme))
+                    .findFirst()
+                    .ifPresentOrElse(k -> {
+                        String[] ks = k.split("_");
+                        sModule.updateSetting("theme", ks[ks.length-1]);
+                    }, () -> {
+                        throw new RuntimeException(); // TODO
+                    });
+            }
+
+            if (!sModule.getSetting("destination-for-pc").equals(sView.getDestinationTextField().getText())) {
+                sModule.updateSetting("destination-for-pc", sView.getDestinationTextField().getText());
+                cModule.setDestination(new File(sView.getDestinationTextField().getText()));
+            }
+
             sModule.updateSetting(
                 "mode",
                 sView.getRecursiveModeToggle().isSelected() ? "recursive" : "not-recursive"
             );
 
-            sModule.saveSettings();
-
-            model.getComparerModule().setMode(
+            cModule.setMode(
                 sModule.getSetting("mode").equals("not-recursive") ?
                 ComparerModule.Mode.NON_RECURSIVE : ComparerModule.Mode.RECURSIVE
             );
 
-            // In general, there is no need to change anything else.
+            gModule.setMode(
+                sModule.getSetting("mode").equals("not-recursive") ?
+                ComparerModule.Mode.NON_RECURSIVE : ComparerModule.Mode.RECURSIVE
+            );
+
+            sModule.updateSetting(
+                "phash",
+                    sView.getPHashModeToggle().isSelected() ? "yes" : "no"
+            );
+
+            cModule.setPHash(
+                sModule.getSetting("phash").equals("yes")
+            );
+
+            gModule.setPHash(
+                    sModule.getSetting("phash").equals("yes")
+            );
+
+            sModule.updateSetting(
+                "pbp",
+                sView.getPHashModeToggle().isSelected() ? "yes" : "no"
+            );
+
+            cModule.setPixelByPixel(
+                sModule.getSetting("pbp").equals("yes")
+            );
+
+            gModule.setPixelByPixel(
+                sModule.getSetting("pbp").equals("yes")
+            );
+
+            if (!sView.getUnifyNamesPrefixTextField().getText().equals(sModule.getSetting("unify-names-prefix"))) {
+                sModule.updateSetting(
+                    "unify-names-prefix",
+                    sView.getUnifyNamesPrefixTextField().getText()
+                );
+
+                gModule.setNameTemplate(
+                    sModule.getSetting("unify-names-prefix")
+                );
+            }
+
+            sModule.updateSetting(
+                "unify-names-lowercase",
+                sView.getUnifyNamesLowerCaseToggle().isSelected() ? "yes" : "no"
+            );
+
+            gModule.setLowercaseExtension(
+                sModule.getSetting("unify-names-lowercase").equals("yes")
+            );
+
+            sModule.saveSettings();
+
+            if (messageNeeded) {
+                JOptionPane.showMessageDialog(
+                    view,
+                    resourceBundle.getString("LOC_MESSAGE_RESTART_REQUIRED_DESC"),
+                    resourceBundle.getString("LOC_MESSAGE_RESTART_REQUIRED_TITLE"),
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+            }
         });
 
-        if (sModule.getSetting("mode").equals("recursive")) {
-            sView.getRecursiveModeToggle().setSelected(true);
+        // Language settings init
+        String[] langs = sModule.getSetting("languages").split(",");
+        for (String lang : langs) {
+            String key = "LOC_SETTINGS_LANG_" + lang;
+            if (resourceBundle.containsKey(key))
+                sView.getLanguageComboBox().addItem(resourceBundle.getString(key));
         }
 
-        sView.getDestinationForComparer().setPath(
+        String language = "LOC_SETTINGS_LANG_" + sModule.getSetting("language");
+        resourceBundle.keySet().stream()
+            .filter(k -> k.equals(language))
+            .findFirst()
+            .ifPresentOrElse(k -> sView.getLanguageComboBox().setSelectedItem(resourceBundle.getString(k)), () -> {
+                throw new RuntimeException(); // TODO
+        });
+
+        // Theme settings init
+        String[] themes = sModule.getSetting("themes").split(",");
+        for (String theme : themes) {
+            String key = "LOC_SETTINGS_THEME_" + theme;
+            if (resourceBundle.containsKey(key))
+                sView.getThemeComboBox().addItem(resourceBundle.getString(key));
+        }
+
+        String theme = "LOC_SETTINGS_THEME_" + sModule.getSetting("theme");
+        resourceBundle.keySet().stream()
+            .filter(k -> k.equals(theme))
+            .findFirst()
+            .ifPresentOrElse(k -> sView.getThemeComboBox().setSelectedItem(resourceBundle.getString(k)), () -> {
+                throw new RuntimeException(); // TODO
+        });
+
+
+
+        // Comparer's settings init
+        sView.getDestinationTextField().setText(
             sModule.getSetting("destination-for-pc")
+        );
+
+        sView.getRecursiveModeToggle().setSelected(
+            sModule.getSetting("mode").equals("recursive")
+        );
+
+        sView.getPHashModeToggle().setSelected(
+            sModule.getSetting("phash").equals("yes")
+        );
+
+        sView.getPixelByPixelModeToggle().setSelected(
+            sModule.getSetting("pbp").equals("yes")
+        );
+
+        // Gallery's settings init
+        sView.getUnifyNamesPrefixTextField().setText(
+            sModule.getSetting("unify-names-prefix")
+        );
+
+        sView.getUnifyNamesLowerCaseToggle().setSelected(
+            sModule.getSetting("unify-names-lowercase").equals("yes")
+        );
+
+        // Comparer Module settings init
+        cModule.setDestination(new File(sModule.getSetting("destination-for-pc")));
+        cModule.setMode(
+            sModule.getSetting("mode").equals("recursive") ? ComparerModule.Mode.RECURSIVE : ComparerModule.Mode.NON_RECURSIVE
+        );
+        cModule.setPHash(
+            sModule.getSetting("phash").equals("yes")
+        );
+        cModule.setPixelByPixel(
+            sModule.getSetting("pbp").equals("yes")
+        );
+
+        // Gallery Module settings init
+        gModule.setDestination(new File(sModule.getSetting("destination-for-pc")));
+        gModule.setMode(
+            sModule.getSetting("mode").equals("recursive") ? ComparerModule.Mode.RECURSIVE : ComparerModule.Mode.NON_RECURSIVE
+        );
+        gModule.setPHash(
+            sModule.getSetting("phash").equals("yes")
+        );
+        gModule.setPixelByPixel(
+            sModule.getSetting("pbp").equals("yes")
+        );
+        gModule.setNameTemplate(
+            sModule.getSetting("unify-names-prefix")
+        );
+        gModule.setLowercaseExtension(
+            sModule.getSetting("unify-names-lowercase").equals("yes")
         );
     }
 
@@ -536,7 +701,7 @@ public class Controller {
 
                 try {
                     gModule.prepareComparer(
-                        sView.getDestinationForComparer().getPath(),
+                        sView.getDestinationTextField().getText(),
                         Arrays.stream(gView.getGalleryTable().getSelectedRows()).boxed().toList()
                     );
                 } catch (IOException | InterruptedException | TimeoutException e) {

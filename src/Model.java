@@ -3,6 +3,7 @@ import Modules.GalleryModule;
 import Modules.SettingsModule;
 
 import java.io.IOException;
+import java.util.Locale;
 
 public class Model {
 

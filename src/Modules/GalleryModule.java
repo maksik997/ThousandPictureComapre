@@ -7,8 +7,10 @@ import pl.magzik.Comparator.ImageFilePredicate;
 import pl.magzik.IO.FileOperator;
 import pl.magzik.Structures.ImageRecord;
 import pl.magzik.Structures.Record;
+import Modules.ComparerModule.Mode;
 
 import javax.swing.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,8 +29,6 @@ public class GalleryModule {
 
     private final GalleryTableModel galleryTableModel;
 
-//    private final PictureComparer pc;
-
     private final FileOperator fileOperator;
 
     private File destination;
@@ -36,6 +36,12 @@ public class GalleryModule {
     private List<File> sources;
 
     private List<File> comparerOutput;
+
+    private Mode mode;
+
+    private boolean pHash, pixelByPixel, lowercaseExtension;
+
+    private String nameTemplate;
 
     private final static FilePredicate filePredicate = new ImageFilePredicate();
 
@@ -51,9 +57,15 @@ public class GalleryModule {
         }
 
         fileOperator = new FileOperator();
-        destination = new File(System.getProperty("user.home")); // todo TMP
+        destination = new File(System.getProperty("user.home"));
         sources = new LinkedList<>();
         comparerOutput = null;
+
+        pHash = false;
+        pixelByPixel = false;
+        lowercaseExtension = false;
+
+        nameTemplate = "tp_img_";
     }
 
     // Comparer interaction
@@ -75,7 +87,18 @@ public class GalleryModule {
         // Do not call before setUp
         Objects.requireNonNull(sources);
 
-        comparerOutput = Record.process(sources, ComparerModule.imageRecordFunction, ImageRecord.pHashFunction, ImageRecord.pixelByPixelFunction)
+        Map<?, List<Record<BufferedImage>>> map;
+
+        if (pHash && pixelByPixel)
+            map = Record.process(sources, ComparerModule.imageRecordFunction, ImageRecord.pHashFunction, ImageRecord.pixelByPixelFunction);
+        else if (pHash)
+            map = Record.process(sources, ComparerModule.imageRecordFunction, ImageRecord.pHashFunction);
+        else if (pixelByPixel)
+            map = Record.process(sources, ComparerModule.imageRecordFunction, ImageRecord.pixelByPixelFunction);
+        else
+            map = Record.process(sources, ComparerModule.imageRecordFunction);
+
+        comparerOutput = map
             .values().stream()
             .filter(list -> list.size() > 1)
             .flatMap(Collection::stream)
@@ -218,7 +241,7 @@ public class GalleryModule {
     // Special set of operations
 
     public void unifyNames() throws IOException {
-        galleryTableModel.unifyNames();
+        galleryTableModel.unifyNames(nameTemplate, lowercaseExtension);
     }
 
     // todo more of this...
@@ -337,6 +360,50 @@ public class GalleryModule {
         return removeImages;
     }
 
+    public File getDestination() {
+        return destination;
+    }
+
+    public Mode getMode() {
+        return mode;
+    }
+
+    public boolean getPixelByPixel() {
+        return pixelByPixel;
+    }
+
+    public void setPixelByPixel(boolean pixelByPixel) {
+        this.pixelByPixel = pixelByPixel;
+    }
+
+    public boolean getPHash() {
+        return pHash;
+    }
+
+    public String getNameTemplate() {
+        return nameTemplate;
+    }
+
+    public boolean isLowercaseExtension() {
+        return lowercaseExtension;
+    }
+
+    public void setLowercaseExtension(boolean lowercaseExtension) {
+        this.lowercaseExtension = lowercaseExtension;
+    }
+
+    public void setPHash(boolean pHash) {
+        this.pHash = pHash;
+    }
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
+    }
+
+    public void setDestination(File destination) {
+        this.destination = destination;
+    }
+
     public void setUnifyNames(SwingWorker<Void, Void> unifyNames) {
         this.unifyNames = unifyNames;
     }
@@ -367,5 +434,9 @@ public class GalleryModule {
 
     private void setMassAction() {
         this.massAction = true;
+    }
+
+    public void setNameTemplate(String nameTemplate) {
+        this.nameTemplate = nameTemplate;
     }
 }

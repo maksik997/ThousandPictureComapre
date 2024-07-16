@@ -1,3 +1,5 @@
+// TODO COMPARER INTERFACE ALLOWING MULTI-USE OF IT WITH LOCKS
+
 package Modules;
 
 import pl.magzik.Comparator.FilePredicate;
@@ -8,6 +10,7 @@ import pl.magzik.Structures.Record;
 import pl.magzik.Utils.LoggingInterface;
 
 import javax.swing.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -34,6 +37,8 @@ public class ComparerModule {
 
     private Mode mode;
 
+    private boolean pHash, pixelByPixel;
+
     private final static FilePredicate filePredicate = new ImageFilePredicate();
 
     public final static Function<File, ImageRecord> imageRecordFunction = file -> {
@@ -57,6 +62,9 @@ public class ComparerModule {
         fileOperator = new FileOperator();
         mode = Mode.NON_RECURSIVE;
 
+        pHash = false;
+        pixelByPixel = false;
+
         duplicateListModel = new DefaultListModel<>();
         mappedListModel = new DefaultListModel<>();
     }
@@ -69,9 +77,6 @@ public class ComparerModule {
         mappedListModel.removeAllElements();
     }
 
-    @Deprecated
-    public void setUp() throws IOException {}
-
     // Load images
     public void load() throws IOException, InterruptedException, TimeoutException {
         Objects.requireNonNull(sources);
@@ -81,9 +86,19 @@ public class ComparerModule {
     // This method compares all images checksums
     public void compareAndExtract() throws IOException, ExecutionException {
         Objects.requireNonNull(sources);
+        Map<?, List<Record<BufferedImage>>> map;
+
+        if (pHash && pixelByPixel)
+            map = Record.process(sources, imageRecordFunction, ImageRecord.pHashFunction, ImageRecord.pixelByPixelFunction);
+        else if (pHash)
+            map = Record.process(sources, imageRecordFunction, ImageRecord.pHashFunction);
+        else if (pixelByPixel)
+            map = Record.process(sources, imageRecordFunction, ImageRecord.pixelByPixelFunction);
+        else
+            map = Record.process(sources, imageRecordFunction);
 
         // Record.process return duplicates (or uniques, entries with more than one element contain duplicates)
-        comparerOutput = Record.process(sources, imageRecordFunction, ImageRecord.pHashFunction, ImageRecord.pixelByPixelFunction)
+        comparerOutput = map
                 .values().stream()
                 .filter(list -> list.size() > 1)
                 .flatMap(Collection::stream)
@@ -112,12 +127,6 @@ public class ComparerModule {
         }
     }
 
-    @Deprecated
-    public void resetTasks(SwingWorker<Void, Void> mapObjects, SwingWorker<Void, Void> transferObjects) {
-        this.mapObjects = mapObjects;
-        this.transferObjects = transferObjects;
-    }
-
     public File getDestination() {
         return destination;
     }
@@ -142,6 +151,22 @@ public class ComparerModule {
 
     public Mode getMode() {
         return mode;
+    }
+
+    public boolean getPHash() {
+        return pHash;
+    }
+
+    public boolean getPixelByPixel() {
+        return pixelByPixel;
+    }
+
+    public void setPHash(boolean pHash) {
+        this.pHash = pHash;
+    }
+
+    public void setPixelByPixel(boolean pixelByPixel) {
+        this.pixelByPixel = pixelByPixel;
     }
 
     public void setMode(Mode mode) {

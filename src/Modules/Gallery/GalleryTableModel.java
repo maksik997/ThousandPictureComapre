@@ -138,13 +138,14 @@ public class GalleryTableModel extends AbstractTableModel {
     }
 
     // Group functions
-    public void unifyNames() throws IOException {
-        String pattern = "tp_img_";
+    public void unifyNames(String pattern, boolean lowercaseSuffix) throws IOException {
         int i = 0;
 
         for (Path path : images.stream().map(Entry::getPath).toList()) {
             String ext = path.toString().substring(path.toString().lastIndexOf("."));
             int idx = images.stream().map(Entry::getPath).toList().indexOf(path);
+
+            if (lowercaseSuffix) ext = ext.toLowerCase();
 
             modifyName(idx, String.format("%s%s_%s%s", pattern, ++i, System.currentTimeMillis(), ext));
         }

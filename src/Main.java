@@ -1,6 +1,7 @@
 import Modules.Gallery.GalleryTableModel;
 import UiViews.LoadingFrame;
 import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -27,8 +28,20 @@ public class Main {
         SwingUtilities.invokeLater(() -> loadingFrame.setVisible(true));
 
         try {
+            Model model = new Model();
+
+            // Take valid locale and update resource bundle
+            locale = Locale.forLanguageTag(model.getSettingsModule().getSetting("language"));
+            resources = ResourceBundle.getBundle("localization", locale);
+
+            // Setup theme
+            if (model.getSettingsModule().getSetting("theme").equals("dark")) {
+                FlatDarculaLaf.setup();
+            } else {
+                FlatLightLaf.setup();
+            }
+
             View view = initView(resources);
-            Model model = initModelAsync();
             Controller controller = new Controller(view, model, resources);
 
             updateAfterwardsComponents(model, resources);
@@ -94,7 +107,7 @@ public class Main {
         // Translate file choosers:
         JFileChooser[] fcs = {
             view.getComparerView().getUiPath().getFileChooser(),
-            view.getSettingsView().getDestinationForComparer().getFileChooser(),
+            view.getSettingsView().getDestinationFileChooser(),
             view.getGalleryView().getFileChooser()
         };
 
@@ -136,13 +149,15 @@ public class Main {
                 key = checkBox.getText();
                 if (key != null && resources.containsKey(key))
                     checkBox.setText(resources.getString(key));
-            } else if (component instanceof JTabbedPane tabbedPane) {
-                for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-                    key = tabbedPane.getTitleAt(i);
-                    if (key != null && resources.containsKey(key))
-                        tabbedPane.setTitleAt(i, resources.getString(key));
-                }
             } else if (component instanceof Container) {
+                if (component instanceof JTabbedPane tabbedPane) {
+                    for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+                        key = tabbedPane.getTitleAt(i);
+                        if (key != null && resources.containsKey(key))
+                            tabbedPane.setTitleAt(i, resources.getString(key));
+                    }
+                }
+
                 updateComponents((Container) component, resources);
             }
         }

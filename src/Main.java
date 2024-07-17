@@ -28,6 +28,7 @@ public class Main {
 
             // Take valid locale and update resource bundle
             locale = Locale.forLanguageTag(model.getSettingsModule().getSetting("language"));
+            ResourceBundle.clearCache();
             resources = ResourceBundle.getBundle("localization", locale);
 
             // Setup theme

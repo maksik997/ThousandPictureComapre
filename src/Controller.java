@@ -3,10 +3,10 @@ import Modules.GalleryModule;
 import Modules.SettingsModule;
 import UiComponents.Utility;
 import UiViews.*;
-import com.formdev.flatlaf.FlatDarculaLaf;
-import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.TableModelEvent;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -381,6 +381,25 @@ public class Controller {
 
         // Initialize gallery table
         gView.getGalleryTable().setModel(gModule.getGalleryTableModel());
+        gView.getGalleryTable().setRowSorter(gModule.getTableRowSorter());
+
+        // Filter by Name Text Field
+        gView.getNameFilterTextField().getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                gView.getGalleryTable().clearSelection();
+                gModule.filterTable(gView.getNameFilterTextField().getText().trim());
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                gView.getGalleryTable().clearSelection();
+                gModule.filterTable(gView.getNameFilterTextField().getText().trim());
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {}
+        });
 
         // Add Button
         gView.getAddImageButton().addActionListener(_ -> {
@@ -534,6 +553,8 @@ public class Controller {
                 }
             }
         });
+
+        gView.getElementCount().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
 
         // Tasks
         resetGalleryDistinctTasks();
@@ -772,6 +793,7 @@ public class Controller {
 
             @Override
             protected void done() {
+                gView.getElementCount().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
                 view.setCursor(Cursor.getDefaultCursor());
                 gView.unlockModule();
 
@@ -801,6 +823,7 @@ public class Controller {
 
             @Override
             protected void done() {
+                gView.getElementCount().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
                 view.setCursor(Cursor.getDefaultCursor());
                 gView.unlockModule();
 
@@ -887,6 +910,7 @@ public class Controller {
 
             @Override
             protected void done() {
+                gView.getElementCount().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
                 gView.unlockModule();
                 view.setCursor(Cursor.getDefaultCursor());
                 resetGalleryAddImagesTask();

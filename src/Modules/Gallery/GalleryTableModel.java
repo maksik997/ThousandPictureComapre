@@ -17,7 +17,7 @@ public class GalleryTableModel extends AbstractTableModel {
 
     private final List<Entry> images;
 
-    private static final String[] columnNames = { "LOC_GALLERY_TABLE_MODEL_COLUMN_NAME", "LOC_GALLERY_TABLE_MODEL_COLUMN_SIZE", "LOC_GALLERY_TABLE_MODEL_COLUMN_MODIFICATION_DATE" };
+    private static final String[] columnNames = { "LOC_GALLERY_TABLE_MODEL_COLUMN_NAME", "LOC_GALLERY_TABLE_MODEL_COLUMN_SIZE", "LOC_GALLERY_TABLE_MODEL_COLUMN_MODIFICATION_DATE", "LOC_GALLERY_TABLE_MODEL_COLUMN_TAGS" };
 
     public GalleryTableModel() {
         this.images = new ArrayList<>();
@@ -38,6 +38,11 @@ public class GalleryTableModel extends AbstractTableModel {
     }
 
     @Override
+    public Class<?> getColumnClass(int columnIndex) {
+        return String.class;
+    }
+
+    @Override
     public String getColumnName(int column) {
         return columnNames[column];
     }
@@ -54,6 +59,7 @@ public class GalleryTableModel extends AbstractTableModel {
             case 0 -> entry.getName();
             case 1 -> entry.getSize();
             case 2 -> entry.getModificationDate();
+            case 3 -> "TODO";
             default -> throw new IndexOutOfBoundsException();
         };
     }

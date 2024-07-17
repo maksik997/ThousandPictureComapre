@@ -2,6 +2,7 @@ package Modules;
 
 import Modules.Gallery.Entry;
 import Modules.Gallery.GalleryTableModel;
+import Modules.Gallery.GalleryTableRowSorter;
 import pl.magzik.Comparator.FilePredicate;
 import pl.magzik.Comparator.ImageFilePredicate;
 import pl.magzik.IO.FileOperator;
@@ -10,6 +11,7 @@ import pl.magzik.Structures.Record;
 import Modules.ComparerModule.Mode;
 
 import javax.swing.*;
+import javax.swing.table.TableRowSorter;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
@@ -28,6 +30,8 @@ public class GalleryModule {
     private static final Path imageReferenceFilePath = Path.of(".", "data", "gallery.tp");
 
     private final GalleryTableModel galleryTableModel;
+
+    private final TableRowSorter<GalleryTableModel> tableRowSorter;
 
     private final FileOperator fileOperator;
 
@@ -52,6 +56,10 @@ public class GalleryModule {
 
     public GalleryModule() throws IOException {
         galleryTableModel = new GalleryTableModel();
+        tableRowSorter = new GalleryTableRowSorter(galleryTableModel);
+        //// Custom Comparator for file sizes
+
+
         if (Files.exists(imageReferenceFilePath)) {
             loadFromFile();
         }
@@ -71,6 +79,8 @@ public class GalleryModule {
     // Comparer interaction
     public void prepareComparer(String destPath, List<Integer> indexes) throws IOException, InterruptedException, TimeoutException {
         // Prepares Picture Comparer with destination path and source path
+
+        indexes = indexes.stream().map(tableRowSorter::convertRowIndexToModel).toList();
 
         List<Path> toCheck = new ArrayList<>();
         for (int i = 0; i < galleryTableModel.getImages().size(); i++) {
@@ -227,15 +237,15 @@ public class GalleryModule {
     }
 
     public void removeImage(int idx) {
-        galleryTableModel.removeEntry(idx);
+        galleryTableModel.removeEntry(tableRowSorter.convertRowIndexToModel(idx));
     }
 
     public void deleteImage(int idx) throws IOException {
-        galleryTableModel.deleteImage(idx);
+        galleryTableModel.deleteImage(tableRowSorter.convertRowIndexToModel(idx));
     }
 
     public void openImage(int idx) throws IOException {
-        galleryTableModel.openEntry(idx);
+        galleryTableModel.openEntry(tableRowSorter.convertRowIndexToModel(idx));
     }
 
     // Special set of operations
@@ -247,6 +257,12 @@ public class GalleryModule {
     // todo more of this...
 
     // Other important methods...
+
+    // Filtering
+    public void filterTable(String filter) {
+        RowFilter<GalleryTableModel, Object> rowFilter = RowFilter.regexFilter(".*"+filter+".*", 0);
+        tableRowSorter.setRowFilter(rowFilter);
+    }
 
     private void performReduction() throws IOException {
         if (comparerOutput.isEmpty())
@@ -334,6 +350,10 @@ public class GalleryModule {
 
     public GalleryTableModel getGalleryTableModel() {
         return galleryTableModel;
+    }
+
+    public TableRowSorter<GalleryTableModel> getTableRowSorter() {
+        return tableRowSorter;
     }
 
     public SwingWorker<Void, Void> getMapObjects() {

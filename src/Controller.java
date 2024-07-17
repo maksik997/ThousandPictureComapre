@@ -520,6 +520,128 @@ public class Controller {
 
         });
 
+        // Add Tag Button
+        gView.getAddTagButton().addActionListener(_ -> {
+            int[] selected = gView.getGalleryTable().getSelectedRows();
+            if (selected == null || selected.length == 0) {
+                JOptionPane.showMessageDialog(
+                    view,
+                    String.format(translate("LOC_ERROR_DESC_14")),
+                    translate("LOC_ERROR_TITLE_14"),
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            JComboBox<String> comboBox = new JComboBox<>();
+            for (String tag : gModule.getExistingTags()) {
+                comboBox.addItem(translate(tag));
+            }
+            comboBox.setEditable(true);
+
+            int result = JOptionPane.showConfirmDialog(
+                null,
+                comboBox,
+                translate("LOC_ADD_TAG_OPTION_PANE"),
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+
+            if (result == JOptionPane.OK_OPTION) {
+                String tag = (String) comboBox.getSelectedItem();
+                if (tag != null && !tag.matches("^[\\w\\-]+$")) {
+                    JOptionPane.showMessageDialog(
+                        view,
+                        String.format(translate("LOC_ERROR_DESC_15")),
+                        translate("LOC_ERROR_TITLE_15"),
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+
+                for (int idx : selected) {
+                    try {
+                        gModule.addTag(idx, tag);
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(
+                            view,
+                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
+                            translate("LOC_ERROR_TITLE_10"),
+                            JOptionPane.ERROR_MESSAGE
+                        );
+                        return;
+                    }
+                }
+
+                try {
+                    gModule.saveToFile();
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(
+                        view,
+                        String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
+                        translate("LOC_ERROR_TITLE_10"),
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+        });
+
+        // Remove Tag Button
+        gView.getRemoveTagButton().addActionListener(_ -> {
+            int selected = gView.getGalleryTable().getSelectedRow();
+            if (selected == -1) {
+                JOptionPane.showMessageDialog(
+                        view,
+                        String.format(translate("LOC_ERROR_DESC_14")),
+                        translate("LOC_ERROR_TITLE_14"),
+                        JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            JComboBox<String> comboBox = new JComboBox<>();
+            String[] tags = gModule.getTags(selected);
+
+            if (tags.length == 0) {
+                JOptionPane.showMessageDialog(
+                    view,
+                    String.format(translate("LOC_ERROR_DESC_16")),
+                    translate("LOC_ERROR_TITLE_16"),
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            for (String tag : tags) {
+                comboBox.addItem(translate(tag));
+            }
+
+
+            int result = JOptionPane.showConfirmDialog(
+                null,
+                comboBox,
+                translate("LOC_REMOVE_TAG_OPTION_PANE"),
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+
+            if (result == JOptionPane.OK_OPTION) {
+                String tag = (String) comboBox.getSelectedItem();
+                if (tag != null) gModule.removeTag(selected, tag);
+            }
+
+            try {
+                gModule.saveToFile();
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(
+                    view,
+                    String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
+                    translate("LOC_ERROR_TITLE_10"),
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
         // Table click on cell
         gView.getGalleryTable().addMouseListener(new MouseAdapter() {
             @Override

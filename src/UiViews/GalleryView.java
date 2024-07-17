@@ -15,7 +15,7 @@ public class GalleryView extends AbstractView {
 
     private final JTable galleryTable;
 
-    private final JButton addImageButton, removeImageButton, deleteImageButton, distinctButton, unifyNamesButton, openButton;
+    private final JButton addImageButton, removeImageButton, deleteImageButton, distinctButton, unifyNamesButton, openButton, addTagButton, removeTagButton;
 
     private final JButton[] buttons;
 
@@ -82,6 +82,8 @@ public class GalleryView extends AbstractView {
         distinctButton = Utility.buttonFactory("LOC_GALLERY_VIEW_DISTINCT_BUTTON", new Insets(5, 10, 5, 10));
         unifyNamesButton = Utility.buttonFactory("LOC_GALLERY_VIEW_UNIFY_NAMES_BUTTON", new Insets(5, 10, 5, 10));
         openButton = Utility.buttonFactory("LOC_GALLERY_VIEW_OPEN_IMAGE_BUTTON", new Insets(5, 10, 5, 10));
+        addTagButton = Utility.buttonFactory("LOC_GALLERY_VIEW_ADD_TAG_BUTTON", new Insets(5, 10, 5, 10));
+        removeTagButton = Utility.buttonFactory("LOC_GALLERY_VIEW_REMOVE_TAG_BUTTON", new Insets(5, 10, 5, 10));
 
         buttonPanel.add(addImageButton, gbc);
         gbc.gridy++;
@@ -94,6 +96,10 @@ public class GalleryView extends AbstractView {
         buttonPanel.add(unifyNamesButton, gbc);
         gbc.gridy++;
         buttonPanel.add(openButton, gbc);
+        gbc.gridy++;
+        buttonPanel.add(addTagButton, gbc);
+        gbc.gridy++;
+        buttonPanel.add(removeTagButton, gbc);
         gbc.gridy++;
         gbc.weighty = 1;
         buttonPanel.add(Box.createVerticalGlue(), gbc);
@@ -142,6 +148,8 @@ public class GalleryView extends AbstractView {
             distinctButton,
             unifyNamesButton,
             openButton,
+            addTagButton,
+            removeTagButton
         };
     }
 
@@ -167,6 +175,14 @@ public class GalleryView extends AbstractView {
 
     public JButton getOpenButton() {
         return openButton;
+    }
+
+    public JButton getAddTagButton() {
+        return addTagButton;
+    }
+
+    public JButton getRemoveTagButton() {
+        return removeTagButton;
     }
 
     public JTable getGalleryTable() {

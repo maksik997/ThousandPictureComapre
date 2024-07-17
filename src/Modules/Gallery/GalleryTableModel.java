@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GalleryTableModel extends AbstractTableModel {
 
@@ -59,7 +60,7 @@ public class GalleryTableModel extends AbstractTableModel {
             case 0 -> entry.getName();
             case 1 -> entry.getSize();
             case 2 -> entry.getModificationDate();
-            case 3 -> "TODO";
+            case 3 -> String.join(", ", entry.getTags());
             default -> throw new IndexOutOfBoundsException();
         };
     }
@@ -141,6 +142,14 @@ public class GalleryTableModel extends AbstractTableModel {
         images.set(row, new Entry(newPath));
 
         fireTableRowsUpdated(row, row);
+    }
+
+    public void addTag(int row, String tag) {
+        images.get(row).addTag(tag);
+    }
+
+    public void removeTag(int row, String tag) {
+        images.get(row).removeTag(tag);
     }
 
     // Group functions

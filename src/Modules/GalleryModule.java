@@ -27,7 +27,8 @@ import java.util.stream.Stream;
 
 public class GalleryModule {
 
-    private static final Path imageReferenceFilePath = Path.of(".", "data", "gallery.tp");
+    private static final Path imageReferenceFilePath = Path.of(".", "data", "gallery.tp"),
+        tagsReferenceFilePath = Path.of(".", "data", "tags.tp");
 
     private final GalleryTableModel galleryTableModel;
 
@@ -51,14 +52,15 @@ public class GalleryModule {
 
     private SwingWorker<Void, Void> mapObjects, transferObjects, removeObjects, unifyNames, addImages, removeImages;
 
+    private final Set<String> existingTags;
+
     // Helpers for exception handling while loading.
     private boolean massAction, isFirstTime;
 
     public GalleryModule() throws IOException {
         galleryTableModel = new GalleryTableModel();
         tableRowSorter = new GalleryTableRowSorter(galleryTableModel);
-        //// Custom Comparator for file sizes
-
+        existingTags = new HashSet<>();
 
         if (Files.exists(imageReferenceFilePath)) {
             loadFromFile();
@@ -248,6 +250,24 @@ public class GalleryModule {
         galleryTableModel.openEntry(tableRowSorter.convertRowIndexToModel(idx));
     }
 
+    public void addTag(int idx, String tag) throws IOException {
+        if (!existingTags.contains(tag)) {
+            existingTags.add(tag);
+            saveTagsToFile();
+        }
+        galleryTableModel.addTag(tableRowSorter.convertRowIndexToModel(idx), tag);
+    }
+
+    public void removeTag(int idx, String tag) {
+        galleryTableModel.removeTag(tableRowSorter.convertRowIndexToModel(idx), tag);
+    }
+
+    public String[] getTags(int idx) {
+        String tags = ((String) galleryTableModel.getValueAt(getTableRowSorter().convertRowIndexToModel(idx), 3));
+        if (!tags.matches("^.+\\w+.+$")) return new String[0];
+        else return tags.split(", ");
+    }
+
     // Special set of operations
 
     public void unifyNames() throws IOException {
@@ -275,13 +295,26 @@ public class GalleryModule {
     }
 
     private void loadFromFile() throws IOException {
+        if (!Files.exists(tagsReferenceFilePath)) {
+            Files.createFile(tagsReferenceFilePath);
+        } else {
+            try (BufferedReader reader = Files.newBufferedReader(tagsReferenceFilePath)) {
+                existingTags.addAll(reader.lines().filter(l -> l.matches("^[\\-\\w]+$")).toList());
+            }
+        }
+
         Function<String, Entry> separateLine = l -> {
             // Create a path
-            Path p = Path.of(l);
+            String[] split = l.split(" : ");
+            Path p = Path.of(split[0]);
+            String[] tags;
+            if (split.length == 2) tags = split[1].split(",");
+            else tags = new String[0];
 
             // Create entry
             try {
-                return new Entry(p);
+                if (tags.length == 0) return new Entry(p);
+                else return new Entry(p, tags);
             } catch (IOException e) {
                 if (!massAction) {
                     JOptionPane.showMessageDialog(
@@ -337,12 +370,20 @@ public class GalleryModule {
     private static void saveToFile(List<Entry> images) throws IOException {
         try (BufferedWriter writer = Files.newBufferedWriter(imageReferenceFilePath)) {
             List<String> toSave = images.stream()
-                    .map(Entry::getPath)
-                    .map(Path::toString)
-                    .toList();
+            .map(Entry::serialize)
+            .toList();
 
             for (String image : toSave) {
                 writer.write(image);
+                writer.newLine();
+            }
+        }
+    }
+
+    private void saveTagsToFile() throws IOException {
+        try (BufferedWriter writer = Files.newBufferedWriter(tagsReferenceFilePath)) {
+            for (String tag : existingTags) {
+                writer.write(tag);
                 writer.newLine();
             }
         }
@@ -386,6 +427,10 @@ public class GalleryModule {
 
     public Mode getMode() {
         return mode;
+    }
+
+    public Set<String> getExistingTags() {
+        return existingTags;
     }
 
     public boolean getPixelByPixel() {

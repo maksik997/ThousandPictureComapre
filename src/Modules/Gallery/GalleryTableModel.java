@@ -9,13 +9,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class GalleryTableModel extends AbstractTableModel {
 
     private final List<Entry> images;
 
-    private static final String[] columnNames = { "Name", "Size", "Modification date" };
+    private static final String[] columnNames = { "LOC_GALLERY_TABLE_MODEL_COLUMN_NAME", "LOC_GALLERY_TABLE_MODEL_COLUMN_SIZE", "LOC_GALLERY_TABLE_MODEL_COLUMN_MODIFICATION_DATE", "LOC_GALLERY_TABLE_MODEL_COLUMN_TAGS" };
 
     public GalleryTableModel() {
         this.images = new ArrayList<>();
@@ -36,8 +38,17 @@ public class GalleryTableModel extends AbstractTableModel {
     }
 
     @Override
+    public Class<?> getColumnClass(int columnIndex) {
+        return String.class;
+    }
+
+    @Override
     public String getColumnName(int column) {
         return columnNames[column];
+    }
+
+    public void setColumnName(int column, String name) {
+        columnNames[column] = name;
     }
 
     @Override
@@ -48,6 +59,7 @@ public class GalleryTableModel extends AbstractTableModel {
             case 0 -> entry.getName();
             case 1 -> entry.getSize();
             case 2 -> entry.getModificationDate();
+            case 3 -> String.join(", ", entry.getTags());
             default -> throw new IndexOutOfBoundsException();
         };
     }
@@ -72,17 +84,34 @@ public class GalleryTableModel extends AbstractTableModel {
 
     public void addEntry(Entry entry) {
         // This method will add entry to show in table and to easily manage it.
-
         if (images.contains(entry)) return;
 
         images.add(entry);
         fireTableRowsInserted(images.size() - 1, images.size() - 1);
     }
 
+    public void addAllEntries(Entry... entries) {
+        addAllEntries(Arrays.asList(entries));
+    }
+
+    public void addAllEntries(Collection<Entry> entries) {
+        if (entries.isEmpty()) return;
+
+        int idx = images.size();
+
+        images.addAll(
+            entries.stream()
+            .filter(image -> !images.contains(image))
+            .toList()
+        );
+
+        fireTableRowsInserted(idx, images.size() - 1);
+    }
+
     public void removeEntry(int row) {
         // This method will remove entry from table. But won't delete it from disk.
         images.remove(row);
-        fireTableRowsDeleted(images.size() - 1, images.size() - 1);
+        fireTableDataChanged();
     }
 
     public void deleteImage(int row) throws IOException {
@@ -114,14 +143,23 @@ public class GalleryTableModel extends AbstractTableModel {
         fireTableRowsUpdated(row, row);
     }
 
+    public void addTag(int row, String tag) {
+        images.get(row).addTag(tag);
+    }
+
+    public void removeTag(int row, String tag) {
+        images.get(row).removeTag(tag);
+    }
+
     // Group functions
-    public void unifyNames() throws IOException {
-        String pattern = "tp_img_";
+    public void unifyNames(String pattern, boolean lowercaseSuffix) throws IOException {
         int i = 0;
 
         for (Path path : images.stream().map(Entry::getPath).toList()) {
             String ext = path.toString().substring(path.toString().lastIndexOf("."));
             int idx = images.stream().map(Entry::getPath).toList().indexOf(path);
+
+            if (lowercaseSuffix) ext = ext.toLowerCase();
 
             modifyName(idx, String.format("%s%s_%s%s", pattern, ++i, System.currentTimeMillis(), ext));
         }
@@ -137,5 +175,9 @@ public class GalleryTableModel extends AbstractTableModel {
         }).toList());
 
         fireTableDataChanged();
+    }
+
+    public void refresh() {
+        fireTableStructureChanged();
     }
 }

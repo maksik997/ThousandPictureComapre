@@ -1,7 +1,3 @@
-/* todo
-    Check if specified in config.cfg paths are valid,
-*/
-
 package Modules;
 
 import java.io.BufferedWriter;
@@ -10,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 public class SettingsModule {
@@ -31,13 +28,35 @@ public class SettingsModule {
 
     private void defaultSettings() {
         setts.add(Entry.create(
-            "mode", "not-recursive"
+            "language", Locale.getDefault().getLanguage()+"-"+Locale.getDefault().getCountry()
+        ));
+        setts.add(Entry.create(
+            "languages", String.join(",", "pl-PL", "en-US")
+        ));
+        setts.add(Entry.create(
+            "theme", "dark"
+        ));
+        setts.add(Entry.create(
+            "themes", String.join(",", "dark", "light")
         ));
         setts.add(Entry.create(
             "destination-for-pc", System.getProperty("user.home")
         ));
-
-        // todo and many more in the future
+        setts.add(Entry.create(
+            "mode", "not-recursive"
+        ));
+        setts.add(Entry.create(
+            "phash", "yes"
+        ));
+        setts.add(Entry.create(
+            "pbp", "yes"
+        ));
+        setts.add(Entry.create(
+            "unify-names-prefix", "tp_img_"
+        ));
+        setts.add(Entry.create(
+            "unify-names-lowercase", "no"
+        ));
     }
 
     public void saveSettings() {
@@ -74,7 +93,8 @@ public class SettingsModule {
     }
 
     static class Entry {
-        private String key, value;
+        private final String key;
+        private String value;
 
         public Entry(String key, String value) {
             this.key = key;
@@ -91,10 +111,6 @@ public class SettingsModule {
 
         public void set(String value) {
             this.value = value;
-        }
-
-        public void rewrite(String key) {
-            this.key = key;
         }
 
         public static Entry create(String key, String value) {

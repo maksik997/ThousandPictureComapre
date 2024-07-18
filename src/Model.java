@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class Model {
 
-    private static final String configPath = "./resources/config.cfg";
+    private static final String configPath = "./data/config.cfg";
 
     private final ComparerModule comparerModule;
 
@@ -14,16 +14,12 @@ public class Model {
 
     private final SettingsModule settingsModule;
 
-    private boolean isLoaded;
-
     public Model() throws IOException {
-        isLoaded = false;
         this.settingsModule = new SettingsModule(configPath);
         this.settingsModule.loadSettings();
 
         this.comparerModule = new ComparerModule();
         this.galleryModule = new GalleryModule();
-        isLoaded = true;
     }
 
     public ComparerModule getComparerModule() {
@@ -38,7 +34,4 @@ public class Model {
         return settingsModule;
     }
 
-    public boolean isLoaded() {
-        return isLoaded;
-    }
 }

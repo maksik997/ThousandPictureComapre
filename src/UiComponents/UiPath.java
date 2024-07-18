@@ -27,21 +27,21 @@ public class UiPath extends JPanel {
                     new LineBorder(Color.GRAY, 1, true),
                     new EmptyBorder(5, 10, 0, 10)
                 ),
-                "Path:"
+                "LOC_COMPARER_VIEW_PATH_BORDER_TITLE"
             )
         );
         this.pathTextField.setFont(Utility.fontHelveticaPlain);
 
         this.pathButton = Utility.buttonFactory(
-            "Open",
+            "LOC_COMPARER_VIEW_OPEN_BUTTON",
             new Insets(5, 15, 5, 15)
         );
 
         this.fileChooser = new JFileChooser();
         this.fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         this.fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-        this.fileChooser.setDialogTitle("Pick a directory with pictures to compare:");
-        this.fileChooser.setApproveButtonText("Pick");
+        this.fileChooser.setDialogTitle("LOC_COMPARER_VIEW_FILE_CHOOSER_DIALOG_TITLE");
+        this.fileChooser.setApproveButtonText("LOC_COMPARER_VIEW_FILE_CHOOSER_APPROVE_BUTTON");
 
         this.add(this.pathTextField);
         this.add(Box.createHorizontalStrut(40));
@@ -50,6 +50,10 @@ public class UiPath extends JPanel {
 
     public JButton getPathButton() {
         return pathButton;
+    }
+
+    public JFileChooser getFileChooser() {
+        return fileChooser;
     }
 
     public String getPath() {

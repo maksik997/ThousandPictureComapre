@@ -1,6 +1,6 @@
-![logo](resources/thumbnail.png) 
+![logo](data/thumbnail.png) 
 # Thousand Picture Compare`
-### Version tag: 0.4.2d
+### Version tag: 0.5
 
 ## Description: 
 **Warning!
@@ -21,7 +21,7 @@ Additionally, you can see how many of both were found.
 There is an option to use recursive search for images,
 which could be handy if you use many directories where you store your images.
 
-**Gallery** features with a list of your loaded images, with some options: Distinct, Unify, Open. Distinct will let you find any duplicates in selection and will ask if you want to remove them or move. Unify will let you standardise your image names in format: `tp_img_[n]_[timestamp].[extension]`. And last but not the least Open button, which let you open your images in your system image viewer.  
+**Gallery** features with a list of your loaded images, with some options: Distinct, Unify, Open. Distinct will let you find any duplicates in selection and will ask if you want to remove them or move. Unify will let you standardize your image names in format: `tp_img_[n]_[timestamp].[extension]` (you can change prefix in settings). And last but not the least Open button, which let you open your images in your system image viewer. Additionally, new feature is here: tag system. New system will let you tag your images basing on your own preference.  
 
 This is my first bigger project, and I'm thrilled how it looks.
 It's a buggy from time to time,
@@ -46,13 +46,17 @@ To add images, you should click **Add** button, and pick there any file you want
 (the app will check if this is a valid picture, where valid means that image is supported by Picture Comparer).
 To remove image, you should click **Remove** button, which will remove all the selected images in table.
 To remove duplicates, you should click **Distinct** button, which require at least two pictures selected.
-Next there is **Unify** button which will rename all of your loaded images with specified format:
+Next there is **Unify** button that will rename all of your loaded images with specified format:
 `tp_img_[n]_[timestamp].[extension]`.
 And lastly, there is **Open** button, which will open your image in your system image viewer.
 
 ### Settings
 Here you can change your destination for your Comparer output (for both Comparer and Gallery),
-and you can pick if you want to recursively search for images.
+and you can pick if you want to recursively search for images (only for Comparer).
+Additionally, you can change your language and select theme.
+Also, there are options to disable comparing using P-Hash and Pixel-by-Pixel algorithms.
+And in the case of Gallery's settings,
+you can change prefix for name unification function and change if you want your file extensions lowercase.
 Remember after any change if you want to save your settings you should click **Save settings** button.
 
 ## Running app:

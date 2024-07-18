@@ -3,21 +3,13 @@ package Modules;
 import Modules.Gallery.Entry;
 import Modules.Gallery.GalleryTableModel;
 import Modules.Gallery.GalleryTableRowSorter;
-import pl.magzik.Comparator.FilePredicate;
-import pl.magzik.Comparator.ImageFilePredicate;
 import pl.magzik.IO.FileOperator;
-import pl.magzik.Structures.ImageRecord;
-import pl.magzik.Structures.Record;
-import Modules.ComparerModule.Mode;
 
 import javax.swing.*;
 import javax.swing.table.TableRowSorter;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -25,7 +17,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class GalleryModule {
+public class GalleryModule implements ComparerInterface{
 
     private static final Path imageReferenceFilePath = Path.of(".", "data", "gallery.tp"),
         tagsReferenceFilePath = Path.of(".", "data", "tags.tp");
@@ -34,28 +26,23 @@ public class GalleryModule {
 
     private final TableRowSorter<GalleryTableModel> tableRowSorter;
 
-    private final FileOperator fileOperator;
-
     private File destination;
 
     private List<File> sources;
 
     private List<File> comparerOutput;
 
+    private final FileOperator fileOperator;
+
     private Mode mode;
 
-    private boolean pHash, pixelByPixel, lowercaseExtension;
+    private boolean pHash, pixelByPixel, lowercaseExtension, massAction, isFirstTime;
 
     private String nameTemplate;
 
-    private final static FilePredicate filePredicate = new ImageFilePredicate();
-
-    private SwingWorker<Void, Void> mapObjects, transferObjects, removeObjects, unifyNames, addImages, removeImages;
-
     private final Set<String> existingTags;
 
-    // Helpers for exception handling while loading.
-    private boolean massAction, isFirstTime;
+    private SwingWorker<Void, Void> mapObjects, transferObjects, removeObjects, unifyNames, addImages, removeImages;
 
     public GalleryModule() throws IOException {
         galleryTableModel = new GalleryTableModel();
@@ -79,89 +66,34 @@ public class GalleryModule {
     }
 
     // Comparer interaction
-    public void prepareComparer(String destPath, List<Integer> indexes) throws IOException, InterruptedException, TimeoutException {
+    public void prepareComparer(List<Integer> indexes) throws IOException, InterruptedException, TimeoutException {
         // Prepares Picture Comparer with destination path and source path
+        List<Path> toCheck = indexes.stream()
+            .map(tableRowSorter::convertRowIndexToModel)
+            .map(i -> galleryTableModel.getImages().get(i))
+            .map(Entry::getPath)
+            .toList();
 
-        indexes = indexes.stream().map(tableRowSorter::convertRowIndexToModel).toList();
-
-        List<Path> toCheck = new ArrayList<>();
-        for (int i = 0; i < galleryTableModel.getImages().size(); i++) {
-            if (indexes.contains(i))
-                toCheck.add(galleryTableModel.getImages().get(i).getPath());
-        }
-
-        destination = new File(destPath);
         sources = fileOperator.loadFiles(1, filePredicate, toCheck.stream().map(Path::toFile).toList());
     }
 
-    public void compare() throws IOException, ExecutionException {
-        // Finds all redundant images
-        // Do not call before setUp
-        Objects.requireNonNull(sources);
-
-        Map<?, List<Record<BufferedImage>>> map;
-
-        if (pHash && pixelByPixel)
-            map = Record.process(sources, ComparerModule.imageRecordFunction, ImageRecord.pHashFunction, ImageRecord.pixelByPixelFunction);
-        else if (pHash)
-            map = Record.process(sources, ComparerModule.imageRecordFunction, ImageRecord.pHashFunction);
-        else if (pixelByPixel)
-            map = Record.process(sources, ComparerModule.imageRecordFunction, ImageRecord.pixelByPixelFunction);
-        else
-            map = Record.process(sources, ComparerModule.imageRecordFunction);
-
-        comparerOutput = map
-            .values().stream()
-            .filter(list -> list.size() > 1)
-            .flatMap(Collection::stream)
-            .map(Record::getFile)
-            .toList();
+    @Override
+    public void compareAndExtract() throws IOException, ExecutionException {
+        comparerOutput = getFromCache(compare(sources));
     }
 
-    public void removeRedundant() throws IOException {
-        Objects.requireNonNull(destination);
-        Objects.requireNonNull(comparerOutput);
-
-        if (comparerOutput.isEmpty()) return;
-
+    @Override
+    public void fileDelete() throws IOException {
         performReduction();
-
-        // Removes all the redundant images
-        try {
-            comparerOutput.parallelStream().forEach(file -> {
-                try {
-                    Files.delete(file.toPath());
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            });
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
-        }
+        performDelete(comparerOutput, destination);
+        clearCache();
     }
 
-    public void moveRedundant() throws IOException {
-        Objects.requireNonNull(destination);
-        Objects.requireNonNull(comparerOutput);
-
-        if (comparerOutput.isEmpty()) return;
-
+    @Override
+    public void fileTransfer() throws IOException {
         performReduction();
-
-        // Moves all the redundant images
-        String separator = File.pathSeparator;
-
-        try {
-            comparerOutput.parallelStream().forEach(file -> {
-                try {
-                    Files.move(file.toPath(), Paths.get(destination + separator + file.getName()), StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            });
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
-        }
+        performMove(comparerOutput, destination);
+        clearCache();
     }
 
     // Basic set of operations
@@ -239,11 +171,11 @@ public class GalleryModule {
     }
 
     public void removeImage(int idx) {
-        galleryTableModel.removeEntry(tableRowSorter.convertRowIndexToModel(idx));
+        galleryTableModel.removeEntry(idx);
     }
 
     public void deleteImage(int idx) throws IOException {
-        galleryTableModel.deleteImage(tableRowSorter.convertRowIndexToModel(idx));
+        galleryTableModel.deleteImage(idx);
     }
 
     public void openImage(int idx) throws IOException {
@@ -273,8 +205,6 @@ public class GalleryModule {
     public void unifyNames() throws IOException {
         galleryTableModel.unifyNames(nameTemplate, lowercaseExtension);
     }
-
-    // todo more of this...
 
     // Other important methods...
 
@@ -342,24 +272,22 @@ public class GalleryModule {
 
         try (BufferedReader reader = Files.newBufferedReader(imageReferenceFilePath)) {
             reader.lines()
-                    .map(separateLine)
-                    .filter(Objects::nonNull)
-                    .filter(e -> Files.exists(e.getPath()))
-                    .filter(e -> {
-                        try {
-                            return filePredicate.test(e.getPath().toFile());
-                        } catch (IOException ex) {
-                            throw new UncheckedIOException(ex);
-                        }
-                    })
-                    .forEach(galleryTableModel::addEntry);
+                .map(separateLine)
+                .filter(Objects::nonNull)
+                .filter(e -> Files.exists(e.getPath()))
+                .filter(e -> {
+                    try {
+                        return filePredicate.test(e.getPath().toFile());
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(ex);
+                    }
+                })
+                .forEach(galleryTableModel::addEntry);
         } catch (UncheckedIOException e) {
             throw e.getCause();
         }
 
-        // To clear any unreachable images.
-        // todo It should be for now solution.
-        //  Probably app should ask user about that.
+        // Rebuild save file.
         saveToFile(galleryTableModel.getImages());
     }
 
@@ -437,6 +365,7 @@ public class GalleryModule {
         return pixelByPixel;
     }
 
+    @Override
     public void setPixelByPixel(boolean pixelByPixel) {
         this.pixelByPixel = pixelByPixel;
     }
@@ -457,14 +386,17 @@ public class GalleryModule {
         this.lowercaseExtension = lowercaseExtension;
     }
 
+    @Override
     public void setPHash(boolean pHash) {
         this.pHash = pHash;
     }
 
+    @Override
     public void setMode(Mode mode) {
         this.mode = mode;
     }
 
+    @Override
     public void setDestination(File destination) {
         this.destination = destination;
     }

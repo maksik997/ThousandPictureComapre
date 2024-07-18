@@ -25,11 +25,4 @@ public class UiTray extends JPanel {
         update(0, 0);
     }
 
-    public JTextField getTotalField() {
-        return totalField;
-    }
-
-    public JTextField getDuplicatesField() {
-        return duplicatesField;
-    }
 }

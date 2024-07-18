@@ -15,15 +15,15 @@ public class Utility {
 
     public static ImageIcon getScaledImage(ImageIcon imageIcon, int w, int h) {
         // Source: https://stackoverflow.com/questions/6714045/how-to-resize-jlabel-imageicon
-        // With edit
+        // With edits
 
         BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = resizedImg.createGraphics();
 
-        g2.setRenderingHint(
-                RenderingHints.KEY_INTERPOLATION,
-                RenderingHints.VALUE_INTERPOLATION_BILINEAR
-        );
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
         g2.drawImage(imageIcon.getImage(), 0, 0, w, h, null);
         g2.dispose();
 

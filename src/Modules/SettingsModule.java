@@ -93,7 +93,8 @@ public class SettingsModule {
     }
 
     static class Entry {
-        private String key, value;
+        private final String key;
+        private String value;
 
         public Entry(String key, String value) {
             this.key = key;
@@ -110,10 +111,6 @@ public class SettingsModule {
 
         public void set(String value) {
             this.value = value;
-        }
-
-        public void rewrite(String key) {
-            this.key = key;
         }
 
         public static Entry create(String key, String value) {

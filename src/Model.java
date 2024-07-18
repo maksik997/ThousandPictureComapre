@@ -3,7 +3,6 @@ import Modules.GalleryModule;
 import Modules.SettingsModule;
 
 import java.io.IOException;
-import java.util.Locale;
 
 public class Model {
 
@@ -15,16 +14,12 @@ public class Model {
 
     private final SettingsModule settingsModule;
 
-    private boolean isLoaded;
-
     public Model() throws IOException {
-        isLoaded = false;
         this.settingsModule = new SettingsModule(configPath);
         this.settingsModule.loadSettings();
 
         this.comparerModule = new ComparerModule();
         this.galleryModule = new GalleryModule();
-        isLoaded = true;
     }
 
     public ComparerModule getComparerModule() {
@@ -39,7 +34,4 @@ public class Model {
         return settingsModule;
     }
 
-    public boolean isLoaded() {
-        return isLoaded;
-    }
 }

@@ -1,3 +1,4 @@
+import Modules.ComparerInterface;
 import Modules.ComparerModule;
 import Modules.GalleryModule;
 import Modules.SettingsModule;
@@ -40,11 +41,19 @@ public class Controller {
     }
 
     private String translate(String key) {
-        // FOR RESOURCE BUNDLES USAGE
+        // Resource Bundle
         if (key != null && resourceBundle.containsKey(key)) {
             return resourceBundle.getString(key);
         }
         return key;
+    }
+
+    private String reversedTranslate(String key) {
+        // Resource Bundle
+        return resourceBundle.keySet().stream()
+            .filter(k -> resourceBundle.getString(k).equals(key))
+            .findFirst()
+            .orElse(key);
     }
 
     private void initView(){
@@ -90,16 +99,14 @@ public class Controller {
             cModule.getMappedListModel()
         );
 
-        // Load files & compare button
+        // Load files & compareAndExtract button
         cView.getLoadButton().addActionListener(_ -> {
             // Assign a user picked path for Picture Comparer
             String path = cView.getUiPath().getPath();
             if (path == null) {
-                JOptionPane.showMessageDialog(
-                    view,
-                    String.format(translate("LOC_ERROR_DESC_0")),
-                    translate("LOC_ERROR_TITLE_0"),
-                    JOptionPane.ERROR_MESSAGE
+                view.showErrorMessage(
+                    translate("LOC_ERROR_DESC_0"),
+                    translate("LOC_ERROR_TITLE")
                 );
 
                 return;
@@ -119,13 +126,10 @@ public class Controller {
         cView.getMoveButton().addActionListener(_ -> {
             // Check if moving files is valid
             if (cModule.getComparerOutputSize() <= 0) {
-                JOptionPane.showMessageDialog(
-                        null,
-                        String.format(translate("LOC_ERROR_DESC_1")),
-                        translate("LOC_ERROR_TITLE_1"),
-                        JOptionPane.ERROR_MESSAGE
+                view.showErrorMessage(
+                    translate("LOC_ERROR_DESC_1"),
+                    translate("LOC_ERROR_TITLE")
                 );
-
                 return;
             }
 
@@ -157,101 +161,68 @@ public class Controller {
     }
 
     private void initSettingsView() {
-        // TODO LESS REDUNDANCY
-
         SettingsView sView = view.getSettingsView();
         SettingsModule sModule = model.getSettingsModule();
         ComparerModule cModule = model.getComparerModule();
         GalleryModule gModule = model.getGalleryModule();
 
         // Destination Path button
-        sView.getDestinationOpenButton().addActionListener(_ -> {
-            sView.openDestinationFileChooser();
-        });
+        sView.getDestinationOpenButton().addActionListener(_ -> sView.openDestinationFileChooser());
 
         // Save Button
         sView.getSaveButton().addActionListener(_ -> {
             boolean messageNeeded = false;
 
-            String lang = resourceBundle.getString("LOC_SETTINGS_LANG_" + sModule.getSetting("language"));
+            // Check if the language has changed.
+            String lang = translate("LOC_SETTINGS_LANG_" + sModule.getSetting("language"));
             if (!lang.equals(sView.getLanguageComboBox().getSelectedItem())) {
                 messageNeeded = true;
 
-                String newLang = (String) sView.getLanguageComboBox().getSelectedItem();
-
-                resourceBundle.keySet().stream()
-                    .filter(k -> resourceBundle.getString(k).equals(newLang))
-                    .findFirst()
-                    .ifPresentOrElse(k -> {
-                        String[] ks = k.split("_");
-                        sModule.updateSetting("language", ks[ks.length-1]);
-                    }, () -> {
-                        throw new RuntimeException(); // TODO
-                });
+                String[] splitKey = reversedTranslate(
+                    (String) sView.getLanguageComboBox().getSelectedItem()
+                ).split("_");
+                sModule.updateSetting("language", splitKey[splitKey.length-1]);
             }
 
-            String theme = resourceBundle.getString("LOC_SETTINGS_THEME_" + sModule.getSetting("theme"));
+            // Check if the theme has changed.
+            String theme = translate("LOC_SETTINGS_THEME_" + sModule.getSetting("theme"));
             if (!theme.equals(sView.getThemeComboBox().getSelectedItem())) {
                 messageNeeded = true;
 
-                String newTheme = (String) sView.getThemeComboBox().getSelectedItem();
-                resourceBundle.keySet().stream()
-                    .filter(k -> resourceBundle.getString(k).equals(newTheme))
-                    .findFirst()
-                    .ifPresentOrElse(k -> {
-                        String[] ks = k.split("_");
-                        sModule.updateSetting("theme", ks[ks.length-1]);
-                    }, () -> {
-                        throw new RuntimeException(); // TODO
-                    });
+                String[] splitKey = reversedTranslate(
+                    (String) sView.getThemeComboBox().getSelectedItem()
+                ).split("_");
+                sModule.updateSetting("theme", splitKey[splitKey.length-1]);
             }
 
             if (!sModule.getSetting("destination-for-pc").equals(sView.getDestinationTextField().getText())) {
                 sModule.updateSetting("destination-for-pc", sView.getDestinationTextField().getText());
-                cModule.setDestination(new File(sView.getDestinationTextField().getText()));
+//                cModule.setDestination(new File(sView.getDestinationTextField().getText()));
             }
 
+            // Update mode
             sModule.updateSetting(
                 "mode",
                 sView.getRecursiveModeToggle().isSelected() ? "recursive" : "not-recursive"
             );
 
-            cModule.setMode(
-                sModule.getSetting("mode").equals("not-recursive") ?
-                ComparerModule.Mode.NON_RECURSIVE : ComparerModule.Mode.RECURSIVE
-            );
-
-            gModule.setMode(
-                sModule.getSetting("mode").equals("not-recursive") ?
-                ComparerModule.Mode.NON_RECURSIVE : ComparerModule.Mode.RECURSIVE
-            );
-
+            // Update phash
             sModule.updateSetting(
                 "phash",
                     sView.getPHashModeToggle().isSelected() ? "yes" : "no"
             );
 
-            cModule.setPHash(
-                sModule.getSetting("phash").equals("yes")
-            );
-
-            gModule.setPHash(
-                    sModule.getSetting("phash").equals("yes")
-            );
-
+            // Update pbp
             sModule.updateSetting(
                 "pbp",
-                sView.getPHashModeToggle().isSelected() ? "yes" : "no"
+                sView.getPixelByPixelModeToggle().isSelected() ? "yes" : "no"
             );
 
-            cModule.setPixelByPixel(
-                sModule.getSetting("pbp").equals("yes")
-            );
+            updateComparerSettings(cModule);
+            updateComparerSettings(gModule);
 
-            gModule.setPixelByPixel(
-                sModule.getSetting("pbp").equals("yes")
-            );
 
+            // Check if the unify names prefix has changed.
             if (!sView.getUnifyNamesPrefixTextField().getText().equals(sModule.getSetting("unify-names-prefix"))) {
                 sModule.updateSetting(
                     "unify-names-prefix",
@@ -263,6 +234,7 @@ public class Controller {
                 );
             }
 
+            // Update unify names lowercase.
             sModule.updateSetting(
                 "unify-names-lowercase",
                 sView.getUnifyNamesLowerCaseToggle().isSelected() ? "yes" : "no"
@@ -272,50 +244,43 @@ public class Controller {
                 sModule.getSetting("unify-names-lowercase").equals("yes")
             );
 
+            // Save settings and show the message if needed.
             sModule.saveSettings();
-
             if (messageNeeded) {
-                JOptionPane.showMessageDialog(
-                    view,
-                    resourceBundle.getString("LOC_MESSAGE_RESTART_REQUIRED_DESC"),
-                    resourceBundle.getString("LOC_MESSAGE_RESTART_REQUIRED_TITLE"),
-                    JOptionPane.INFORMATION_MESSAGE
+                view.showInformationMessage(
+                    translate("LOC_MESSAGE_RESTART_REQUIRED_DESC"),
+                    translate("LOC_MESSAGE_RESTART_REQUIRED_TITLE")
                 );
             }
         });
 
-        // Language settings init
-        String[] langs = sModule.getSetting("languages").split(",");
-        for (String lang : langs) {
+        // Language setting initialization
+        String[] languages = sModule.getSetting("languages").split(",");
+        for (String lang : languages) {
             String key = "LOC_SETTINGS_LANG_" + lang;
-            if (resourceBundle.containsKey(key))
-                sView.getLanguageComboBox().addItem(resourceBundle.getString(key));
+            sView.getLanguageComboBox().addItem(
+                translate(key)
+            );
         }
 
         String language = "LOC_SETTINGS_LANG_" + sModule.getSetting("language");
-        resourceBundle.keySet().stream()
-            .filter(k -> k.equals(language))
-            .findFirst()
-            .ifPresentOrElse(k -> sView.getLanguageComboBox().setSelectedItem(resourceBundle.getString(k)), () -> {
-                throw new RuntimeException(); // TODO
-        });
+        sView.getLanguageComboBox().setSelectedItem(
+            translate(language)
+        );
 
-        // Theme settings init
+        // Theme setting initialization
         String[] themes = sModule.getSetting("themes").split(",");
         for (String theme : themes) {
             String key = "LOC_SETTINGS_THEME_" + theme;
-            if (resourceBundle.containsKey(key))
-                sView.getThemeComboBox().addItem(resourceBundle.getString(key));
+            sView.getThemeComboBox().addItem(
+                translate(key)
+            );
         }
 
         String theme = "LOC_SETTINGS_THEME_" + sModule.getSetting("theme");
-        resourceBundle.keySet().stream()
-            .filter(k -> k.equals(theme))
-            .findFirst()
-            .ifPresentOrElse(k -> sView.getThemeComboBox().setSelectedItem(resourceBundle.getString(k)), () -> {
-                throw new RuntimeException(); // TODO
-        });
-
+        sView.getThemeComboBox().setSelectedItem(
+            translate(theme)
+        );
 
 
         // Comparer's settings init
@@ -345,33 +310,31 @@ public class Controller {
         );
 
         // Comparer Module settings init
-        cModule.setDestination(new File(sModule.getSetting("destination-for-pc")));
-        cModule.setMode(
-            sModule.getSetting("mode").equals("recursive") ? ComparerModule.Mode.RECURSIVE : ComparerModule.Mode.NON_RECURSIVE
-        );
-        cModule.setPHash(
-            sModule.getSetting("phash").equals("yes")
-        );
-        cModule.setPixelByPixel(
-            sModule.getSetting("pbp").equals("yes")
-        );
+        updateComparerSettings(cModule);
 
         // Gallery Module settings init
-        gModule.setDestination(new File(sModule.getSetting("destination-for-pc")));
-        gModule.setMode(
-            sModule.getSetting("mode").equals("recursive") ? ComparerModule.Mode.RECURSIVE : ComparerModule.Mode.NON_RECURSIVE
-        );
-        gModule.setPHash(
-            sModule.getSetting("phash").equals("yes")
-        );
-        gModule.setPixelByPixel(
-            sModule.getSetting("pbp").equals("yes")
-        );
+        updateComparerSettings(gModule);
+
         gModule.setNameTemplate(
             sModule.getSetting("unify-names-prefix")
         );
         gModule.setLowercaseExtension(
             sModule.getSetting("unify-names-lowercase").equals("yes")
+        );
+    }
+
+    private void updateComparerSettings(ComparerInterface ci) {
+        SettingsModule sModule = model.getSettingsModule();
+
+        ci.setDestination(new File(sModule.getSetting("destination-for-pc")));
+        ci.setMode(
+            sModule.getSetting("mode").equals("recursive") ? ComparerModule.Mode.RECURSIVE : ComparerModule.Mode.NON_RECURSIVE
+        );
+        ci.setPHash(
+            sModule.getSetting("phash").equals("yes")
+        );
+        ci.setPixelByPixel(
+            sModule.getSetting("pbp").equals("yes")
         );
     }
 
@@ -418,11 +381,9 @@ public class Controller {
             int[] selected = gView.getGalleryTable().getSelectedRows();
 
             if (selected == null || selected.length == 0) {
-                JOptionPane.showMessageDialog(
-                    null,
-                    String.format(translate("LOC_ERROR_DESC_3")),
-                    translate("LOC_ERROR_TITLE_3"),
-                    JOptionPane.ERROR_MESSAGE
+                view.showErrorMessage(
+                    translate("LOC_ERROR_DESC_3"),
+                    translate("LOC_ERROR_TITLE")
                 );
 
                 return;
@@ -436,27 +397,39 @@ public class Controller {
             );
 
             if (a == JOptionPane.YES_OPTION) {
+                selected = Arrays.stream(selected)
+                    .map(i -> gModule.getTableRowSorter().convertRowIndexToModel(i))
+                    .toArray();
+
+                Arrays.sort(selected);
+                int l = 0, r = selected.length - 1;
+                while (l < r) {
+                    int t = selected[l];
+                    selected[l] = selected[r];
+                    selected[r] = t;
+                    l++;
+                    r--;
+                }
+
                 for (int idx : selected) {
                     try {
                         gModule.deleteImage(idx);
                     } catch (IOException e) {
-                        JOptionPane.showMessageDialog(
-                            null,
-                            String.format(translate("LOC_ERROR_DESC_4")),
-                            translate("LOC_ERROR_TITLE_4"),
-                            JOptionPane.ERROR_MESSAGE
+                        view.showErrorMessage(
+                            translate("LOC_ERROR_DESC_4"),
+                            translate("LOC_ERROR_TITLE")
                         );
+
+                        return;
                     }
                 }
 
                 try {
                     gModule.saveToFile();
                 } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(
-                        null,
-                        String.format(translate("LOC_ERROR_DESC_5")),
-                        translate("LOC_ERROR_TITLE_5"),
-                        JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_5"),
+                        translate("LOC_ERROR_TITLE")
                     );
                 }
             }
@@ -468,20 +441,15 @@ public class Controller {
         gView.getDistinctButton().addActionListener(_ -> {
             int[] selected = gView.getGalleryTable().getSelectedRows();
             if (selected == null || selected.length < 2) {
-                JOptionPane.showMessageDialog(
-                    null,
-                    String.format(translate("LOC_ERROR_DESC_6")),
-                    translate("LOC_ERROR_TITLE_6"),
-                    JOptionPane.ERROR_MESSAGE
+                view.showErrorMessage(
+                    translate("LOC_ERROR_DESC_6"),
+                    translate("LOC_ERROR_TITLE")
                 );
                 return;
             }
 
             // Lock buttons
             gView.lockModule();
-
-//            galleryTasks();
-
             gModule.getMapObjects().execute();
         });
 
@@ -496,12 +464,11 @@ public class Controller {
         gView.getOpenButton().addActionListener(_ -> {
             int[] selected = gView.getGalleryTable().getSelectedRows();
             if (selected == null || selected.length == 0) {
-                JOptionPane.showMessageDialog(
-                    null,
-                    String.format(translate("LOC_ERROR_DESC_7")),
-                    translate("LOC_ERROR_TITLE_7"),
-                    JOptionPane.ERROR_MESSAGE
+                view.showErrorMessage(
+                    translate("LOC_ERROR_DESC_7"),
+                    translate("LOC_ERROR_TITLE")
                 );
+
                 return;
             }
 
@@ -509,11 +476,9 @@ public class Controller {
                 try {
                     gModule.openImage(idx);
                 } catch (IOException e) {
-                    JOptionPane.showMessageDialog(
-                        null,
-                        String.format(translate("LOC_ERROR_DESC_8")),
-                        translate("LOC_ERROR_TITLE_8"),
-                        JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_8"),
+                        translate("LOC_ERROR_TITLE")
                     );
                 }
             }
@@ -524,11 +489,9 @@ public class Controller {
         gView.getAddTagButton().addActionListener(_ -> {
             int[] selected = gView.getGalleryTable().getSelectedRows();
             if (selected == null || selected.length == 0) {
-                JOptionPane.showMessageDialog(
-                    view,
-                    String.format(translate("LOC_ERROR_DESC_14")),
-                    translate("LOC_ERROR_TITLE_14"),
-                    JOptionPane.ERROR_MESSAGE
+                view.showErrorMessage(
+                    translate("LOC_ERROR_DESC_14"),
+                    translate("LOC_ERROR_TITLE")
                 );
                 return;
             }
@@ -550,11 +513,9 @@ public class Controller {
             if (result == JOptionPane.OK_OPTION) {
                 String tag = (String) comboBox.getSelectedItem();
                 if (tag != null && !tag.matches("^[\\w\\-]+$")) {
-                    JOptionPane.showMessageDialog(
-                        view,
-                        String.format(translate("LOC_ERROR_DESC_15")),
-                        translate("LOC_ERROR_TITLE_15"),
-                        JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_15"),
+                        translate("LOC_ERROR_TITLE")
                     );
                     return;
                 }
@@ -563,12 +524,12 @@ public class Controller {
                     try {
                         gModule.addTag(idx, tag);
                     } catch (IOException e) {
-                        JOptionPane.showMessageDialog(
-                            view,
-                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
-                            translate("LOC_ERROR_TITLE_10"),
-                            JOptionPane.ERROR_MESSAGE
+                        view.showErrorMessage(
+                            translate("LOC_ERROR_DESC_10"),
+                            translate("LOC_ERROR_TITLE"),
+                            e
                         );
+
                         return;
                     }
                 }
@@ -576,11 +537,10 @@ public class Controller {
                 try {
                     gModule.saveToFile();
                 } catch (IOException e) {
-                    JOptionPane.showMessageDialog(
-                        view,
-                        String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
-                        translate("LOC_ERROR_TITLE_10"),
-                        JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_10"),
+                        translate("LOC_ERROR_TITLE"),
+                        e
                     );
                 }
             }
@@ -590,12 +550,11 @@ public class Controller {
         gView.getRemoveTagButton().addActionListener(_ -> {
             int selected = gView.getGalleryTable().getSelectedRow();
             if (selected == -1) {
-                JOptionPane.showMessageDialog(
-                        view,
-                        String.format(translate("LOC_ERROR_DESC_14")),
-                        translate("LOC_ERROR_TITLE_14"),
-                        JOptionPane.ERROR_MESSAGE
+                view.showErrorMessage(
+                    translate("LOC_ERROR_DESC_14"),
+                    translate("LOC_ERROR_TITLE")
                 );
+
                 return;
             }
 
@@ -603,12 +562,11 @@ public class Controller {
             String[] tags = gModule.getTags(selected);
 
             if (tags.length == 0) {
-                JOptionPane.showMessageDialog(
-                    view,
-                    String.format(translate("LOC_ERROR_DESC_16")),
-                    translate("LOC_ERROR_TITLE_16"),
-                    JOptionPane.ERROR_MESSAGE
+                view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_16"),
+                        translate("LOC_ERROR_TITLE")
                 );
+
                 return;
             }
 
@@ -633,11 +591,10 @@ public class Controller {
             try {
                 gModule.saveToFile();
             } catch (IOException e) {
-                JOptionPane.showMessageDialog(
-                    view,
-                    String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
-                    translate("LOC_ERROR_TITLE_10"),
-                    JOptionPane.ERROR_MESSAGE
+                view.showErrorMessage(
+                    translate("LOC_ERROR_DESC_10"),
+                    translate("LOC_ERROR_TITLE"),
+                    e
                 );
             }
         });
@@ -666,11 +623,9 @@ public class Controller {
                 try {
                     gModule.saveToFile();
                 } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(
-                        null,
-                        String.format(translate("LOC_ERROR_DESC_9")),
-                        translate("LOC_ERROR_TITLE_9"),
-                        JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_9"),
+                        translate("LOC_ERROR_TITLE")
                     );
                 }
             }
@@ -706,11 +661,10 @@ public class Controller {
                 try {
                     cModule.load();
                 } catch (IOException | InterruptedException | TimeoutException e) {
-                    JOptionPane.showMessageDialog(
-                        view,
-                        String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
-                        translate("LOC_ERROR_TITLE_10"),
-                        JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_10"),
+                        translate("LOC_ERROR_TITLE"),
+                        e
                     );
 
                     return null;
@@ -732,11 +686,10 @@ public class Controller {
                 try {
                     cModule.compareAndExtract();
                 } catch (IOException | ExecutionException e) {
-                    JOptionPane.showMessageDialog(
-                            view,
-                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
-                            translate("LOC_ERROR_TITLE_10"),
-                            JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_10"),
+                        translate("LOC_ERROR_TITLE"),
+                        e
                     );
 
                     return null;
@@ -784,11 +737,10 @@ public class Controller {
                 try {
                     cModule.fileTransfer();
                 } catch (IOException e) {
-                    JOptionPane.showMessageDialog(
-                            view,
-                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
-                            translate("LOC_ERROR_TITLE_10"),
-                            JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_10"),
+                        translate("LOC_ERROR_TITLE"),
+                        e
                     );
 
                     return null;
@@ -833,7 +785,6 @@ public class Controller {
 
         // Get references
         GalleryView gView = view.getGalleryView();
-        SettingsView sView = view.getSettingsView();
         GalleryModule gModule = model.getGalleryModule();
 
         // Reset Tasks
@@ -844,28 +795,25 @@ public class Controller {
 
                 try {
                     gModule.prepareComparer(
-                        sView.getDestinationTextField().getText(),
                         Arrays.stream(gView.getGalleryTable().getSelectedRows()).boxed().toList()
                     );
                 } catch (IOException | InterruptedException | TimeoutException e) {
-                    JOptionPane.showMessageDialog(
-                        view,
-                        String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
-                        translate("LOC_ERROR_TITLE_10"),
-                        JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_10"),
+                        translate("LOC_ERROR_TITLE"),
+                        e
                     );
 
                     return null;
                 }
 
                 try {
-                    gModule.compare();
+                    gModule.compareAndExtract();
                 } catch (IOException | ExecutionException e) {
-                    JOptionPane.showMessageDialog(
-                            view,
-                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
-                            translate("LOC_ERROR_TITLE_10"),
-                            JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_10"),
+                        translate("LOC_ERROR_TITLE"),
+                        e
                     );
 
                     return null;
@@ -900,13 +848,12 @@ public class Controller {
                 );
 
                 try {
-                    gModule.removeRedundant();
+                    gModule.fileDelete();
                 } catch (IOException e) {
-                    JOptionPane.showMessageDialog(
-                            view,
-                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
-                            translate("LOC_ERROR_TITLE_10"),
-                            JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_10"),
+                        translate("LOC_ERROR_TITLE"),
+                        e
                     );
                 }
 
@@ -919,7 +866,10 @@ public class Controller {
                 view.setCursor(Cursor.getDefaultCursor());
                 gView.unlockModule();
 
-                JOptionPane.showMessageDialog(view, translate("LOC_MESSAGE_0"));
+                view.showInformationMessage(
+                    translate("LOC_MESSAGE_DESC_0"),
+                    translate("LOC_MESSAGE_TITLE")
+                );
                 resetGalleryDistinctTasks();
             }
         });
@@ -931,13 +881,12 @@ public class Controller {
                 );
 
                 try {
-                    gModule.moveRedundant();
+                    gModule.fileTransfer();
                 } catch (IOException e) {
-                    JOptionPane.showMessageDialog(
-                            view,
-                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
-                            translate("LOC_ERROR_TITLE_10"),
-                            JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_10"),
+                        translate("LOC_ERROR_TITLE"),
+                        e
                     );
                 }
                 return null;
@@ -949,7 +898,11 @@ public class Controller {
                 view.setCursor(Cursor.getDefaultCursor());
                 gView.unlockModule();
 
-                JOptionPane.showMessageDialog(view, translate("LOC_MESSAGE_1"));
+                view.showInformationMessage(
+                    translate("LOC_MESSAGE_DESC_1"),
+                    translate("LOC_MESSAGE_TITLE")
+                );
+
                 resetGalleryDistinctTasks();
             }
         });
@@ -969,22 +922,21 @@ public class Controller {
                 try {
                     gModule.unifyNames();
                 } catch (IOException e) {
-                    JOptionPane.showMessageDialog(
-                            view,
-                            String.format(translate("LOC_ERROR_DESC_10"), e.getMessage()),
-                            translate("LOC_ERROR_TITLE_10"),
-                            JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_10"),
+                        translate("LOC_ERROR_TITLE"),
+                        e
                     );
+
+                    return null;
                 }
 
                 try {
                     gModule.saveToFile();
                 } catch (IOException e) {
-                    JOptionPane.showMessageDialog(
-                        view,
+                    view.showErrorMessage(
                         translate("LOC_ERROR_DESC_11"),
-                        translate("LOC_ERROR_TITLE_11"),
-                        JOptionPane.ERROR_MESSAGE
+                        translate("LOC_ERROR_TITLE")
                     );
                 }
 
@@ -993,7 +945,10 @@ public class Controller {
 
             @Override
             protected void done() {
-                JOptionPane.showMessageDialog(view, String.format(translate("LOC_MESSAGE_2")));
+                view.showInformationMessage(
+                    translate("LOC_MESSAGE_DESC_2"),
+                    translate("LOC_MESSAGE_TITLE")
+                );
 
                 gView.unlockModule();
                 view.setCursor(Cursor.getDefaultCursor());
@@ -1019,11 +974,9 @@ public class Controller {
                 try {
                     gModule.addImage(paths);
                 } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(
-                        view,
-                        String.format(translate("LOC_ERROR_DESC_12")),
-                        translate("LOC_ERROR_TITLE_12"),
-                        JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_12"),
+                        translate("LOC_ERROR_TITLE")
                     );
                 }
 
@@ -1054,16 +1007,20 @@ public class Controller {
                 // Important note!
                 // We must sort indexes and then reverse them
                 int[] selected = gView.getGalleryTable().getSelectedRows();
+                gView.getGalleryTable().clearSelection();
 
                 if (selected == null || selected.length == 0) {
-                    JOptionPane.showMessageDialog(
-                            null,
-                            String.format(translate("LOC_ERROR_DESC_3")),
-                            translate("LOC_ERROR_TITLE_3"),
-                            JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_3"),
+                        translate("LOC_ERROR_TITLE")
                     );
+
                     return null;
                 }
+
+                selected = Arrays.stream(selected)
+                        .map(i -> gModule.getTableRowSorter().convertRowIndexToModel(i))
+                        .toArray();
 
                 Arrays.sort(selected);
                 int l = 0, r = selected.length - 1;
@@ -1082,11 +1039,9 @@ public class Controller {
                 try {
                     gModule.saveToFile();
                 } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(
-                        null,
-                        String.format(translate("LOC_ERROR_DESC_13")),
-                        translate("LOC_ERROR_TITLE_13"),
-                        JOptionPane.ERROR_MESSAGE
+                    view.showErrorMessage(
+                        translate("LOC_ERROR_DESC_13"),
+                        translate("LOC_ERROR_TITLE")
                     );
                 }
 
@@ -1097,7 +1052,6 @@ public class Controller {
             protected void done() {
                 gView.unlockModule();
                 view.setCursor(Cursor.getDefaultCursor());
-                gView.getGalleryTable().clearSelection();
                 resetGalleryRemoveImagesTask();
             }
         });

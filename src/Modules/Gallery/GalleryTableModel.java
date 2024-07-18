@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class GalleryTableModel extends AbstractTableModel {
 
@@ -112,7 +111,7 @@ public class GalleryTableModel extends AbstractTableModel {
     public void removeEntry(int row) {
         // This method will remove entry from table. But won't delete it from disk.
         images.remove(row);
-        fireTableRowsDeleted(images.size() - 1, images.size() - 1);
+        fireTableDataChanged();
     }
 
     public void deleteImage(int row) throws IOException {

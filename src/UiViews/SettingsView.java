@@ -278,21 +278,15 @@ public class SettingsView extends AbstractView {
         destinationFileChooser.setApproveButtonText("LOC_SETTINGS_VIEW_DESTINATION_FILE_CHOOSER_APPROVE_BUTTON");
     }
 
-    /*public UiPath getDestinationForComparer() {
-        return destinationForComparer;
-    }*/
-
     public JFileChooser getDestinationFileChooser() {
         return destinationFileChooser;
     }
 
-    public boolean openDestinationFileChooser() {
+    public void openDestinationFileChooser() {
         int f = destinationFileChooser.showOpenDialog(this);
         if (f == JFileChooser.APPROVE_OPTION) {
             destinationTextField.setText(destinationFileChooser.getSelectedFile().getAbsolutePath());
-            return true;
         }
-        return false;
     }
 
     public JButton getDestinationOpenButton() {

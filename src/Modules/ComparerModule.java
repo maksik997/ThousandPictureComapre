@@ -1,28 +1,15 @@
-// TODO COMPARER INTERFACE ALLOWING MULTI-USE OF IT WITH LOCKS
-
 package Modules;
 
-import pl.magzik.Comparator.FilePredicate;
-import pl.magzik.Comparator.ImageFilePredicate;
 import pl.magzik.IO.FileOperator;
-import pl.magzik.Structures.ImageRecord;
-import pl.magzik.Structures.Record;
-import pl.magzik.Utils.LoggingInterface;
 
 import javax.swing.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 
-public class ComparerModule {
+public class ComparerModule implements ComparerInterface {
     private File destination;
 
     private List<File> sources;
@@ -31,29 +18,13 @@ public class ComparerModule {
 
     private final DefaultListModel<String> duplicateListModel, mappedListModel;
 
-    private SwingWorker<Void, Void> mapObjects, transferObjects;
-
     private final FileOperator fileOperator;
 
     private Mode mode;
 
     private boolean pHash, pixelByPixel;
 
-    private final static FilePredicate filePredicate = new ImageFilePredicate();
-
-    public final static Function<File, ImageRecord> imageRecordFunction = file -> {
-        try {
-            return new ImageRecord(file);
-        } catch (IOException e) {
-            LoggingInterface.staticLog(String.format("Skipping file: %s", file.getName()));
-            LoggingInterface.staticLog(e, String.format("Skipping file: %s", file.getName()));
-        }
-        return null;
-    };
-
-    public enum Mode {
-        RECURSIVE, NON_RECURSIVE
-    }
+    private SwingWorker<Void, Void> mapObjects, transferObjects;
 
     public ComparerModule() {
         destination = new File(System.getProperty("user.dir"));
@@ -84,47 +55,15 @@ public class ComparerModule {
     }
 
     // This method compares all images checksums
+    @Override
     public void compareAndExtract() throws IOException, ExecutionException {
-        Objects.requireNonNull(sources);
-        Map<?, List<Record<BufferedImage>>> map;
-
-        if (pHash && pixelByPixel)
-            map = Record.process(sources, imageRecordFunction, ImageRecord.pHashFunction, ImageRecord.pixelByPixelFunction);
-        else if (pHash)
-            map = Record.process(sources, imageRecordFunction, ImageRecord.pHashFunction);
-        else if (pixelByPixel)
-            map = Record.process(sources, imageRecordFunction, ImageRecord.pixelByPixelFunction);
-        else
-            map = Record.process(sources, imageRecordFunction);
-
-        // Record.process return duplicates (or uniques, entries with more than one element contain duplicates)
-        comparerOutput = map
-                .values().stream()
-                .filter(list -> list.size() > 1)
-                .flatMap(Collection::stream)
-                .map(Record::getFile)
-                .toList();
+        comparerOutput = getFromCache(compare(sources));
     }
 
+    @Override
     public void fileTransfer() throws IOException {
-        Objects.requireNonNull(destination);
-        Objects.requireNonNull(comparerOutput);
-
-        if (comparerOutput.isEmpty()) return;
-
-        String separator = File.pathSeparator;
-
-        try {
-            comparerOutput.parallelStream().forEach(file -> {
-                try {
-                    Files.move(file.toPath(), Paths.get(destination + separator + file.getName()), StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            });
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
-        }
+        performMove(comparerOutput, destination);
+        clearCache();
     }
 
     public File getDestination() {
@@ -153,26 +92,32 @@ public class ComparerModule {
         return mode;
     }
 
+    @Override
     public boolean getPHash() {
         return pHash;
     }
 
+    @Override
     public boolean getPixelByPixel() {
         return pixelByPixel;
     }
 
+    @Override
     public void setPHash(boolean pHash) {
         this.pHash = pHash;
     }
 
+    @Override
     public void setPixelByPixel(boolean pixelByPixel) {
         this.pixelByPixel = pixelByPixel;
     }
 
+    @Override
     public void setMode(Mode mode) {
         this.mode = mode;
     }
 
+    @Override
     public void setDestination(File destination) {
         this.destination = destination;
     }

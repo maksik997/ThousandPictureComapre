@@ -39,7 +39,7 @@ public class Main {
             }
 
             View view = initView(resources);
-            Controller controller = new Controller(view, model, resources);
+            new Controller(view, model, resources);
 
             updateAfterwardsComponents(model, resources);
 

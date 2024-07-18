@@ -9,7 +9,6 @@ import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.io.File;
 import java.io.IOException;
-import java.util.ResourceBundle;
 
 public class LoadingFrame extends JFrame {
     public LoadingFrame() {

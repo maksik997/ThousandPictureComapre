@@ -3,7 +3,6 @@ import UiViews.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +17,7 @@ public class View extends JFrame {
 
     private final List<JPanel> scenes;
 
-    public View() throws HeadlessException, IOException {
+    public View() throws HeadlessException {
         scenes = new ArrayList<>();
 
         menuView = new MenuView();
@@ -78,5 +77,32 @@ public class View extends JFrame {
         
         repaint();
         revalidate();
+    }
+
+    public void showErrorMessage(String message, String title) {
+        JOptionPane.showMessageDialog(
+            this,
+            String.format(message),
+            title,
+            JOptionPane.ERROR_MESSAGE
+        );
+    }
+
+    public void showErrorMessage(String message, String title, Exception e) {
+        JOptionPane.showMessageDialog(
+            this,
+            String.format(message, e.getMessage()),
+            title,
+            JOptionPane.ERROR_MESSAGE
+        );
+    }
+
+    public void showInformationMessage(String message, String title) {
+        JOptionPane.showMessageDialog(
+            this,
+            String.format(message),
+            title,
+            JOptionPane.INFORMATION_MESSAGE
+        );
     }
 }

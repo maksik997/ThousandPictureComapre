@@ -25,12 +25,12 @@ public class Utility {
 
     public static String formatInto(double bytes, Sizes size) {
         double formatted = switch (size) {
-            case MEGA -> bytes / (1024*1024);
-            case KILO -> bytes / 1024;
-            case GIGA -> bytes / (1024*1024*1024);
+            case MEGA -> bytes / (1024d * 1024d);
+            case KILO -> bytes / 1024d;
+            case GIGA -> bytes / (1024d*1024d*1024d);
         };
 
-        return formatted == 0 ? String.format("%.2f %s", formatted, size) : String.format("%d %s", (int)formatted, size);
+        return formatted % 1 != 0 ? String.format("%.2f %s", formatted, size) : String.format("%d %s", (int)formatted, size);
     }
 
     public enum Sizes {

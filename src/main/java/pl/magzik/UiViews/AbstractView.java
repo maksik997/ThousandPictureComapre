@@ -25,14 +25,14 @@ public abstract class AbstractView extends JPanel {
 
         ImageIcon thumbnail = Utility.getScaledImage(new ImageIcon("data/thumbnail.png"), 50, 50);
         JLabel title = new JLabel(
-                "TITLE_TAG",
+                "general.title",
                 thumbnail,
                 JLabel.LEFT
         );
         title.setFont(Utility.fontHelveticaBold);
 
         backButton = Utility.buttonFactory(
-                "LOC_ABSTRACT_VIEW_BACK_BUTTON",
+                "view.abstract.button.back",
                 new Insets(5, 15, 5, 15)
         );
 

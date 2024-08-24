@@ -44,7 +44,7 @@ public class GalleryView extends AbstractView {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(5, 2, 5, 2);
 
-        JLabel headerLabel = new JLabel("LOC_GALLERY_VIEW_HEADER_LABEL");
+        JLabel headerLabel = new JLabel("view.gallery.label.header");
         headerLabel.setFont(Utility.fontHelveticaBold);
         headerPanel.add(headerLabel, c);
         c.gridx = 1;
@@ -53,7 +53,7 @@ public class GalleryView extends AbstractView {
         c.gridx = 2;
         c.weightx = 0;
 
-        JLabel nameFilterLabel = new JLabel("LOC_GALLERY_VIEW_NAME_FILTER_LABEL");
+        JLabel nameFilterLabel = new JLabel("view.gallery.label.name_filter");
         nameFilterLabel.setFont(Utility.fontHelveticaPlain);
         headerPanel.add(nameFilterLabel, c);
         c.gridx = 3;
@@ -76,14 +76,14 @@ public class GalleryView extends AbstractView {
 
         buttonPanel.setBorder(new MatteBorder(0, 1, 0, 0, Color.GRAY));
 
-        addImageButton = Utility.buttonFactory("LOC_GALLERY_VIEW_ADD_IMAGE_BUTTON", new Insets(5, 10, 5, 10));
-        removeImageButton = Utility.buttonFactory("LOC_GALLERY_VIEW_REMOVE_IMAGE_BUTTON", new Insets(5, 10, 5, 10));
-        deleteImageButton = Utility.buttonFactory("LOC_GALLERY_VIEW_DELETE_IMAGE_BUTTON", new Insets(5, 10, 5, 10));
-        distinctButton = Utility.buttonFactory("LOC_GALLERY_VIEW_DISTINCT_BUTTON", new Insets(5, 10, 5, 10));
-        unifyNamesButton = Utility.buttonFactory("LOC_GALLERY_VIEW_UNIFY_NAMES_BUTTON", new Insets(5, 10, 5, 10));
-        openButton = Utility.buttonFactory("LOC_GALLERY_VIEW_OPEN_IMAGE_BUTTON", new Insets(5, 10, 5, 10));
-        addTagButton = Utility.buttonFactory("LOC_GALLERY_VIEW_ADD_TAG_BUTTON", new Insets(5, 10, 5, 10));
-        removeTagButton = Utility.buttonFactory("LOC_GALLERY_VIEW_REMOVE_TAG_BUTTON", new Insets(5, 10, 5, 10));
+        addImageButton = Utility.buttonFactory("view.gallery.button.image.add", new Insets(5, 10, 5, 10));
+        removeImageButton = Utility.buttonFactory("view.gallery.button.image.remove", new Insets(5, 10, 5, 10));
+        deleteImageButton = Utility.buttonFactory("view.gallery.button.image.delete", new Insets(5, 10, 5, 10));
+        distinctButton = Utility.buttonFactory("view.gallery.button.distinct", new Insets(5, 10, 5, 10));
+        unifyNamesButton = Utility.buttonFactory("view.gallery.button.unify_name", new Insets(5, 10, 5, 10));
+        openButton = Utility.buttonFactory("view.gallery.button.image.open", new Insets(5, 10, 5, 10));
+        addTagButton = Utility.buttonFactory("view.gallery.button.tag.add", new Insets(5, 10, 5, 10));
+        removeTagButton = Utility.buttonFactory("view.gallery.button.tag.remove", new Insets(5, 10, 5, 10));
 
         buttonPanel.add(addImageButton, gbc);
         gbc.gridy++;
@@ -117,7 +117,7 @@ public class GalleryView extends AbstractView {
         JPanel elementCountPanel = new JPanel();
         elementCountPanel.setLayout(new BoxLayout(elementCountPanel, BoxLayout.X_AXIS));
 
-        JLabel elementCountLabel = new JLabel("LOC_GALERY_ELEMENT_COUNT_LABEL");
+        JLabel elementCountLabel = new JLabel("view.gallery.label.element_count");
         elementCountLabel.setFont(Utility.fontSmallHelveticaBold);
         elementCountLabel.setBorder(new EmptyBorder(0,5,0,5));
 
@@ -138,8 +138,8 @@ public class GalleryView extends AbstractView {
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         fileChooser.setMultiSelectionEnabled(true);
         fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-        fileChooser.setDialogTitle("LOC_GALLERY_VIEW_FILE_CHOOSER_DIALOG_TITLE");
-        fileChooser.setApproveButtonText("LOC_GALLERY_VIEW_FILE_CHOOSER_APPROVE_BUTTON_TEXT");
+        fileChooser.setDialogTitle("view.gallery.file_chooser.dialog.title");
+        fileChooser.setApproveButtonText("view.gallery.file_chooser.button.approve");
 
         buttons = new JButton[] {
             addImageButton,

@@ -41,7 +41,10 @@ public class Main {
             }
 
             View view = initView(resources);
-            new Controller(view, model, resources);
+
+            ResourceBundle varResources = ResourceBundle.getBundle("variables", locale);
+
+            new Controller(view, model, varResources);
 
             updateAfterwardsComponents(model, resources);
 
@@ -67,7 +70,7 @@ public class Main {
         // Translate file choosers:
         JFileChooser[] fcs = {
             view.getComparerView().getUiPath().getFileChooser(),
-            view.getSettingsView().getDestinationFileChooser(),
+            view.getSettingsView().getDestinationEntry().getFileChooser(),
             view.getGalleryView().getFileChooser()
         };
 

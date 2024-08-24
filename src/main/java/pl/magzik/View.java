@@ -24,7 +24,7 @@ public class View extends JFrame {
 
         menuView = new MenuView();
         galleryView = new GalleryView();
-        settingsView = new SettingsView();
+        settingsView = SettingsView.Factory.create();
         comparerView = new ComparerView();
         creditsView = new CreditsView();
 
@@ -38,7 +38,7 @@ public class View extends JFrame {
 
         this.add(menuView);
 
-        this.setTitle("TITLE_TAG");
+        this.setTitle("general.title");
         this.setIconImage(icon.getImage());
         this.setMinimumSize(new Dimension(800, 650));
         this.pack();

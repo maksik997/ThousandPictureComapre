@@ -52,9 +52,9 @@ public class ComparerView extends AbstractView {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         Insets insets = new Insets(5, 15, 5, 15);
-        this.loadButton = Utility.buttonFactory("LOC_COMPARER_VIEW_LOAD_BUTTON", insets);
-        this.moveButton = Utility.buttonFactory("LOC_COMPARER_VIEW_MOVE_BUTTON", insets);
-        this.resetButton = Utility.buttonFactory("LOC_COMPARER_VIEW_RESET_BUTTON", insets);
+        this.loadButton = Utility.buttonFactory("view.comparer.button.load", insets);
+        this.moveButton = Utility.buttonFactory("view.comparer.button.move", insets);
+        this.resetButton = Utility.buttonFactory("view.comparer.button.reset", insets);
 
         buttonPanel.add(loadButton, gbc);
         gbc.gridy++;
@@ -71,10 +71,10 @@ public class ComparerView extends AbstractView {
         statePanel.setLayout(new GridLayout());
         statePanel.setBorder(new TitledBorder(
             new MatteBorder(1, 0, 0, 0, Color.GRAY),
-            "LOC_COMPARER_VIEW_STATE_BORDER_TITLE"
+                "view.comparer.state.border.title"
         ));
 
-        this.stateLabel = new JLabel("LOC_COMPARER_VIEW_STATE_READY");
+        this.stateLabel = new JLabel("comparer.state.ready");
         this.stateLabel.setFont(Utility.fontBigHelveticaBold);
         this.stateLabel.setHorizontalAlignment(SwingConstants.CENTER);
         this.stateLabel.setVerticalAlignment(SwingConstants.CENTER);

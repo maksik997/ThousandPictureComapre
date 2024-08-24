@@ -8,8 +8,8 @@ public class UiTray extends JPanel {
     public UiTray() {
         this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-        this.totalField = Utility.constTextFieldFactory("LOC_COMPARER_VIEW_TRAY_TOTAL_BORDER_TITLE", "0", 6);
-        this.duplicatesField = Utility.constTextFieldFactory("LOC_COMPARER_VIEW_TRAY_DUPLICATES_BORDER_TITLE", "0", 6);
+        this.totalField = Utility.constTextFieldFactory("view.comparer.tray.total.border.title", "0", 6);
+        this.duplicatesField = Utility.constTextFieldFactory("view.comparer.tray.duplicates.border.title", "0", 6);
 
         this.add(totalField);
         this.add(Box.createHorizontalGlue());

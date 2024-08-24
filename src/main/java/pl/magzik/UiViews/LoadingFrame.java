@@ -42,13 +42,13 @@ class BackgroundPanel extends JPanel {
         bottomPanel.setBackground(Color.DARK_GRAY);
         bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
 
-        JLabel loadingLabel = new JLabel("LOC_LOADING_FRAME_TOP_LABEL");
+        JLabel loadingLabel = new JLabel("loading_frame.top.label");
         loadingLabel.setAlignmentX(RIGHT_ALIGNMENT);
         loadingLabel.setFont(Utility.fontBigHelveticaBold);
         loadingLabel.setBorder(new EmptyBorder(20, 0, 0, 10));
         bottomPanel.add(loadingLabel);
 
-        JLabel loadingText = new JLabel("LOC_LOADING_FRAME_BOTTOM_LABEL");
+        JLabel loadingText = new JLabel("loading_frame.bottom.label");
         loadingText.setAlignmentX(Component.RIGHT_ALIGNMENT);
         loadingText.setFont(Utility.fontHelveticaPlain);
         loadingText.setBorder(new EmptyBorder(0, 0, 20, 10));

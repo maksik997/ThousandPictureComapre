@@ -27,21 +27,21 @@ public class UiPath extends JPanel {
                     new LineBorder(Color.GRAY, 1, true),
                     new EmptyBorder(5, 10, 0, 10)
                 ),
-                "LOC_COMPARER_VIEW_PATH_BORDER_TITLE"
+                    "view.comparer.path.border.title"
             )
         );
         this.pathTextField.setFont(Utility.fontHelveticaPlain);
 
         this.pathButton = Utility.buttonFactory(
-            "LOC_COMPARER_VIEW_OPEN_BUTTON",
+                "view.comparer.button.open",
             new Insets(5, 15, 5, 15)
         );
 
         this.fileChooser = new JFileChooser();
         this.fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         this.fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-        this.fileChooser.setDialogTitle("LOC_COMPARER_VIEW_FILE_CHOOSER_DIALOG_TITLE");
-        this.fileChooser.setApproveButtonText("LOC_COMPARER_VIEW_FILE_CHOOSER_APPROVE_BUTTON");
+        this.fileChooser.setDialogTitle("view.comparer.file_chooser.title");
+        this.fileChooser.setApproveButtonText("view.comparer.file_chooser.button.approve");
 
         this.add(this.pathTextField);
         this.add(Box.createHorizontalStrut(40));

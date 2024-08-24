@@ -107,8 +107,8 @@ public class Controller {
             String path = cView.getUiPath().getPath();
             if (path == null) {
                 view.showErrorMessage(
-                    translate("LOC_ERROR_DESC_0"),
-                    translate("LOC_ERROR_TITLE")
+                    translate("error.general.title"),
+                    translate("error.comparer.lack_of_images.desc")
                 );
 
                 return;
@@ -129,8 +129,8 @@ public class Controller {
             // Check if moving files is valid
             if (cModule.getComparerOutputSize() <= 0) {
                 view.showErrorMessage(
-                    translate("LOC_ERROR_DESC_1"),
-                    translate("LOC_ERROR_TITLE")
+                    translate("error.comparer.loading_needed.desc"),
+                    translate("error.general.title")
                 );
                 return;
             }
@@ -154,7 +154,7 @@ public class Controller {
             cView.getLoadButton().setEnabled(true);
             cView.getMoveButton().setEnabled(true);
 
-            cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_READY"));
+            cView.getStateLabel().setText(translate("comparer.state.ready"));
         });
 
         // Workers
@@ -168,56 +168,52 @@ public class Controller {
         ComparerModule cModule = model.getComparerModule();
         GalleryModule gModule = model.getGalleryModule();
 
-        // Destination Path button
-        sView.getDestinationOpenButton().addActionListener(_ -> sView.openDestinationFileChooser());
-
         // Save Button
         sView.getSaveButton().addActionListener(_ -> {
             boolean messageNeeded = false;
 
             // Check if the language has changed.
-            String lang = translate("LOC_SETTINGS_LANG_" + sModule.getSetting("language"));
-            if (!lang.equals(sView.getLanguageComboBox().getSelectedItem())) {
+            String lang = translate("lang." + sModule.getSetting("language"));
+            if (!lang.equals(sView.getLanguageEntry().getValue())) {
                 messageNeeded = true;
 
                 String[] splitKey = reversedTranslate(
-                    (String) sView.getLanguageComboBox().getSelectedItem()
-                ).split("_");
+                    (String) sView.getLanguageEntry().getValue()
+                ).split("\\.");
                 sModule.updateSetting("language", splitKey[splitKey.length-1]);
             }
 
             // Check if the theme has changed.
-            String theme = translate("LOC_SETTINGS_THEME_" + sModule.getSetting("theme"));
-            if (!theme.equals(sView.getThemeComboBox().getSelectedItem())) {
+            String theme = translate("theme." + sModule.getSetting("theme"));
+            if (!theme.equals(sView.getThemeEntry().getValue())) {
                 messageNeeded = true;
 
                 String[] splitKey = reversedTranslate(
-                    (String) sView.getThemeComboBox().getSelectedItem()
-                ).split("_");
+                    (String) sView.getThemeEntry().getValue()
+                ).split("\\.");
                 sModule.updateSetting("theme", splitKey[splitKey.length-1]);
             }
 
-            if (!sModule.getSetting("destination-for-pc").equals(sView.getDestinationTextField().getText())) {
-                sModule.updateSetting("destination-for-pc", sView.getDestinationTextField().getText());
-//                cModule.setDestination(new File(sView.getDestinationTextField().getText()));
+            if (!sModule.getSetting("destination-for-pc").equals(sView.getDestinationEntry().getValue())) {
+                sModule.updateSetting("destination-for-pc", sView.getDestinationEntry().getValue());
             }
 
             // Update mode
             sModule.updateSetting(
                 "mode",
-                sView.getRecursiveModeToggle().isSelected() ? "recursive" : "not-recursive"
+                sView.getRecursiveModeEntry().getValue() ? "recursive" : "not-recursive"
             );
 
             // Update phash
             sModule.updateSetting(
                 "phash",
-                    sView.getPHashModeToggle().isSelected() ? "yes" : "no"
+                    sView.getPHashModeEntry().getValue() ? "yes" : "no"
             );
 
             // Update pbp
             sModule.updateSetting(
                 "pbp",
-                sView.getPixelByPixelModeToggle().isSelected() ? "yes" : "no"
+                sView.getPixelByPixelModeEntry().getValue() ? "yes" : "no"
             );
 
             updateComparerSettings(cModule);
@@ -225,10 +221,10 @@ public class Controller {
 
 
             // Check if the unify names prefix has changed.
-            if (!sView.getUnifyNamesPrefixTextField().getText().equals(sModule.getSetting("unify-names-prefix"))) {
+            if (!sView.getNamesPrefixEntry().getValue().equals(sModule.getSetting("unify-names-prefix"))) {
                 sModule.updateSetting(
                     "unify-names-prefix",
-                    sView.getUnifyNamesPrefixTextField().getText()
+                    sView.getNamesPrefixEntry().getValue()
                 );
 
                 gModule.setNameTemplate(
@@ -239,7 +235,7 @@ public class Controller {
             // Update unify names lowercase.
             sModule.updateSetting(
                 "unify-names-lowercase",
-                sView.getUnifyNamesLowerCaseToggle().isSelected() ? "yes" : "no"
+                sView.getNamesLowerCaseEntry().getValue() ? "yes" : "no"
             );
 
             gModule.setLowercaseExtension(
@@ -250,64 +246,63 @@ public class Controller {
             sModule.saveSettings();
             if (messageNeeded) {
                 view.showInformationMessage(
-                    translate("LOC_MESSAGE_RESTART_REQUIRED_DESC"),
-                    translate("LOC_MESSAGE_RESTART_REQUIRED_TITLE")
+                    translate("message.restart_required.desc"),
+                    translate("message.restart_required.title")
                 );
             }
         });
 
         // Language setting initialization
         String[] languages = sModule.getSetting("languages").split(",");
-        for (String lang : languages) {
-            String key = "LOC_SETTINGS_LANG_" + lang;
-            sView.getLanguageComboBox().addItem(
-                translate(key)
-            );
-        }
 
-        String language = "LOC_SETTINGS_LANG_" + sModule.getSetting("language");
-        sView.getLanguageComboBox().setSelectedItem(
-            translate(language)
+        sView.getLanguageEntry().initializeComboBox(
+            Arrays.stream(languages)
+                .map(l -> translate("lang." + l))
+                .toArray(String[]::new)
         );
+
+        String language = "lang." + sModule.getSetting("language");
+
+        sView.getLanguageEntry().setValue(translate(language));
 
         // Theme setting initialization
         String[] themes = sModule.getSetting("themes").split(",");
-        for (String theme : themes) {
-            String key = "LOC_SETTINGS_THEME_" + theme;
-            sView.getThemeComboBox().addItem(
-                translate(key)
-            );
-        }
 
-        String theme = "LOC_SETTINGS_THEME_" + sModule.getSetting("theme");
-        sView.getThemeComboBox().setSelectedItem(
+        sView.getThemeEntry().initializeComboBox(
+            Arrays.stream(themes)
+                .map(l -> translate("theme." + l))
+                .toArray(String[]::new)
+        );
+
+        String theme = "theme." + sModule.getSetting("theme");
+        sView.getThemeEntry().setValue(
             translate(theme)
         );
 
 
         // Comparer's settings init
-        sView.getDestinationTextField().setText(
+        sView.getDestinationEntry().setValue(
             sModule.getSetting("destination-for-pc")
         );
 
-        sView.getRecursiveModeToggle().setSelected(
+        sView.getRecursiveModeEntry().setValue(
             sModule.getSetting("mode").equals("recursive")
         );
 
-        sView.getPHashModeToggle().setSelected(
+        sView.getPHashModeEntry().setValue(
             sModule.getSetting("phash").equals("yes")
         );
 
-        sView.getPixelByPixelModeToggle().setSelected(
+        sView.getPixelByPixelModeEntry().setValue(
             sModule.getSetting("pbp").equals("yes")
         );
 
         // Gallery's settings init
-        sView.getUnifyNamesPrefixTextField().setText(
+        sView.getNamesPrefixEntry().setValue(
             sModule.getSetting("unify-names-prefix")
         );
 
-        sView.getUnifyNamesLowerCaseToggle().setSelected(
+        sView.getNamesLowerCaseEntry().setValue(
             sModule.getSetting("unify-names-lowercase").equals("yes")
         );
 
@@ -323,6 +318,8 @@ public class Controller {
         gModule.setLowercaseExtension(
             sModule.getSetting("unify-names-lowercase").equals("yes")
         );
+
+        sView.getSaveButton().setEnabled(false);
     }
 
     private void updateComparerSettings(ComparerInterface ci) {
@@ -384,8 +381,8 @@ public class Controller {
 
             if (selected == null || selected.length == 0) {
                 view.showErrorMessage(
-                    translate("LOC_ERROR_DESC_3"),
-                    translate("LOC_ERROR_TITLE")
+                    translate("error.delete.no_images.desc"),
+                    translate("error.general.title")
                 );
 
                 return;
@@ -393,8 +390,8 @@ public class Controller {
 
             int a = JOptionPane.showConfirmDialog(
                 view,
-                translate("LOC_CONFIRMATION_DESC_0"),
-                translate("LOC_CONFIRMATION_TITLE_0"),
+                translate("message.confirmation.delete_images.desc"),
+                translate("message.confirmation.delete_images.title"),
                 JOptionPane.YES_NO_OPTION
             );
 
@@ -418,8 +415,8 @@ public class Controller {
                         gModule.deleteImage(idx);
                     } catch (IOException e) {
                         view.showErrorMessage(
-                            translate("LOC_ERROR_DESC_4"),
-                            translate("LOC_ERROR_TITLE")
+                            translate("error.delete.ioexception.desc"),
+                            translate("error.general.title")
                         );
 
                         return;
@@ -430,8 +427,8 @@ public class Controller {
                     gModule.saveToFile();
                 } catch (IOException ex) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_5"),
-                        translate("LOC_ERROR_TITLE")
+                        translate("error.save.ioexception.desc"),
+                        translate("error.general.title")
                     );
                 }
             }
@@ -444,8 +441,8 @@ public class Controller {
             int[] selected = gView.getGalleryTable().getSelectedRows();
             if (selected == null || selected.length < 2) {
                 view.showErrorMessage(
-                    translate("LOC_ERROR_DESC_6"),
-                    translate("LOC_ERROR_TITLE")
+                    translate("error.distinct.lack_of_images.desc"),
+                    translate("error.general.title")
                 );
                 return;
             }
@@ -467,8 +464,8 @@ public class Controller {
             int[] selected = gView.getGalleryTable().getSelectedRows();
             if (selected == null || selected.length == 0) {
                 view.showErrorMessage(
-                    translate("LOC_ERROR_DESC_7"),
-                    translate("LOC_ERROR_TITLE")
+                    translate("error.open.lack_of_images.desc"),
+                    translate("error.general.title")
                 );
 
                 return;
@@ -479,8 +476,8 @@ public class Controller {
                     gModule.openImage(idx);
                 } catch (IOException e) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_8"),
-                        translate("LOC_ERROR_TITLE")
+                        translate("error.open.ioexception.desc"),
+                        translate("error.general.title")
                     );
                 }
             }
@@ -492,8 +489,8 @@ public class Controller {
             int[] selected = gView.getGalleryTable().getSelectedRows();
             if (selected == null || selected.length == 0) {
                 view.showErrorMessage(
-                    translate("LOC_ERROR_DESC_14"),
-                    translate("LOC_ERROR_TITLE")
+                    translate("error.tag.lack_of_images.desc"),
+                    translate("error.general.title")
                 );
                 return;
             }
@@ -507,7 +504,7 @@ public class Controller {
             int result = JOptionPane.showConfirmDialog(
                 null,
                 comboBox,
-                translate("LOC_ADD_TAG_OPTION_PANE"),
+                translate("message.add_tag.title"),
                 JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.QUESTION_MESSAGE
             );
@@ -516,8 +513,8 @@ public class Controller {
                 String tag = (String) comboBox.getSelectedItem();
                 if (tag != null && !tag.matches("^[\\w\\-]+$")) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_15"),
-                        translate("LOC_ERROR_TITLE")
+                        translate("error.tag.invalid_string.desc"),
+                        translate("error.general.title")
                     );
                     return;
                 }
@@ -527,8 +524,8 @@ public class Controller {
                         gModule.addTag(idx, tag);
                     } catch (IOException e) {
                         view.showErrorMessage(
-                            translate("LOC_ERROR_DESC_10"),
-                            translate("LOC_ERROR_TITLE"),
+                            translate("error.general.desc"),
+                            translate("error.general.title"),
                             e
                         );
 
@@ -540,8 +537,8 @@ public class Controller {
                     gModule.saveToFile();
                 } catch (IOException e) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_10"),
-                        translate("LOC_ERROR_TITLE"),
+                        translate("error.general.desc"),
+                        translate("error.general.title"),
                         e
                     );
                 }
@@ -553,8 +550,8 @@ public class Controller {
             int selected = gView.getGalleryTable().getSelectedRow();
             if (selected == -1) {
                 view.showErrorMessage(
-                    translate("LOC_ERROR_DESC_14"),
-                    translate("LOC_ERROR_TITLE")
+                    translate("error.tag.lack_of_images.desc"),
+                    translate("error.general.title")
                 );
 
                 return;
@@ -565,8 +562,8 @@ public class Controller {
 
             if (tags.length == 0) {
                 view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_16"),
-                        translate("LOC_ERROR_TITLE")
+                    translate("error.tag.lack_of_tags.desc"),
+                    translate("error.general.title")
                 );
 
                 return;
@@ -580,7 +577,7 @@ public class Controller {
             int result = JOptionPane.showConfirmDialog(
                 null,
                 comboBox,
-                translate("LOC_REMOVE_TAG_OPTION_PANE"),
+                translate("message.remove_tag.title"),
                 JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.QUESTION_MESSAGE
             );
@@ -594,8 +591,8 @@ public class Controller {
                 gModule.saveToFile();
             } catch (IOException e) {
                 view.showErrorMessage(
-                    translate("LOC_ERROR_DESC_10"),
-                    translate("LOC_ERROR_TITLE"),
+                    translate("error.general.desc"),
+                    translate("error.general.title"),
                     e
                 );
             }
@@ -626,8 +623,8 @@ public class Controller {
                     gModule.saveToFile();
                 } catch (IOException ex) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_9"),
-                        translate("LOC_ERROR_TITLE")
+                        translate("error.save.ioexception.desc"),
+                        translate("error.general.title")
                     );
                 }
             }
@@ -655,7 +652,7 @@ public class Controller {
             protected Void doInBackground() {
                 // If a task stays in this state, that means that Picture Comparer failed the task.
                 // Probably cuz of FileVisitor
-                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_PREPARE"));
+                cView.getStateLabel().setText(translate("comparer.state.prepare"));
                 view.setCursor(
                         Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
                 );
@@ -664,8 +661,8 @@ public class Controller {
                     cModule.load();
                 } catch (IOException | InterruptedException | TimeoutException e) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_10"),
-                        translate("LOC_ERROR_TITLE"),
+                        translate("error.general.desc"),
+                        translate("error.general.title"),
                         e
                     );
 
@@ -683,14 +680,14 @@ public class Controller {
                                 .toList()
                 );
 
-                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_MAP"));
+                cView.getStateLabel().setText(translate("comparer.state.map"));
 
                 try {
                     cModule.compareAndExtract();
                 } catch (IOException | ExecutionException e) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_10"),
-                        translate("LOC_ERROR_TITLE"),
+                        translate("error.general.desc"),
+                        translate("error.general.title"),
                         e
                     );
 
@@ -705,7 +702,7 @@ public class Controller {
                 if (state() == State.CANCELLED)
                     return;
 
-                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_UPDATE"));
+                cView.getStateLabel().setText(translate("comparer.state.update"));
                 cView.getUiTray().update(
                         cModule.getSourcesSize(),
                         cModule.getComparerOutputSize()
@@ -723,25 +720,25 @@ public class Controller {
                 cView.getResetButton().setEnabled(true);
                 cView.getUiPath().getPathButton().setEnabled(true);
 
-                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_DONE"));
+                cView.getStateLabel().setText(translate("comparer.state.done"));
                 view.setCursor(Cursor.getDefaultCursor());
             }
         });
         cModule.setTransferObjects(new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_PREPARE"));
+                cView.getStateLabel().setText(translate("comparer.state.prepare"));
                 view.setCursor(
                         Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
                 );
 
-                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_MOVE"));
+                cView.getStateLabel().setText(translate("comparer.state.move"));
                 try {
                     cModule.fileTransfer();
                 } catch (IOException e) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_10"),
-                        translate("LOC_ERROR_TITLE"),
+                        translate("error.general.desc"),
+                        translate("error.general.title"),
                         e
                     );
 
@@ -758,13 +755,13 @@ public class Controller {
                 cView.getResetButton().setEnabled(true);
                 cView.getUiPath().getPathButton().setEnabled(true);
 
-                cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_DONE"));
+                cView.getStateLabel().setText(translate("comparer.state.done"));
                 view.setCursor(Cursor.getDefaultCursor());
 
                 int option = JOptionPane.showConfirmDialog(
                         null,
-                        translate("LOC_CONFIRMATION_DESC_1"),
-                        translate("LOC_CONFIRMATION_TITLE_1"),
+                        translate("message.confirmation.comparer_restart.desc"),
+                        translate("message.confirmation.title"),
                         JOptionPane.YES_NO_OPTION
                 );
 
@@ -776,7 +773,7 @@ public class Controller {
                     cView.getLoadButton().setEnabled(true);
                     cView.getMoveButton().setEnabled(true);
 
-                    cView.getStateLabel().setText(translate("LOC_COMPARER_VIEW_STATE_READY"));
+                    cView.getStateLabel().setText(translate("comparer.state.ready"));
                 }
             }
         });
@@ -801,8 +798,8 @@ public class Controller {
                     );
                 } catch (IOException | InterruptedException | TimeoutException e) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_10"),
-                        translate("LOC_ERROR_TITLE"),
+                        translate("error.general.desc"),
+                        translate("error.general.title"),
                         e
                     );
 
@@ -813,8 +810,8 @@ public class Controller {
                     gModule.compareAndExtract();
                 } catch (IOException | ExecutionException e) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_10"),
-                        translate("LOC_ERROR_TITLE"),
+                        translate("error.general.desc"),
+                        translate("error.general.title"),
                         e
                     );
 
@@ -828,11 +825,11 @@ public class Controller {
                 view.setCursor(Cursor.getDefaultCursor());
 
                 int ans = JOptionPane.showConfirmDialog(
-                        view,
-                        translate("LOC_CONFIRMATION_DESC_2"),
-                        translate("LOC_CONFIRMATION_TITLE_2"),
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.QUESTION_MESSAGE
+                    view,
+                    translate("message.confirmation.duplicates_removal.desc"),
+                    translate("message.confirmation.title"),
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
                 );
 
                 if (ans == JOptionPane.YES_OPTION)
@@ -853,8 +850,8 @@ public class Controller {
                     gModule.fileDelete();
                 } catch (IOException e) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_10"),
-                        translate("LOC_ERROR_TITLE"),
+                        translate("error.general.desc"),
+                        translate("error.general.title"),
                         e
                     );
                 }
@@ -869,8 +866,8 @@ public class Controller {
                 gView.unlockModule();
 
                 view.showInformationMessage(
-                    translate("LOC_MESSAGE_DESC_0"),
-                    translate("LOC_MESSAGE_TITLE")
+                    translate("message.redundant_images.deleted.desc"),
+                    translate("message.general.title")
                 );
                 resetGalleryDistinctTasks();
             }
@@ -886,8 +883,8 @@ public class Controller {
                     gModule.fileTransfer();
                 } catch (IOException e) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_10"),
-                        translate("LOC_ERROR_TITLE"),
+                        translate("error.general.desc"),
+                        translate("error.general.title"),
                         e
                     );
                 }
@@ -901,8 +898,8 @@ public class Controller {
                 gView.unlockModule();
 
                 view.showInformationMessage(
-                    translate("LOC_MESSAGE_DESC_1"),
-                    translate("LOC_MESSAGE_TITLE")
+                    translate("message.redundant_images.moved.desc"),
+                    translate("message.general.title")
                 );
 
                 resetGalleryDistinctTasks();
@@ -925,8 +922,8 @@ public class Controller {
                     gModule.unifyNames();
                 } catch (IOException e) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_10"),
-                        translate("LOC_ERROR_TITLE"),
+                        translate("error.general.desc"),
+                        translate("error.general.title"),
                         e
                     );
 
@@ -937,8 +934,8 @@ public class Controller {
                     gModule.saveToFile();
                 } catch (IOException e) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_11"),
-                        translate("LOC_ERROR_TITLE")
+                        translate("error.save.ioexception.desc"),
+                        translate("error.general.title")
                     );
                 }
 
@@ -948,8 +945,8 @@ public class Controller {
             @Override
             protected void done() {
                 view.showInformationMessage(
-                    translate("LOC_MESSAGE_DESC_2"),
-                    translate("LOC_MESSAGE_TITLE")
+                    translate("message.unify_names.desc"),
+                    translate("message.general.title")
                 );
 
                 gView.unlockModule();
@@ -977,8 +974,8 @@ public class Controller {
                     gModule.addImage(paths);
                 } catch (IOException ex) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_12"),
-                        translate("LOC_ERROR_TITLE")
+                        translate("error.add.ioexception.desc"),
+                        translate("error.general.title")
                     );
                 }
 
@@ -1013,8 +1010,8 @@ public class Controller {
 
                 if (selected == null || selected.length == 0) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_3"),
-                        translate("LOC_ERROR_TITLE")
+                        translate("error.delete.no_images.desc"),
+                        translate("error.general.title")
                     );
 
                     return null;
@@ -1042,8 +1039,8 @@ public class Controller {
                     gModule.saveToFile();
                 } catch (IOException ex) {
                     view.showErrorMessage(
-                        translate("LOC_ERROR_DESC_13"),
-                        translate("LOC_ERROR_TITLE")
+                        translate("error.save.ioexception.desc"),
+                        translate("error.general.title")
                     );
                 }
 

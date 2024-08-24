@@ -17,7 +17,7 @@ public class GalleryTableModel extends AbstractTableModel {
 
     private final List<Entry> images;
 
-    private static final String[] columnNames = { "LOC_GALLERY_TABLE_MODEL_COLUMN_NAME", "LOC_GALLERY_TABLE_MODEL_COLUMN_SIZE", "LOC_GALLERY_TABLE_MODEL_COLUMN_MODIFICATION_DATE", "LOC_GALLERY_TABLE_MODEL_COLUMN_TAGS" };
+    private static final String[] columnNames = {"table.gallery.column.name", "table.gallery.column.size", "table.gallery.column.modification_date", "table.gallery.column.tags"};
 
     public GalleryTableModel() {
         this.images = new ArrayList<>();

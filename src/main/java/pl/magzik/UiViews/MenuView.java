@@ -21,41 +21,41 @@ public class MenuView extends JPanel {
         ImageIcon icon = Utility.getScaledImage(new ImageIcon("data/thumbnail.png"), 200, 200);
         JLabel iconLabel = new JLabel(icon);
 
-        JLabel title = new JLabel("TITLE_TAG");
+        JLabel title = new JLabel("general.title");
         title.setFont(Utility.fontBigHelveticaBold);
         title.setBorder(
                 new MatteBorder(0,0,1,0, Color.GRAY)
         );
 
-        JLabel versionTag = new JLabel("VERSION_TAG");
+        JLabel versionTag = new JLabel("general.version");
         versionTag.setFont(Utility.fontSmallHelveticaBold);
 
         comparerButton = Utility.buttonFactory(
-            "LOC_MENU_VIEW_COMPARER_BUTTON",
+                "view.menu.button.comparer",
             new Insets(10, 15, 10, 15)
         );
         comparerButton.setPreferredSize(new Dimension(200, 50));
 
         galleryButton = Utility.buttonFactory(
-                "LOC_MENU_VIEW_GALLERY_BUTTON",
+                "view.menu.button.gallery",
                 new Insets(10, 15, 10, 15)
         );
         galleryButton.setPreferredSize(new Dimension(200, 50));
 
         settingsButton = Utility.buttonFactory(
-                "LOC_MENU_VIEW_SETTINGS_BUTTON",
+                "view.menu.button.settings",
                 new Insets(10, 15, 10, 15)
         );
         settingsButton.setPreferredSize(new Dimension(200, 50));
 
         creditsButton = Utility.buttonFactory(
-            "LOC_MENU_VIEW_CREDITS_BUTTON",
+                "view.menu.button.credits",
             new Insets(10, 15, 10, 15)
         );
         creditsButton.setPreferredSize(new Dimension(200, 50));
 
         exitButton = Utility.buttonFactory(
-        "LOC_MENU_VIEW_EXIT_BUTTON",
+                "view.menu.button.exit",
             new Insets(10, 15, 10, 15)
         );
         exitButton.setPreferredSize(new Dimension(200, 50));

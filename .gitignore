@@ -32,3 +32,6 @@ bin/
 /data/config.cfg
 /data/gallery.tp
 /data/tags.tp
+
+### Maven ###
+/target/

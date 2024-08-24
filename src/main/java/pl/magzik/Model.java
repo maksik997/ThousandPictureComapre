@@ -1,8 +1,8 @@
 package pl.magzik;
 
-import pl.magzik.Modules.ComparerModule;
-import pl.magzik.Modules.GalleryModule;
-import pl.magzik.Modules.SettingsModule;
+import pl.magzik.modules.ComparerModule;
+import pl.magzik.modules.GalleryModule;
+import pl.magzik.modules.SettingsModule;
 
 import java.io.IOException;
 

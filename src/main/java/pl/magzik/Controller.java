@@ -1,11 +1,12 @@
 package pl.magzik;
 
-import pl.magzik.Modules.ComparerInterface;
-import pl.magzik.Modules.ComparerModule;
-import pl.magzik.Modules.GalleryModule;
-import pl.magzik.Modules.SettingsModule;
-import pl.magzik.UiComponents.Utility;
-import pl.magzik.UiViews.*;
+import pl.magzik.controllers.localization.TranslationInterface;
+import pl.magzik.modules.ComparerInterface;
+import pl.magzik.modules.ComparerModule;
+import pl.magzik.modules.GalleryModule;
+import pl.magzik.modules.SettingsModule;
+import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.views.*;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.List;
 
-public class Controller {
+public class Controller implements TranslationInterface {
 
     private final View view;
     private final Model model;
@@ -42,7 +43,8 @@ public class Controller {
         initGalleryView();
     }
 
-    private String translate(String key) {
+    @Override
+    public String translate(String key) {
         // Resource Bundle
         if (key != null && resourceBundle.containsKey(key)) {
             return resourceBundle.getString(key);
@@ -50,7 +52,8 @@ public class Controller {
         return key;
     }
 
-    private String reversedTranslate(String key) {
+    @Override
+    public String reverseTranslate(String key) {
         // Resource Bundle
         return resourceBundle.keySet().stream()
             .filter(k -> resourceBundle.getString(k).equals(key))
@@ -177,7 +180,7 @@ public class Controller {
             if (!lang.equals(sView.getLanguageEntry().getValue())) {
                 messageNeeded = true;
 
-                String[] splitKey = reversedTranslate(
+                String[] splitKey = reverseTranslate(
                     (String) sView.getLanguageEntry().getValue()
                 ).split("\\.");
                 sModule.updateSetting("language", splitKey[splitKey.length-1]);
@@ -188,7 +191,7 @@ public class Controller {
             if (!theme.equals(sView.getThemeEntry().getValue())) {
                 messageNeeded = true;
 
-                String[] splitKey = reversedTranslate(
+                String[] splitKey = reverseTranslate(
                     (String) sView.getThemeEntry().getValue()
                 ).split("\\.");
                 sModule.updateSetting("theme", splitKey[splitKey.length-1]);

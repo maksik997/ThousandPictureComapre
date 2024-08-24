@@ -1,14 +1,15 @@
 package pl.magzik;
 
-import pl.magzik.UiComponents.Utility;
-import pl.magzik.UiViews.*;
+import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.logging.MessageInterface;
+import pl.magzik.ui.views.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class View extends JFrame {
+public class View extends JFrame implements MessageInterface {
 
     // Different Panels
     private final ComparerView comparerView;
@@ -81,6 +82,7 @@ public class View extends JFrame {
         revalidate();
     }
 
+    @Override
     public void showErrorMessage(String message, String title) {
         JOptionPane.showMessageDialog(
             this,
@@ -90,6 +92,7 @@ public class View extends JFrame {
         );
     }
 
+    @Override
     public void showErrorMessage(String message, String title, Exception e) {
         JOptionPane.showMessageDialog(
             this,
@@ -99,6 +102,7 @@ public class View extends JFrame {
         );
     }
 
+    @Override
     public void showInformationMessage(String message, String title) {
         JOptionPane.showMessageDialog(
             this,

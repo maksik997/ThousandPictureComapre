@@ -1,7 +1,7 @@
 package pl.magzik;
 
-import pl.magzik.Modules.Gallery.GalleryTableModel;
-import pl.magzik.UiViews.LoadingFrame;
+import pl.magzik.modules.gallery.GalleryTableModel;
+import pl.magzik.ui.views.LoadingFrame;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 

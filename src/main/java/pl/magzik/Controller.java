@@ -1,5 +1,6 @@
 package pl.magzik;
 
+import pl.magzik.controllers.SettingsController;
 import pl.magzik.controllers.localization.TranslationInterface;
 import pl.magzik.modules.ComparerInterface;
 import pl.magzik.modules.ComparerModule;
@@ -30,6 +31,8 @@ public class Controller implements TranslationInterface {
     private final Model model;
     private final ResourceBundle resourceBundle;
 
+    private final SettingsController settingsController;
+
     public Controller(View view, Model model, ResourceBundle resourceBundle) {
         this.view = view;
         this.model = model;
@@ -39,8 +42,10 @@ public class Controller implements TranslationInterface {
         initView();
         initMenuView();
         initComparerView();
-        initSettingsView();
+        //initSettingsView();
         initGalleryView();
+
+        settingsController = new SettingsController(view.getSettingsView(), model.getSettingsModule(), model.getGalleryModule(), this, view, model.getComparerModule(), model.getGalleryModule());
     }
 
     @Override
@@ -165,7 +170,7 @@ public class Controller implements TranslationInterface {
 
     }
 
-    private void initSettingsView() {
+    /*private void initSettingsView() {
         SettingsView sView = view.getSettingsView();
         SettingsModule sModule = model.getSettingsModule();
         ComparerModule cModule = model.getComparerModule();
@@ -323,9 +328,9 @@ public class Controller implements TranslationInterface {
         );
 
         sView.getSaveButton().setEnabled(false);
-    }
+    }*/
 
-    private void updateComparerSettings(ComparerInterface ci) {
+    /*private void updateComparerSettings(ComparerInterface ci) {
         SettingsModule sModule = model.getSettingsModule();
 
         ci.setDestination(new File(sModule.getSetting("destination-for-pc")));
@@ -338,7 +343,7 @@ public class Controller implements TranslationInterface {
         ci.setPixelByPixel(
             sModule.getSetting("pbp").equals("yes")
         );
-    }
+    }*/
 
     private void initGalleryView() {
         GalleryView gView = view.getGalleryView();

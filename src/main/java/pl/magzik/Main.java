@@ -1,5 +1,6 @@
 package pl.magzik;
 
+import com.formdev.flatlaf.util.SystemInfo;
 import pl.magzik.modules.gallery.GalleryTableModel;
 import pl.magzik.ui.views.LoadingFrame;
 import com.formdev.flatlaf.FlatDarculaLaf;
@@ -14,6 +15,11 @@ import java.util.ResourceBundle;
 
 public class Main {
     public static void main(String[] args) {
+        if (SystemInfo.isMacOS) {
+            System.setProperty("apple.awt.application.name", "Thousand Picture Comapre`");
+            System.setProperty("apple.awt.application.appearance", "system");
+        }
+
         FlatDarculaLaf.setup();
         setUIManagerProperties();
 

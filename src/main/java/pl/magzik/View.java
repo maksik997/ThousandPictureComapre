@@ -1,5 +1,6 @@
 package pl.magzik;
 
+import com.formdev.flatlaf.util.SystemInfo;
 import pl.magzik.ui.components.Utility;
 import pl.magzik.ui.logging.MessageInterface;
 import pl.magzik.ui.views.*;
@@ -39,6 +40,9 @@ public class View extends JFrame implements MessageInterface {
 
         this.add(menuView);
 
+        if (SystemInfo.isMacOS) {
+            getRootPane().putClientProperty("apple.awt.windowTitleVisible", false);
+        }
         this.setTitle("general.title");
         this.setIconImage(icon.getImage());
         this.setMinimumSize(new Dimension(800, 650));

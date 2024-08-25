@@ -69,7 +69,7 @@ public class TextFieldSettingsEntry extends SettingsEntry<JPanel, String> {
             private void updateValue() {
                 String oldVal = getOldValue();
                 String newVal = textField.getText();
-                firePropertyChange("value", oldVal, newVal);
+                firePropertyChange(oldVal, newVal);
             }
         });
     }

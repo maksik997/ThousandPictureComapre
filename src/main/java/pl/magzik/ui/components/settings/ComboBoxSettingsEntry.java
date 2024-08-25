@@ -34,7 +34,7 @@ public class ComboBoxSettingsEntry extends SettingsEntry<JComboBox<String>, Stri
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 String oldVal = getOldValue();
                 String newVal = e.getItem().toString();
-                firePropertyChange("value", oldVal, newVal);
+                firePropertyChange(oldVal, newVal);
             }
         });
     }

@@ -44,10 +44,11 @@ public class CheckBoxSettingsEntry extends SettingsEntry<JPanel, Boolean> {
         checkBox.setFont(Utility.fontHelveticaPlain);
 
         checkBox.addItemListener(e -> {
-            if (e.getStateChange() == ItemEvent.SELECTED) {
+            if (e.getStateChange() == ItemEvent.SELECTED || e.getStateChange() == ItemEvent.DESELECTED) {
                 Boolean oldVal = getOldValue();
                 Boolean newVal = ((JCheckBox) e.getItem()).isSelected();
-                firePropertyChange("value", oldVal, newVal);
+
+                firePropertyChange(oldVal, newVal);
             }
         });
     }

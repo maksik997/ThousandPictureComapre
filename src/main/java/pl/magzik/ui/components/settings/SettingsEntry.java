@@ -85,8 +85,9 @@ public abstract class SettingsEntry<T extends JComponent, V> {
      * @param value {@link V} value to be set.
      * */
     public void setValue(V value) {
-        oldValue = value; // due to way of handling stock Swing component property change.
+        oldValue = getValue(); // due to way of handling stock Swing component property change.
         setValueProperty(value);
+
         pcs.firePropertyChange("value", oldValue, value);
     }
 
@@ -98,7 +99,8 @@ public abstract class SettingsEntry<T extends JComponent, V> {
         pcs.removePropertyChangeListener(listener);
     }
 
-    protected void firePropertyChange(String propertyName, V oldValue, V newValue) {
-        pcs.firePropertyChange(propertyName, oldValue, newValue);
+    protected void firePropertyChange(V oldValue, V newValue) {
+        pcs.firePropertyChange("value", oldValue, newValue);
+        this.oldValue = newValue;
     }
 }

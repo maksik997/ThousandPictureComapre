@@ -59,22 +59,18 @@ public class SettingsModule {
         ));
     }
 
-    public void saveSettings() {
+    public void saveSettings()  throws IOException {
         try (BufferedWriter writer = Files.newBufferedWriter(configPath)) {
             for (Entry e : setts) {
                 writer.write(e.toString());
                 writer.newLine();
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Couldn't update config file.");
         }
     }
 
-    public void loadSettings() {
+    public void loadSettings() throws IOException {
         try (Stream<String> lines = Files.lines(configPath)) {
             setts = lines.map(Entry::create).toList();
-        } catch (IOException e) {
-            throw new RuntimeException("Couldn't read config file.");
         }
     }
 

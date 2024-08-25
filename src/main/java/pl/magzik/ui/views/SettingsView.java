@@ -57,7 +57,7 @@ public class SettingsView extends AbstractView {
         mainPanel.add(saveButton, gbc);
 
         add(mainPanel);
-        addPropertyChangeListeners();
+        //addPropertyChangeListeners();
     }
 
     /**
@@ -191,7 +191,7 @@ public class SettingsView extends AbstractView {
             JButton saveButton = Utility.buttonFactory("view.settings.button.save", new Insets(5, 10, 5, 10));
             ComboBoxSettingsEntry languageEntry = new ComboBoxSettingsEntry("view.settings.label.language", new JComboBox<>());
             ComboBoxSettingsEntry themeEntry = new ComboBoxSettingsEntry("view.settings.label.theme", new JComboBox<>());
-            PathSettingsEntry destinationEntry = new PathSettingsEntry("view.settings.label.destination", createPathPanel("view.settings.button.destination.open"));
+            PathSettingsEntry destinationEntry = new PathSettingsEntry("view.settings.label.destination", createPathPanel());
             CheckBoxSettingsEntry recursiveModeEntry = new CheckBoxSettingsEntry("view.settings.label.toggle.mode", createCheckboxPanel("view.settings.label.toggle.recursive_mode"));
             CheckBoxSettingsEntry pHashModeEntry = new CheckBoxSettingsEntry("view.settings.label.phash", createCheckboxPanel("view.settings.toggle.phash"));
             CheckBoxSettingsEntry pixelByPixelModeEntry = new CheckBoxSettingsEntry("view.settings.label.pixel_by_pixel", createCheckboxPanel("view.settings.toggle.pixel_by_pixel"));
@@ -210,12 +210,10 @@ public class SettingsView extends AbstractView {
         /**
          * Creates a panel used as a value for {@link PathSettingsEntry}.
          * */
-        private static JPanel createPathPanel(String buttonText) {
-            Objects.requireNonNull(buttonText);
-
+        private static JPanel createPathPanel() {
             JPanel panel = new JPanel();
             JTextField textField = new JTextField();
-            JButton button = Utility.buttonFactory(buttonText, new Insets(5, 15, 5, 15));
+            JButton button = Utility.buttonFactory("view.settings.button.destination.open", new Insets(5, 15, 5, 15));
             panel.add(textField);
             panel.add(Box.createHorizontalStrut(10));
             panel.add(button);

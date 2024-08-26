@@ -35,9 +35,6 @@ public class Controller implements TranslationInterface {
 
         // Initialize view controllable elements
         initView();
-        //initMenuView();
-        //initComparerView();
-        //initSettingsView();
         initGalleryView();
 
         // TODO SOMETHING WITH THIS
@@ -75,19 +72,12 @@ public class Controller implements TranslationInterface {
         });
     }
 
-    /*private void initMenuView() {
-        MenuView mv = view.getMenuView();
-
-        mv.getComparerButton().addActionListener(_ -> view.toggleScene(Utility.Scene.COMPARER));
-        mv.getGalleryButton().addActionListener(_ -> view.toggleScene(Utility.Scene.GALLERY));
-        mv.getSettingsButton().addActionListener(_ -> view.toggleScene(Utility.Scene.SETTINGS));
-        mv.getCreditsButton().addActionListener(_ -> view.toggleScene(Utility.Scene.CREDITS));
-        mv.getExitButton().addActionListener(_ -> System.exit(0));
-    }*/
-
     private void initGalleryView() {
         GalleryView gView = view.getGalleryView();
         GalleryModule gModule = model.getGalleryModule();
+
+        // Initialize FileChooser in Gallery View
+        gView.setFileChooser(this);
 
         // Initialize gallery table
         gView.getGalleryTable().setModel(gModule.getGalleryTableModel());
@@ -378,13 +368,25 @@ public class Controller implements TranslationInterface {
             }
         });
 
-        gView.getElementCount().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
+        gView.getElementCountLabel().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
 
         // Tasks
         resetGalleryDistinctTasks();
         resetGalleryUnifyNamesTask();
         resetGalleryAddImagesTask();
         resetGalleryRemoveImagesTask();
+    }
+
+    // WILL LAND IN GALLERY CONTROLLER
+    public void addImages(List<String> list) {
+        try {
+            model.getGalleryModule().addImage(list);
+        } catch (IOException e) {
+            view.showErrorMessage(
+                translate("error.add.ioexception.desc"),
+                translate("error.general.title")
+            );
+        }
     }
 
     private void resetGalleryDistinctTasks() {
@@ -469,7 +471,7 @@ public class Controller implements TranslationInterface {
 
             @Override
             protected void done() {
-                gView.getElementCount().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
+                gView.getElementCountLabel().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
                 view.useCursor(Cursor.getDefaultCursor());
                 gView.unlockModule();
 
@@ -501,7 +503,7 @@ public class Controller implements TranslationInterface {
 
             @Override
             protected void done() {
-                gView.getElementCount().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
+                gView.getElementCountLabel().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
                 view.useCursor(Cursor.getDefaultCursor());
                 gView.unlockModule();
 
@@ -575,8 +577,8 @@ public class Controller implements TranslationInterface {
             protected Void doInBackground() {
                 view.useCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-                List<String> paths = gView.openFileChooser();
-                if (paths == null) return null;
+                if (!gView.getFileChooser().perform()) return null;
+                /*List<String> paths = GalleryView.getPaths();
 
                 try {
                     gModule.addImage(paths);
@@ -585,14 +587,14 @@ public class Controller implements TranslationInterface {
                         translate("error.add.ioexception.desc"),
                         translate("error.general.title")
                     );
-                }
+                }*/
 
                 return null;
             }
 
             @Override
             protected void done() {
-                gView.getElementCount().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
+                gView.getElementCountLabel().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
                 gView.unlockModule();
                 view.useCursor(Cursor.getDefaultCursor());
                 resetGalleryAddImagesTask();

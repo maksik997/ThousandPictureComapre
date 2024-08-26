@@ -1,156 +1,213 @@
 package pl.magzik.ui.views;
 
+import pl.magzik.Controller;
 import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.general.FileChooser;
+import pl.magzik.ui.components.general.MultipleFileSelectionStrategy;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
-import java.io.File;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
+/**
+ * The {@code GalleryView} class is a UI component representing a gallery interface in the application.
+ * It allows users to manage a collection of images by adding, removing, and filtering them.
+ * The class integrates various UI elements, including a table for displaying images,
+ * buttons for interacting with the gallery, and a file chooser for selecting files.
+ * <p>
+ * This class is designed to be instantiated via its nested {@link Factory} class.
+ */
 public class GalleryView extends AbstractView {
 
     private final JTable galleryTable;
-
-    private final JButton addImageButton, removeImageButton, deleteImageButton, distinctButton, unifyNamesButton, openButton, addTagButton, removeTagButton;
-
-    private final JButton[] buttons;
-
+    private final JLabel elementCountLabel;
     private final JTextField nameFilterTextField;
+    private final JButton addImageButton, removeImageButton, deleteImageButton, distinctButton, unifyNamesButton, openButton, addTagButton, removeTagButton;
+    private final JButton[] buttons;
+    private FileChooser<List<String>> fileChooser;
 
-    private final JFileChooser fileChooser;
+    /**
+     * Constructs a new {@code GalleryView} with the specified UI components.
+     *
+     * @param galleryTable         The table displaying the gallery images.
+     * @param elementCountLabel    The label showing the count of elements in the gallery.
+     * @param nameFilterTextField  The text field used to filter images by name.
+     * @param addImageButton       The button for adding images to the gallery.
+     * @param removeImageButton    The button for removing selected images from the gallery.
+     * @param deleteImageButton    The button for deleting images from the system.
+     * @param distinctButton       The button for removing duplicate images from the gallery.
+     * @param unifyNamesButton     The button for unifying the names of images in the gallery.
+     * @param openButton           The button for opening selected images.
+     * @param addTagButton         The button for adding tags to selected images.
+     * @param removeTagButton      The button for removing tags from selected images.
+     */
+    private GalleryView(JTable galleryTable, JLabel elementCountLabel, JTextField nameFilterTextField, JButton addImageButton, JButton removeImageButton, JButton deleteImageButton, JButton distinctButton, JButton unifyNamesButton, JButton openButton, JButton addTagButton, JButton removeTagButton) {
+        this.galleryTable = galleryTable;
+        this.elementCountLabel = elementCountLabel;
+        this.nameFilterTextField = nameFilterTextField;
+        this.addImageButton = addImageButton;
+        this.removeImageButton = removeImageButton;
+        this.deleteImageButton = deleteImageButton;
+        this.distinctButton = distinctButton;
+        this.unifyNamesButton = unifyNamesButton;
+        this.openButton = openButton;
+        this.addTagButton = addTagButton;
+        this.removeTagButton = removeTagButton;
+        this.buttons = new JButton[]{
+            addImageButton,
+            removeImageButton,
+            deleteImageButton,
+            distinctButton,
+            unifyNamesButton,
+            addTagButton,
+            removeTagButton,
+            openButton
+        };
 
-    private final JLabel elementCount;
+        initialize();
+    }
 
-    public GalleryView() {
+    /**
+     * Initializes the gallery view by setting up the main panel and adding subcomponents.
+     */
+    private void initialize() {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
+        mainPanel.add(createHeaderPanel(), BorderLayout.NORTH);
+        mainPanel.add(createButtonPanel(), BorderLayout.EAST);
+        mainPanel.add(createTablePanel());
+
+        add(mainPanel);
+    }
+
+    /**
+     * Creates and configures the header panel containing the filter field and label.
+     *
+     * @return The constructed header panel.
+     */
+    private JPanel createHeaderPanel() {
         JPanel headerPanel = new JPanel();
         headerPanel.setBorder(new CompoundBorder(
             new MatteBorder(0, 0, 1, 0, Color.GRAY),
             new EmptyBorder(5, 5, 5, 5)
         ));
         headerPanel.setLayout(new GridBagLayout());
+
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.WEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy = 0;
-        c.weightx = 0;
         c.weighty = 1;
-        c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(5, 2, 5, 2);
 
-        JLabel headerLabel = new JLabel("view.gallery.label.header");
-        headerLabel.setFont(Utility.fontHelveticaBold);
-        headerPanel.add(headerLabel, c);
-        c.gridx = 1;
+        headerPanel.add(createLabel("view.gallery.label.header", Utility.fontHelveticaBold), c);
+
+        c.gridx++;
         c.weightx = 1;
         headerPanel.add(Box.createHorizontalGlue(), c);
-        c.gridx = 2;
+
+        c.gridx++;
         c.weightx = 0;
+        headerPanel.add(createLabel("view.gallery.label.name_filter", Utility.fontHelveticaPlain), c);
 
-        JLabel nameFilterLabel = new JLabel("view.gallery.label.name_filter");
-        nameFilterLabel.setFont(Utility.fontHelveticaPlain);
-        headerPanel.add(nameFilterLabel, c);
-        c.gridx = 3;
-
-        nameFilterTextField = new JTextField();
-        nameFilterTextField.setFont(Utility.fontHelveticaPlain);
-        nameFilterTextField.setPreferredSize(new Dimension(150, 30));
+        c.gridx++;
         headerPanel.add(nameFilterTextField, c);
 
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        return headerPanel;
+    }
 
+    /**
+     * Creates a JLabel with the specified text and font.
+     *
+     * @param text The text of the label.
+     * @param font The font to be used for the label.
+     * @return The constructed JLabel.
+     */
+    private JLabel createLabel(String text, Font font) {
+        JLabel label = new JLabel(text);
+        label.setFont(font);
+
+        return label;
+    }
+
+    /**
+     * Creates a JLabel with the specified text, font, and border.
+     *
+     * @param text   The text of the label.
+     * @param font   The font to be used for the label.
+     * @param border The border to be applied to the label.
+     * @return The constructed JLabel.
+     */
+    private JLabel createLabel(String text, Font font, Border border) {
+        JLabel label = createLabel(text, font);
+        label.setBorder(border);
+
+        return label;
+    }
+
+    /**
+     * Creates and configures the panel containing the action buttons.
+     *
+     * @return The constructed button panel.
+     */
+    private JPanel createButtonPanel() {
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setBorder(new MatteBorder(0, 1, 0, 0, Color.GRAY));
         buttonPanel.setLayout(new GridBagLayout());
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.NORTH;
         gbc.gridy = 0;
         gbc.gridx = 0;
-        gbc.weighty = 0;
 
-        buttonPanel.setBorder(new MatteBorder(0, 1, 0, 0, Color.GRAY));
+        for (JButton button : buttons) {
+            buttonPanel.add(button, gbc);
+            gbc.gridy++;
+        }
 
-        addImageButton = Utility.buttonFactory("view.gallery.button.image.add", new Insets(5, 10, 5, 10));
-        removeImageButton = Utility.buttonFactory("view.gallery.button.image.remove", new Insets(5, 10, 5, 10));
-        deleteImageButton = Utility.buttonFactory("view.gallery.button.image.delete", new Insets(5, 10, 5, 10));
-        distinctButton = Utility.buttonFactory("view.gallery.button.distinct", new Insets(5, 10, 5, 10));
-        unifyNamesButton = Utility.buttonFactory("view.gallery.button.unify_name", new Insets(5, 10, 5, 10));
-        openButton = Utility.buttonFactory("view.gallery.button.image.open", new Insets(5, 10, 5, 10));
-        addTagButton = Utility.buttonFactory("view.gallery.button.tag.add", new Insets(5, 10, 5, 10));
-        removeTagButton = Utility.buttonFactory("view.gallery.button.tag.remove", new Insets(5, 10, 5, 10));
-
-        buttonPanel.add(addImageButton, gbc);
-        gbc.gridy++;
-        buttonPanel.add(removeImageButton, gbc);
-        gbc.gridy++;
-        buttonPanel.add(deleteImageButton, gbc);
-        gbc.gridy++;
-        buttonPanel.add(distinctButton, gbc);
-        gbc.gridy++;
-        buttonPanel.add(unifyNamesButton, gbc);
-        gbc.gridy++;
-        buttonPanel.add(openButton, gbc);
-        gbc.gridy++;
-        buttonPanel.add(addTagButton, gbc);
-        gbc.gridy++;
-        buttonPanel.add(removeTagButton, gbc);
-        gbc.gridy++;
         gbc.weighty = 1;
         buttonPanel.add(Box.createVerticalGlue(), gbc);
 
-        mainPanel.add(buttonPanel, BorderLayout.EAST);
+        return buttonPanel;
+    }
 
+    /**
+     * Creates and configures the panel containing the table displaying the gallery images.
+     *
+     * @return The constructed table panel.
+     */
+    private JPanel createTablePanel() {
         JPanel tablePanel = new JPanel();
         tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
 
-        galleryTable = new JTable();
-        galleryTable.getTableHeader().setReorderingAllowed(false);
-
         tablePanel.add(new JScrollPane(galleryTable));
+        tablePanel.add(createElementCountPanel());
 
+        return tablePanel;
+    }
+
+    /**
+     * Creates and configures the panel displaying the count of elements in the gallery.
+     *
+     * @return The constructed element count panel.
+     */
+    private JPanel createElementCountPanel() {
         JPanel elementCountPanel = new JPanel();
         elementCountPanel.setLayout(new BoxLayout(elementCountPanel, BoxLayout.X_AXIS));
 
-        JLabel elementCountLabel = new JLabel("view.gallery.label.element_count");
-        elementCountLabel.setFont(Utility.fontSmallHelveticaBold);
-        elementCountLabel.setBorder(new EmptyBorder(0,5,0,5));
-
+        elementCountPanel.add(createLabel("view.gallery.label.element_count", Utility.fontSmallHelveticaBold, new EmptyBorder(0,5,0,5)));
         elementCountPanel.add(elementCountLabel);
-
-        elementCount = new JLabel("0");
-        elementCount.setFont(Utility.fontSmallHelveticaBold);
-
-        elementCountPanel.add(elementCount);
         elementCountPanel.add(Box.createHorizontalGlue());
 
-        tablePanel.add(elementCountPanel);
-
-        mainPanel.add(tablePanel);
-        this.add(mainPanel);
-
-        fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        fileChooser.setMultiSelectionEnabled(true);
-        fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-        fileChooser.setDialogTitle("view.gallery.file_chooser.dialog.title");
-        fileChooser.setApproveButtonText("view.gallery.file_chooser.button.approve");
-
-        buttons = new JButton[] {
-            addImageButton,
-            removeImageButton,
-            deleteImageButton,
-            distinctButton,
-            unifyNamesButton,
-            openButton,
-            addTagButton,
-            removeTagButton
-        };
+        return elementCountPanel;
     }
 
     public JButton getAddImageButton() {
@@ -189,35 +246,143 @@ public class GalleryView extends AbstractView {
         return galleryTable;
     }
 
-    public JLabel getElementCount() {
-        return elementCount;
+    public JLabel getElementCountLabel() {
+        return elementCountLabel;
     }
 
     public JTextField getNameFilterTextField() {
         return nameFilterTextField;
     }
 
-    public JFileChooser getFileChooser() {
+    public FileChooser<List<String>> getFileChooser() {
         return fileChooser;
     }
 
-    public List<String> openFileChooser() {
-        // Null if nothing selected
-        // String with a path if something selected
-
-        int file = fileChooser.showOpenDialog(this);
-        if (file == JFileChooser.APPROVE_OPTION) {
-            return Arrays.stream(fileChooser.getSelectedFiles()).map(File::toString).toList();
-        }
-
-        return null;
-    }
-
+    /**
+     * Disables all buttons in the gallery view.
+     */
     public void lockModule() {
         for (JButton button : buttons) button.setEnabled(false);
     }
 
+    /**
+     * Enables all buttons in the gallery view.
+     */
     public void unlockModule() {
         for (JButton button : buttons) button.setEnabled(true);
+    }
+
+    /**
+     * Configures the {@link FileChooser} for this view, setting up the dialog title,
+     * the button that triggers the file chooser, and the strategy for processing file selections.
+     * <p>
+     * This method sets up the {@link FileChooser} with the specified {@link Controller} that
+     * will handle the file selection results. The file chooser is configured to allow selection
+     * of both files and directories.
+     * </p>
+     *
+     * @param controller The {@link Controller} that will process the file selection results.
+     *                   Must not be {@code null}.
+     *
+     * @throws NullPointerException if the {@code controller} is {@code null}.
+     */
+    public void setFileChooser(Controller controller) {
+        Objects.requireNonNull(controller);
+
+        fileChooser = new FileChooser<>(
+            "view.gallery.file_chooser.dialog.title",
+            openButton,
+            controller::addImages,
+            new MultipleFileSelectionStrategy()
+        );
+        fileChooser.getFileChooser().setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+    }
+
+    /**
+     * The {@code Factory} class is a static factory for creating instances of {@link GalleryView}.
+     * It provides methods for constructing and configuring all necessary parts.
+     */
+    public static class Factory {
+        private static final Insets buttonInsets = new Insets(5, 10, 5, 10);
+
+        /**
+         * Creates a new {@link GalleryView} instance with default settings.
+         *
+         * @return A new instance of {@code GalleryView}.
+         */
+        public static GalleryView create() {
+            JTable galleryTable = createTable();
+            JLabel elementCountLabel = createCountLabel();
+            JTextField nameFilterTextField = createFilterTextField();
+            JButton addImageButton = createButton("view.gallery.button.image.add");
+            JButton removeImageButton = createButton("view.gallery.button.image.remove");
+            JButton deleteImageButton = createButton("view.gallery.button.image.delete");
+            JButton distinctButton = createButton("view.gallery.button.distinct");
+            JButton unifyNamesButton = createButton("view.gallery.button.unify_name");
+            JButton openButton = createButton("view.gallery.button.image.open");
+            JButton addTagButton = createButton("view.gallery.button.tag.add");
+            JButton removeTagButton = createButton("view.gallery.button.tag.remove");
+
+            return new GalleryView(
+                galleryTable,
+                elementCountLabel,
+                nameFilterTextField,
+                addImageButton,
+                removeImageButton,
+                deleteImageButton,
+                distinctButton,
+                unifyNamesButton,
+                openButton,
+                addTagButton,
+                removeTagButton
+            );
+        }
+
+        /**
+         * Creates and configures the table for displaying gallery images.
+         *
+         * @return A new instance of {@link JTable}.
+         */
+        private static JTable createTable() {
+            JTable table = new JTable();
+            table.getTableHeader().setReorderingAllowed(false);
+
+            return table;
+        }
+
+        /**
+         * Creates and configures the label for displaying the count of elements in the gallery.
+         *
+         * @return A new instance of {@link JLabel}.
+         */
+        private static JLabel createCountLabel() {
+            JLabel label = new JLabel("0");
+            label.setFont(Utility.fontSmallHelveticaBold);
+
+            return label;
+        }
+
+        /**
+         * Creates and configures the text field for filtering images by name.
+         *
+         * @return A new instance of {@link JTextField}.
+         */
+        private static JTextField createFilterTextField() {
+            JTextField textField = new JTextField();
+            textField.setFont(Utility.fontHelveticaPlain);
+            textField.setPreferredSize(new Dimension(150, 30));
+
+            return textField;
+        }
+
+        /**
+         * Creates and configures a button with the specified title.
+         *
+         * @param title The title of the button.
+         * @return A new instance of {@link JButton}.
+         */
+        private static JButton createButton(String title) {
+            return Utility.buttonFactory(title, buttonInsets);
+        }
     }
 }

@@ -79,7 +79,7 @@ public class Main {
         JFileChooser[] fcs = {
             /*view.getComparerView().getUiPath().getFileChooser(),*/
             /*view.getSettingsView().getDestinationEntry().getFileChooser(),*/
-            view.getGalleryView().getFileChooser()
+            /*view.getGalleryView().getFileChooser()*/
         };
 
         for (JFileChooser fc : fcs) {
@@ -93,12 +93,13 @@ public class Main {
               }
         }
 
-        FileChooser[] fileChoosers = {
+        FileChooser<?>[] fileChoosers = {
             view.getComparerView().getFileChooser(),
-            view.getSettingsView().getDestinationEntry().getFileChooser()
+            view.getSettingsView().getDestinationEntry().getFileChooser(),
+            view.getGalleryView().getFileChooser()
         };
 
-        for (FileChooser fc : fileChoosers) {
+        for (FileChooser<?> fc : fileChoosers) {
             JFileChooser fileChooser = fc.getFileChooser();
             String titleKey = fileChooser.getDialogTitle();
             if (titleKey != null && resources.containsKey(titleKey)) {

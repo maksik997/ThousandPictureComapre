@@ -127,7 +127,7 @@ public class ComparerController {
      * <p>
      * The method performs the following actions:
      * <ul>
-     *   <li>Invokes the file chooser dialog through the {@link pl.magzik.ui.components.general.DirectoryFileChooser} component.</li>
+     *   <li>Invokes the file chooser dialog through the {@link pl.magzik.ui.components.general.FileChooser} component.</li>
      *   <li>If the user selects a file, updates the {@link ComparerModule} with the chosen file.</li>
      * </ul>
      * <p>

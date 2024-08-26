@@ -27,7 +27,7 @@ public class View extends JFrame implements MessageInterface, UiManagerInterface
         scenes = new ArrayList<>();
 
         menuView = MenuView.Factory.create();
-        galleryView = new GalleryView();
+        galleryView = GalleryView.Factory.create();
         settingsView = SettingsView.Factory.create();
         comparerView = ComparerView.Factory.create();
         creditsView = new CreditsView();

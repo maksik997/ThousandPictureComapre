@@ -1,7 +1,8 @@
 package pl.magzik.ui.views;
 
 import pl.magzik.ui.components.Utility;
-import pl.magzik.ui.components.general.DirectoryFileChooser;
+import pl.magzik.ui.components.general.FileChooser;
+import pl.magzik.ui.components.general.SingleFileSelectionStrategy;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -23,7 +24,7 @@ public class ComparerView extends AbstractView {
 
     private final JTextField pathTextField;
     private final JButton pathButton;
-    private final DirectoryFileChooser fileChooser;
+    private final FileChooser<String> fileChooser;
     private final JButton loadButton, moveButton, resetButton;
     private final JLabel statusLabel;
     private final JList<String> foundList, duplicateList;
@@ -44,7 +45,7 @@ public class ComparerView extends AbstractView {
      * @param totalFoundTextField The text field displaying the total number of found items.
      * @param duplicateFoundTextField The text field displaying the number of duplicate items.
      */
-    private ComparerView(JTextField pathTextField, JButton pathButton, DirectoryFileChooser fileChooser, JButton loadButton, JButton moveButton, JButton resetButton, JLabel statusLabel, JList<String> foundList, JList<String> duplicateList, JTextField totalFoundTextField, JTextField duplicateFoundTextField) {
+    private ComparerView(JTextField pathTextField, JButton pathButton, FileChooser<String> fileChooser, JButton loadButton, JButton moveButton, JButton resetButton, JLabel statusLabel, JList<String> foundList, JList<String> duplicateList, JTextField totalFoundTextField, JTextField duplicateFoundTextField) {
         this.pathTextField = pathTextField;
         this.pathButton = pathButton;
         this.fileChooser = fileChooser;
@@ -305,9 +306,9 @@ public class ComparerView extends AbstractView {
     /**
      * Gets the file chooser.
      *
-     * @return The {@code DirectoryFileChooser} for selecting directories.
+     * @return The {@code FileChooser} for selecting directories.
      */
-    public DirectoryFileChooser getFileChooser() {
+    public FileChooser<String> getFileChooser() {
         return fileChooser;
     }
 
@@ -348,7 +349,7 @@ public class ComparerView extends AbstractView {
 
             JTextField pathTextField = createTextField();
             JButton pathButton = Utility.buttonFactory("view.comparer.button.open", buttonInsets);
-            DirectoryFileChooser fileChooser = createFileChooser(pathButton, pathTextField::setText);
+            FileChooser<String> fileChooser = createFileChooser(pathButton, pathTextField::setText);
             JButton loadButton = Utility.buttonFactory("view.comparer.button.load", buttonInsets);
             JButton moveButton = Utility.buttonFactory("view.comparer.button.move", buttonInsets);
             JButton resetButton = Utility.buttonFactory("view.comparer.button.reset", buttonInsets);
@@ -398,17 +399,25 @@ public class ComparerView extends AbstractView {
         }
 
         /**
-         * Creates and configures a {@link DirectoryFileChooser} for selecting directories.
+         * Creates and configures a {@link FileChooser} for selecting directories.
          *
          * @param openButton The button to open the file chooser.
          * @param consumer A {@link Consumer} to handle the selected path.
-         * @return A {@code DirectoryFileChooser} instance.
+         * @return A {@code FileChooser} instance.
          */
-        private static DirectoryFileChooser createFileChooser(JButton openButton, Consumer<String> consumer) {
+        private static FileChooser<String> createFileChooser(JButton openButton, Consumer<String> consumer) {
             Objects.requireNonNull(openButton);
             Objects.requireNonNull(consumer);
 
-            return new DirectoryFileChooser("view.comparer.file_chooser.title", openButton, consumer);
+            FileChooser<String> fc = new FileChooser<>(
+                "view.comparer.file_chooser.title",
+                openButton,
+                consumer,
+                new SingleFileSelectionStrategy()
+            );
+            fc.getFileChooser().setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+            return fc;
         }
 
         /**

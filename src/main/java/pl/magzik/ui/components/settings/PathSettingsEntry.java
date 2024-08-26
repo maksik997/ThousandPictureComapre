@@ -1,7 +1,8 @@
 package pl.magzik.ui.components.settings;
 
 import pl.magzik.ui.components.Utility;
-import pl.magzik.ui.components.general.DirectoryFileChooser;
+import pl.magzik.ui.components.general.FileChooser;
+import pl.magzik.ui.components.general.SingleFileSelectionStrategy;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -11,7 +12,7 @@ import java.awt.*;
  * Implementation of {@link SettingsEntry} for managing path settings with a {@link JTextField}
  * and a {@link JButton} for opening a directory chooser.
  * <p>This component allows users to select a directory, with the chosen path displayed in
- * a non-editable {@link JTextField}. The {@link JButton} triggers a {@link DirectoryFileChooser}
+ * a non-editable {@link JTextField}. The {@link JButton} triggers a {@link FileChooser}
  * to allow users to select a directory from the file system.</p>
  * */
 public class PathSettingsEntry extends SettingsEntry<JPanel, String> {
@@ -26,7 +27,7 @@ public class PathSettingsEntry extends SettingsEntry<JPanel, String> {
 
     private JTextField pathTextField;
     private JButton openButton;
-    private final DirectoryFileChooser fileChooser;
+    private final FileChooser<String> fileChooser;
 
     /**
      * Constructs a {@code PathSettingsEntry} with the specified label and value panel.
@@ -60,16 +61,23 @@ public class PathSettingsEntry extends SettingsEntry<JPanel, String> {
         pathTextField.setFont(Utility.fontHelveticaPlain);
         pathTextField.setBorder(textFieldBorder);
 
-        fileChooser = new DirectoryFileChooser("view.settings.file_chooser.destination.title", openButton, this::setValue);
+        fileChooser = new FileChooser<>(
+            "view.settings.file_chooser.destination.title",
+            openButton,
+            this::setValue,
+            new SingleFileSelectionStrategy()
+        );
+        fileChooser.getFileChooser().setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
         openButton.addActionListener(_ -> fileChooser.perform());
     }
 
     /**
-     * Gets the {@link DirectoryFileChooser} associated with this {@code PathSettingsEntry}.
+     * Gets the {@link FileChooser} associated with this {@code PathSettingsEntry}.
      *
-     * @return The {@code DirectoryFileChooser} instance used for selecting directories.
+     * @return The {@code FileChooser} instance used for selecting directories.
      */
-    public DirectoryFileChooser getFileChooser() {
+    public FileChooser<String> getFileChooser() {
         return fileChooser;
     }
 

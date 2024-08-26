@@ -79,6 +79,19 @@ public class Controller implements TranslationInterface {
         // Initialize FileChooser in Gallery View
         gView.setFileChooser(this);
 
+        JFileChooser fc = gView.getFileChooser().getFileChooser();
+        String titleKey = fc.getDialogTitle();
+        if (titleKey != null && resourceBundle.containsKey(titleKey)) {
+            fc.setDialogTitle(resourceBundle.getString(titleKey));
+        }
+        String approveButtonKey = fc.getApproveButtonText();
+        gView.getFileChooser().getFileChooser().setApproveButtonText(translate(approveButtonKey));
+        if (approveButtonKey != null && resourceBundle.containsKey(approveButtonKey)) {
+            fc.setApproveButtonText(resourceBundle.getString(approveButtonKey));
+
+
+        }
+
         // Initialize gallery table
         gView.getGalleryTable().setModel(gModule.getGalleryTableModel());
         gView.getGalleryTable().setRowSorter(gModule.getTableRowSorter());

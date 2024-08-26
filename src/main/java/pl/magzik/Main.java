@@ -95,8 +95,7 @@ public class Main {
 
         FileChooser<?>[] fileChoosers = {
             view.getComparerView().getFileChooser(),
-            view.getSettingsView().getDestinationEntry().getFileChooser(),
-            view.getGalleryView().getFileChooser()
+            view.getSettingsView().getDestinationEntry().getFileChooser()
         };
 
         for (FileChooser<?> fc : fileChoosers) {

@@ -1,4 +1,4 @@
-package pl.magzik.controllers.localization;
+package pl.magzik.ui.interfaces;
 
 /**
  * Provides methods for translating and reverse translating.

@@ -9,6 +9,7 @@ import pl.magzik.ui.views.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class View extends JFrame implements MessageInterface, UiManagerInterface {
@@ -25,7 +26,7 @@ public class View extends JFrame implements MessageInterface, UiManagerInterface
     public View() throws HeadlessException {
         scenes = new ArrayList<>();
 
-        menuView = new MenuView();
+        menuView = MenuView.Factory.create();
         galleryView = new GalleryView();
         settingsView = SettingsView.Factory.create();
         comparerView = ComparerView.Factory.create();
@@ -68,6 +69,17 @@ public class View extends JFrame implements MessageInterface, UiManagerInterface
         return menuView;
     }
 
+    /**
+     * Returns an unmodifiable view of the list of scenes.
+     * <p>
+     * This method provides access to the current list of scenes represented by {@code JPanel} instances.
+     * The list returned by this method is a copy of the internal list to prevent external modifications.
+     *
+     * @return An unmodifiable {@code List} of {@code JPanel} instances representing the scenes.
+     *
+     * @see List#copyOf(Collection)
+     */
+    @Override
     public List<JPanel> getScenes() {
         return List.copyOf(scenes);
     }

@@ -1,6 +1,6 @@
 package pl.magzik.controllers;
 
-import pl.magzik.controllers.localization.TranslationInterface;
+import pl.magzik.ui.interfaces.TranslationInterface;
 import pl.magzik.modules.ComparerInterface;
 import pl.magzik.modules.ComparerModule;
 import pl.magzik.modules.GalleryModule;

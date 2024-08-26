@@ -386,8 +386,8 @@ public class ComparerView extends AbstractView {
             textField.setBorder(
                 new TitledBorder(
                     new CompoundBorder(
-                            new LineBorder(Color.GRAY, 1, true),
-                            new EmptyBorder(5, 10, 0, 10)
+                        new LineBorder(Color.GRAY, 1, true),
+                        new EmptyBorder(5, 10, 0, 10)
                     ),
                     "view.comparer.path.border.title"
                 )

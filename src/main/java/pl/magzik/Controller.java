@@ -1,8 +1,9 @@
 package pl.magzik;
 
 import pl.magzik.controllers.ComparerController;
+import pl.magzik.controllers.MenuController;
 import pl.magzik.controllers.SettingsController;
-import pl.magzik.controllers.localization.TranslationInterface;
+import pl.magzik.ui.interfaces.TranslationInterface;
 import pl.magzik.modules.GalleryModule;
 import pl.magzik.ui.components.Utility;
 import pl.magzik.ui.views.*;
@@ -34,14 +35,15 @@ public class Controller implements TranslationInterface {
 
         // Initialize view controllable elements
         initView();
-        initMenuView();
+        //initMenuView();
         //initComparerView();
         //initSettingsView();
         initGalleryView();
 
         // TODO SOMETHING WITH THIS
-        SettingsController settingsController = new SettingsController(view.getSettingsView(), model.getSettingsModule(), model.getGalleryModule(), this, view, model.getComparerModule(), model.getGalleryModule());
+        MenuController menuController = new MenuController(view.getMenuView(), view);
         ComparerController comparerController = new ComparerController(view.getComparerView(), model.getComparerModule(), this, view, view);
+        SettingsController settingsController = new SettingsController(view.getSettingsView(), model.getSettingsModule(), model.getGalleryModule(), this, view, model.getComparerModule(), model.getGalleryModule());
     }
 
     @Override
@@ -67,14 +69,13 @@ public class Controller implements TranslationInterface {
         view.getScenes().forEach( p -> {
             if (p instanceof AbstractView) {
                 ((AbstractView) p)
-//                    .getUiHeader_()
-                    .getBackButton()
-                    .addActionListener(_ -> view.toggleScene(Utility.Scene.MENU));
+                .getBackButton()
+                .addActionListener(_ -> view.toggleScene(Utility.Scene.MENU));
             }
         });
     }
 
-    private void initMenuView() {
+    /*private void initMenuView() {
         MenuView mv = view.getMenuView();
 
         mv.getComparerButton().addActionListener(_ -> view.toggleScene(Utility.Scene.COMPARER));
@@ -82,7 +83,7 @@ public class Controller implements TranslationInterface {
         mv.getSettingsButton().addActionListener(_ -> view.toggleScene(Utility.Scene.SETTINGS));
         mv.getCreditsButton().addActionListener(_ -> view.toggleScene(Utility.Scene.CREDITS));
         mv.getExitButton().addActionListener(_ -> System.exit(0));
-    }
+    }*/
 
     private void initGalleryView() {
         GalleryView gView = view.getGalleryView();

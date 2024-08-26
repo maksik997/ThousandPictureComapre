@@ -1,7 +1,7 @@
 package pl.magzik.controllers;
 
 import pl.magzik.async.ExecutorServiceManager;
-import pl.magzik.controllers.localization.TranslationInterface;
+import pl.magzik.ui.interfaces.TranslationInterface;
 import pl.magzik.modules.ComparerModule;
 import pl.magzik.ui.interfaces.UiManagerInterface;
 import pl.magzik.ui.interfaces.logging.MessageInterface;
@@ -151,7 +151,7 @@ public class ComparerController {
      * The method performs the following actions:
      * <ul>
      *   <li>Retrieves the file path.</li>
-     *   <li>If the file path is {@code null}, displays an error message indicating that images are required.</li>
+     *   <li>If the file path is {@code null} or empty, displays an error message indicating that images are required.</li>
      *   <li>If the file path is valid, starts the load task.</li>
      * </ul>
      * <p>
@@ -160,7 +160,7 @@ public class ComparerController {
      */
     private void handleLoadButtonClick() {
         String path = cView.getPathTextField().getText();
-        if (path == null) {
+        if (path == null || path.isEmpty()) {
             mi.showErrorMessage(
                 ti.translate("error.comparer.lack_of_images.desc"),
                 ti.translate("error.general.title")

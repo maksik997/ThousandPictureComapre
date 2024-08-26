@@ -1,4 +1,4 @@
-package pl.magzik.ui.logging;
+package pl.magzik.ui.interfaces.logging;
 
 /**
  * Provides methods for information and error showing.

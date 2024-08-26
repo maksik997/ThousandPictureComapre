@@ -1,52 +1,124 @@
 package pl.magzik.ui.views;
 
-import pl.magzik.ui.components.OutputPanel;
-import pl.magzik.ui.components.PathPanel;
-import pl.magzik.ui.components.TrayPanel;
 import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.general.DirectoryFileChooser;
 
 import javax.swing.*;
-import javax.swing.border.MatteBorder;
-import javax.swing.border.TitledBorder;
+import javax.swing.border.*;
 import java.awt.*;
+import java.util.Objects;
+import java.util.function.Consumer;
 
+/**
+ * The {@code ComparerView} class represents a user interface for comparing files.
+ * <p>
+ * It contains components for selecting a directory, loading and managing files, and displaying
+ * results such as found and duplicate items.
+ * </p>
+ * <p>This class uses the Factory Method pattern to create instances of {@code ComparerView}.
+ * The view is initialized with several types of settings entries, including combo boxes,
+ * text fields, and checkboxes.</p>
+ */
 public class ComparerView extends AbstractView {
 
-    // TODO START HERE NEXT
-    // TODO UPDATE, CLEAN THIS...
+    private final JTextField pathTextField;
+    private final JButton pathButton;
+    private final DirectoryFileChooser fileChooser;
+    private final JButton loadButton, moveButton, resetButton;
+    private final JLabel statusLabel;
+    private final JList<String> foundList, duplicateList;
+    private final JTextField totalFoundTextField, duplicateFoundTextField;
 
-    private final PathPanel pathPanel;
+    /**
+     * Constructs a {@code ComparerView} with the specified components.
+     *
+     * @param pathTextField The text field displaying the selected path.
+     * @param pathButton The button for opening a file chooser.
+     * @param fileChooser The file chooser used for selecting directories.
+     * @param loadButton The button for loading files.
+     * @param moveButton The button for moving files.
+     * @param resetButton The button for resetting the view.
+     * @param statusLabel The label displaying the status of the view.
+     * @param foundList The list showing found items.
+     * @param duplicateList The list showing duplicate items.
+     * @param totalFoundTextField The text field displaying the total number of found items.
+     * @param duplicateFoundTextField The text field displaying the number of duplicate items.
+     */
+    private ComparerView(JTextField pathTextField, JButton pathButton, DirectoryFileChooser fileChooser, JButton loadButton, JButton moveButton, JButton resetButton, JLabel statusLabel, JList<String> foundList, JList<String> duplicateList, JTextField totalFoundTextField, JTextField duplicateFoundTextField) {
+        this.pathTextField = pathTextField;
+        this.pathButton = pathButton;
+        this.fileChooser = fileChooser;
+        this.loadButton = loadButton;
+        this.moveButton = moveButton;
+        this.resetButton = resetButton;
+        this.statusLabel = statusLabel;
+        this.foundList = foundList;
+        this.duplicateList = duplicateList;
+        this.totalFoundTextField = totalFoundTextField;
+        this.duplicateFoundTextField = duplicateFoundTextField;
 
-    private final OutputPanel outputPanel;
+        initialize();
 
-    private final TrayPanel trayPanel;
+        resetButton.setEnabled(false);
+        moveButton.setEnabled(false);
+    }
 
-    private final JButton resetButton, loadButton, moveButton;
-
-    private final JLabel stateLabel;
-    
-    public ComparerView() {
-        super();
-
+    /**
+     * Initializes the user interface components and layout.
+     */
+    private void initialize() {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
-        this.pathPanel = new PathPanel();
-        mainPanel.add(pathPanel, BorderLayout.PAGE_START);
+        mainPanel.add(createPathPanel(), BorderLayout.PAGE_START);
+        mainPanel.add(createRightPanel(), BorderLayout.LINE_END);
+        mainPanel.add(createContentPanel());
 
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BorderLayout());
+        add(mainPanel);
+    }
 
-        this.trayPanel = new TrayPanel();
-        contentPanel.add(trayPanel, BorderLayout.NORTH);
+    /**
+     * Creates and configures the panel for the path section.
+     *
+     * @return A {@code JPanel} containing the path text field and button.
+     */
+    private JPanel createPathPanel() {
+        JPanel pathPanel = new JPanel();
+        pathPanel.setLayout(new BoxLayout(pathPanel, BoxLayout.X_AXIS));
+        pathPanel.setBorder(new CompoundBorder(
+            new MatteBorder(0,0,1,0, Color.GRAY),
+            new EmptyBorder(5, 10, 5, 10)
+        ));
 
-        this.outputPanel = new OutputPanel();
-        contentPanel.add(outputPanel);
+        pathPanel.add(pathTextField);
+        pathPanel.add(Box.createHorizontalStrut(40));
+        pathPanel.add(pathButton);
 
+        return pathPanel;
+    }
+
+    /**
+     * Creates and configures the right panel, which includes buttons and status label.
+     *
+     * @return A {@code JPanel} containing the button and status panels.
+     */
+    private JPanel createRightPanel() {
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new BoxLayout(rightPanel,BoxLayout.Y_AXIS));
         rightPanel.setBorder(new MatteBorder(0, 1, 0, 0, Color.GRAY));
 
+        rightPanel.add(createButtonPanel());
+        rightPanel.add(createStatusPanel());
+
+        return rightPanel;
+    }
+
+    /**
+     * Creates and configures the button panel with load, move, and reset buttons.
+     *
+     * @return A {@code JPanel} containing the buttons for loading, moving, and resetting.
+     */
+    private JPanel createButtonPanel() {
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -57,11 +129,6 @@ public class ComparerView extends AbstractView {
         gbc.anchor = GridBagConstraints.NORTH;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        Insets insets = new Insets(5, 15, 5, 15);
-        this.loadButton = Utility.buttonFactory("view.comparer.button.load", insets);
-        this.moveButton = Utility.buttonFactory("view.comparer.button.move", insets);
-        this.resetButton = Utility.buttonFactory("view.comparer.button.reset", insets);
-
         buttonPanel.add(loadButton, gbc);
         gbc.gridy++;
         buttonPanel.add(moveButton, gbc);
@@ -71,84 +138,302 @@ public class ComparerView extends AbstractView {
         gbc.weighty = 1;
         buttonPanel.add(Box.createVerticalGlue(), gbc);
 
-        rightPanel.add(buttonPanel);
+        return buttonPanel;
+    }
 
-        JPanel statePanel = new JPanel();
-        statePanel.setLayout(new GridLayout());
-        statePanel.setBorder(new TitledBorder(
+    /**
+     * Creates and configures the status panel with a label displaying the current status.
+     *
+     * @return A {@code JPanel} containing the status label.
+     */
+    private JPanel createStatusPanel() {
+        JPanel statusPanel = new JPanel();
+        statusPanel.setLayout(new GridLayout());
+        statusPanel.setBorder(new TitledBorder(
             new MatteBorder(1, 0, 0, 0, Color.GRAY),
-                "view.comparer.state.border.title"
+            "view.comparer.state.border.title"
         ));
+        statusPanel.add(statusLabel);
 
-        this.stateLabel = new JLabel("comparer.state.ready");
-        this.stateLabel.setFont(Utility.fontBigHelveticaBold);
-        this.stateLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        this.stateLabel.setVerticalAlignment(SwingConstants.CENTER);
-
-        statePanel.add(stateLabel);
-
-        rightPanel.add(statePanel);
-
-        mainPanel.add(rightPanel, BorderLayout.LINE_END);
-
-        mainPanel.add(contentPanel);
-
-        this.add(mainPanel);
-
-        resetButton.setEnabled(false);
-        moveButton.setEnabled(false);
+        return statusPanel;
     }
 
-    public void clear() {
-        pathPanel.clearPath();
-        trayPanel.clear();
+    /**
+     * Creates and configures the content panel that contains the tray and output panels.
+     *
+     * @return A {@code JPanel} containing the tray and output panels.
+     */
+    private JPanel createContentPanel() {
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BorderLayout());
+
+        contentPanel.add(createTrayPanel(), BorderLayout.NORTH);
+        contentPanel.add(createOutputPanel());
+
+        return contentPanel;
     }
 
-    // Getters
-    public PathPanel getUiPath() {
-        return pathPanel;
-    }
+    /**
+     * Creates and configures the tray panel displaying total and duplicate counts.
+     *
+     * @return A {@code JPanel} containing the total and duplicate count text fields.
+     */
+    private JPanel createTrayPanel() {
+        JPanel trayPanel = new JPanel();
+        trayPanel.setLayout(new BoxLayout(trayPanel, BoxLayout.X_AXIS));
 
-    public OutputPanel getUiOutput() {
-        return outputPanel;
-    }
+        trayPanel.add(totalFoundTextField);
+        trayPanel.add(Box.createHorizontalGlue());
+        trayPanel.add(duplicateFoundTextField);
 
-    public TrayPanel getUiTray() {
         return trayPanel;
     }
 
+    /**
+     * Creates and configures the output panel with tabs for found and duplicate items.
+     *
+     * @return A {@code JPanel} containing a tabbed pane with found and duplicate item lists.
+     */
+    private JPanel createOutputPanel() {
+        JPanel outputPanel = new JPanel();
+        outputPanel.setLayout(new GridLayout());
+
+        JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+        addTab(tabbedPane, "view.comparer.tab.mapped_objects.title", foundList);
+        addTab(tabbedPane, "view.comparer.tab.duplicates.title", duplicateList);
+        outputPanel.add(tabbedPane);
+
+        return outputPanel;
+    }
+
+    /**
+     * Adds a new tab to the specified {@code JTabbedPane} with the given title and list.
+     *
+     * @param tabbedPane The {@code JTabbedPane} to which the tab will be added.
+     * @param title The title of the tab.
+     * @param list The {@code JList<String>} to be displayed in the tab.
+     */
+    private void addTab(JTabbedPane tabbedPane, String title, JList<String> list) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(new JScrollPane(list));
+
+        tabbedPane.addTab(title, panel);
+    }
+
+    /**
+     * Clears the text field and updates the tray with zero counts.
+     */
+    public void clear() {
+        pathTextField.setText(null);
+        updateTray(0, 0);
+    }
+
+    /**
+     * Updates the tray with the specified total and duplicate counts.
+     *
+     * @param total The total number of items found.
+     * @param duplicates The number of duplicate items.
+     */
+    public void updateTray(int total, int duplicates) {
+        totalFoundTextField.setText(String.valueOf(total));
+        duplicateFoundTextField.setText(String.valueOf(duplicates));
+    }
+
+    /**
+     * Gets the list of found items.
+     *
+     * @return The {@code JList<String>} containing found items.
+     */
+    public JList<String> getFoundList() {
+        return foundList;
+    }
+
+    /**
+     * Gets the list of duplicate items.
+     *
+     * @return The {@code JList<String>} containing duplicate items.
+     */
+    public JList<String> getDuplicateList() {
+        return duplicateList;
+    }
+
+    /**
+     * Gets the reset button.
+     *
+     * @return The {@code JButton} for resetting the view.
+     */
     public JButton getResetButton() {
         return resetButton;
     }
 
+    /**
+     * Gets the load button.
+     *
+     * @return The {@code JButton} for loading files.
+     */
     public JButton getLoadButton() {
         return loadButton;
     }
 
+    /**
+     * Gets the move button.
+     *
+     * @return The {@code JButton} for moving files.
+     */
     public JButton getMoveButton() {
         return moveButton;
     }
 
-    public JLabel getStateLabel() {
-        return stateLabel;
+    /**
+     * Gets the path text field.
+     *
+     * @return The {@code JTextField} displaying the selected path.
+     */
+    public JTextField getPathTextField() {
+        return pathTextField;
     }
 
     /**
-     * Disables all buttons associated with destructive actions in the user interface.
-     * This includes:
-     * <ul>
-     *     <li>The path button in the path panel</li>
-     *     <li>The load button</li>
-     *     <li>The move button</li>
-     *     <li>The reset button</li>
-     * </ul>
-     * This method is typically used to prevent user interactions with these buttons
-     * during critical operations where such actions could interfere with the process.
+     * Gets the path button.
+     *
+     * @return The {@code JButton} for opening the file chooser.
+     */
+    public JButton getPathButton() {
+        return pathButton;
+    }
+
+    /**
+     * Gets the file chooser.
+     *
+     * @return The {@code DirectoryFileChooser} for selecting directories.
+     */
+    public DirectoryFileChooser getFileChooser() {
+        return fileChooser;
+    }
+
+    /**
+     * Gets the status label.
+     *
+     * @return The {@code JLabel} displaying the status of the view.
+     */
+    public JLabel getStatusLabel() {
+        return statusLabel;
+    }
+
+    /**
+     * Disables all buttons associated with destructive actions.
+     * <p>
+     * This includes the path button, load button, move button, and reset button.
+     * </p>
      */
     public void blockDestructiveButtons() {
-        pathPanel.getPathButton().setEnabled(false);
+        pathButton.setEnabled(false);
         loadButton.setEnabled(false);
         moveButton.setEnabled(false);
         resetButton.setEnabled(false);
+    }
+
+    /**
+     * The {@code Factory} class provides methods to create and configure instances of {@link ComparerView}.
+     */
+    public static class Factory {
+
+        /**
+         * Creates and configures a new instance of {@code ComparerView}.
+         *
+         * @return A fully configured {@code ComparerView} instance.
+         */
+        public static ComparerView create() {
+            Insets buttonInsets = new Insets(5, 15, 5, 15);
+
+            JTextField pathTextField = createTextField();
+            JButton pathButton = Utility.buttonFactory("view.comparer.button.open", buttonInsets);
+            DirectoryFileChooser fileChooser = createFileChooser(pathButton, pathTextField::setText);
+            JButton loadButton = Utility.buttonFactory("view.comparer.button.load", buttonInsets);
+            JButton moveButton = Utility.buttonFactory("view.comparer.button.move", buttonInsets);
+            JButton resetButton = Utility.buttonFactory("view.comparer.button.reset", buttonInsets);
+            JLabel statusLabel = createStatusLabel();
+            JList<String> foundList = createList();
+            JList<String> duplicateList = createList();
+            JTextField totalFoundTextField = Utility.constTextFieldFactory("view.comparer.tray.total.border.title", "0", 6);
+            JTextField duplicateFoundTextField = Utility.constTextFieldFactory("view.comparer.tray.duplicates.border.title", "0", 6);
+
+            return new ComparerView(
+                pathTextField,
+                pathButton,
+                fileChooser,
+                loadButton,
+                moveButton,
+                resetButton,
+                statusLabel,
+                foundList,
+                duplicateList,
+                totalFoundTextField,
+                duplicateFoundTextField
+            );
+        }
+
+        /**
+         * Creates and configures a {@link JTextField} for displaying the selected path.
+         *
+         * @return A {@code JTextField} with specific properties for path display.
+         */
+        private static JTextField createTextField() {
+            JTextField textField = new JTextField();
+
+            textField.setEditable(false);
+            textField.setFocusable(false);
+            textField.setBorder(
+                new TitledBorder(
+                    new CompoundBorder(
+                            new LineBorder(Color.GRAY, 1, true),
+                            new EmptyBorder(5, 10, 0, 10)
+                    ),
+                    "view.comparer.path.border.title"
+                )
+            );
+            textField.setFont(Utility.fontHelveticaPlain);
+
+            return textField;
+        }
+
+        /**
+         * Creates and configures a {@link DirectoryFileChooser} for selecting directories.
+         *
+         * @param openButton The button to open the file chooser.
+         * @param consumer A {@link Consumer} to handle the selected path.
+         * @return A {@code DirectoryFileChooser} instance.
+         */
+        private static DirectoryFileChooser createFileChooser(JButton openButton, Consumer<String> consumer) {
+            Objects.requireNonNull(openButton);
+            Objects.requireNonNull(consumer);
+
+            return new DirectoryFileChooser("view.comparer.file_chooser.title", openButton, consumer);
+        }
+
+        /**
+         * Creates and configures a {@link JLabel} for displaying the status of the view.
+         *
+         * @return A {@code JLabel} with specific properties for status display.
+         */
+        private static JLabel createStatusLabel() {
+            JLabel label = new JLabel("comparer.state.ready");
+            label.setFont(Utility.fontBigHelveticaBold);
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setVerticalAlignment(SwingConstants.CENTER);
+
+            return label;
+        }
+
+        /**
+         * Creates and configures a {@link JList} for displaying a list of items.
+         *
+         * @return A {@code JList<String>} with default settings.
+         */
+        private static JList<String> createList() {
+            JList<String> list = new JList<>();
+            list.setFocusable(false);
+            return list;
+        }
     }
 }

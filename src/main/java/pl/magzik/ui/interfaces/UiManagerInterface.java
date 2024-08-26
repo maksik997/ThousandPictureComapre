@@ -1,4 +1,4 @@
-package pl.magzik.ui;
+package pl.magzik.ui.interfaces;
 
 import pl.magzik.ui.components.Utility;
 

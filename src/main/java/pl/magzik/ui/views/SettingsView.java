@@ -6,9 +6,19 @@ import pl.magzik.ui.components.Utility;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
-import java.beans.PropertyChangeListener;
 import java.util.Objects;
 
+/**
+ * The {@code SettingsView} class represents the settings view in the application's user interface.
+ * It provides a UI panel that allows users to modify application settings such as language,
+ * theme, destination path, and other preferences.
+ * The view is structured with tabs to
+ * categorize settings into a general, comparer, and gallery sections.
+ *
+ * <p>This class uses the Factory Method pattern to create instances of {@code SettingsView}.
+ * The view is initialized with several types of settings entries, including combo boxes,
+ * text fields, and checkboxes.</p>
+ */
 public class SettingsView extends AbstractView {
 
     private final JButton saveButton;
@@ -18,6 +28,19 @@ public class SettingsView extends AbstractView {
     private final CheckBoxSettingsEntry recursiveModeEntry, pHashModeEntry, pixelByPixelModeEntry, namesLowerCaseEntry;
     private final TextFieldSettingsEntry namesPrefixEntry;
 
+    /**
+     * Constructs a {@code SettingsView} with the specified settings entries.
+     *
+     * @param saveButton The button used to save the settings.
+     * @param languageEntry A {@code ComboBoxSettingsEntry} for selecting the application language.
+     * @param themeEntry A {@code ComboBoxSettingsEntry} for selecting the application theme.
+     * @param destinationEntry A {@code PathSettingsEntry} for specifying the destination path.
+     * @param recursiveModeEntry A {@code CheckBoxSettingsEntry} for enabling recursive mode.
+     * @param pHashModeEntry A {@code CheckBoxSettingsEntry} for enabling pHash comparison mode.
+     * @param pixelByPixelModeEntry A {@code CheckBoxSettingsEntry} for enabling pixel-by-pixel comparison mode.
+     * @param namesLowerCaseEntry A {@code CheckBoxSettingsEntry} for converting names to lowercase.
+     * @param namesPrefixEntry A {@code TextFieldSettingsEntry} for specifying a prefix for unified names.
+     */
     private SettingsView(JButton saveButton, ComboBoxSettingsEntry languageEntry, ComboBoxSettingsEntry themeEntry, PathSettingsEntry destinationEntry, CheckBoxSettingsEntry recursiveModeEntry, CheckBoxSettingsEntry pHashModeEntry, CheckBoxSettingsEntry pixelByPixelModeEntry, CheckBoxSettingsEntry namesLowerCaseEntry, TextFieldSettingsEntry namesPrefixEntry) {
         this.saveButton = saveButton;
         this.languageEntry = languageEntry;
@@ -29,6 +52,14 @@ public class SettingsView extends AbstractView {
         this.namesLowerCaseEntry = namesLowerCaseEntry;
         this.namesPrefixEntry = namesPrefixEntry;
 
+        initialize();
+    }
+
+    /**
+     * Initializes the settings view by setting up the main panel layout and adding the
+     * components for the settings tabs and the save button.
+     */
+    private void initialize() {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -57,7 +88,6 @@ public class SettingsView extends AbstractView {
         mainPanel.add(saveButton, gbc);
 
         add(mainPanel);
-        //addPropertyChangeListeners();
     }
 
     /**
@@ -122,71 +152,97 @@ public class SettingsView extends AbstractView {
     }
 
     /**
-     * Adds {@link PropertyChangeListener} to all {@link SettingsEntry}.
-     * <p>
-     * Listener turn on the save button if any change has occurred.
-     * */
-    private void addPropertyChangeListeners() {
-        PropertyChangeListener pcl = e -> {
-            if (e.getPropertyName().equals("value") && !saveButton.isEnabled())
-                saveButton.setEnabled(true);
-        };
-
-        languageEntry.addPropertyChangeListener(pcl);
-        themeEntry.addPropertyChangeListener(pcl);
-        destinationEntry.addPropertyChangeListener(pcl);
-        recursiveModeEntry.addPropertyChangeListener(pcl);
-        pHashModeEntry.addPropertyChangeListener(pcl);
-        pixelByPixelModeEntry.addPropertyChangeListener(pcl);
-        namesLowerCaseEntry.addPropertyChangeListener(pcl);
-        namesPrefixEntry.addPropertyChangeListener(pcl);
-    }
-
+     * Returns the save button used in this settings view.
+     *
+     * @return The save button.
+     */
     public JButton getSaveButton() {
         return saveButton;
     }
 
+    /**
+     * Returns the language settings entry.
+     *
+     * @return The {@link ComboBoxSettingsEntry} for selecting the application language.
+     */
     public ComboBoxSettingsEntry getLanguageEntry() {
         return languageEntry;
     }
 
+    /**
+     * Returns the theme settings entry.
+     *
+     * @return The {@link ComboBoxSettingsEntry} for selecting the application theme.
+     */
     public ComboBoxSettingsEntry getThemeEntry() {
         return themeEntry;
     }
 
+    /**
+     * Returns the destination path settings entry.
+     *
+     * @return The {@link PathSettingsEntry} for specifying the destination path.
+     */
     public PathSettingsEntry getDestinationEntry() {
         return destinationEntry;
     }
 
+    /**
+     * Returns the recursive mode settings entry.
+     *
+     * @return The {@link CheckBoxSettingsEntry} for enabling recursive mode.
+     */
     public CheckBoxSettingsEntry getRecursiveModeEntry() {
         return recursiveModeEntry;
     }
 
+    /**
+     * Returns the pHash comparison mode settings entry.
+     *
+     * @return The {@link CheckBoxSettingsEntry} for enabling pHash comparison mode.
+     */
     public CheckBoxSettingsEntry getPHashModeEntry() {
         return pHashModeEntry;
     }
 
+    /**
+     * Returns the pixel-by-pixel comparison mode settings entry.
+     *
+     * @return The {@link CheckBoxSettingsEntry} for enabling pixel-by-pixel comparison mode.
+     */
     public CheckBoxSettingsEntry getPixelByPixelModeEntry() {
         return pixelByPixelModeEntry;
     }
 
+    /**
+     * Returns the lowercase names settings entry.
+     *
+     * @return The {@link CheckBoxSettingsEntry} for converting names to lowercase.
+     */
     public CheckBoxSettingsEntry getNamesLowerCaseEntry() {
         return namesLowerCaseEntry;
     }
 
+    /**
+     * Returns the unified name prefix settings entry.
+     *
+     * @return The {@link TextFieldSettingsEntry} for specifying a prefix for unified names.
+     */
     public TextFieldSettingsEntry getNamesPrefixEntry() {
         return namesPrefixEntry;
     }
 
     /**
-     * Creates {@link SettingsView} using Factory Method Pattern.
-     * */
+     * The {@code Factory} class provides a factory method to create instances of {@link SettingsView}.
+     * It contains methods to create and configure the components used in the settings view.
+     */
     public static class Factory {
 
         /**
-         * Creates {@link SettingsView} class using {@link SettingsView}'s private constructor.
-         * @return {@link SettingsView} class.
-         * */
+         * Creates a new instance of {@code SettingsView} using the private constructor.
+         *
+         * @return A new instance of {@code SettingsView}.
+         */
         public static SettingsView create() {
             JButton saveButton = Utility.buttonFactory("view.settings.button.save", new Insets(5, 10, 5, 10));
             ComboBoxSettingsEntry languageEntry = new ComboBoxSettingsEntry("view.settings.label.language", new JComboBox<>());
@@ -209,7 +265,9 @@ public class SettingsView extends AbstractView {
 
         /**
          * Creates a panel used as a value for {@link PathSettingsEntry}.
-         * */
+         *
+         * @return A {@code JPanel} containing a text field and a button for the path selection.
+         */
         private static JPanel createPathPanel() {
             JPanel panel = new JPanel();
             JTextField textField = new JTextField();
@@ -222,7 +280,10 @@ public class SettingsView extends AbstractView {
 
         /**
          * Creates a panel used as a value for {@link CheckBoxSettingsEntry}.
-         * */
+         *
+         * @param checkboxText The text to display next to the checkbox.
+         * @return A {@code JPanel} containing a checkbox with the specified text.
+         */
         private static JPanel createCheckboxPanel(String checkboxText) {
             Objects.requireNonNull(checkboxText);
 
@@ -234,7 +295,9 @@ public class SettingsView extends AbstractView {
 
         /**
          * Creates a panel used as a value for {@link TextFieldSettingsEntry}.
-         * */
+         *
+         * @return A {@code JPanel} containing a text field.
+         */
         private static JPanel createTextFieldPanel() {
             JPanel panel = new JPanel();
             JTextField textField = new JTextField();

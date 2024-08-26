@@ -2,6 +2,7 @@ package pl.magzik;
 
 import com.formdev.flatlaf.util.SystemInfo;
 import pl.magzik.modules.gallery.GalleryTableModel;
+import pl.magzik.ui.components.general.FileChooser;
 import pl.magzik.ui.views.LoadingFrame;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
@@ -12,9 +13,6 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class Main {
     public static void main(String[] args) {
@@ -76,10 +74,11 @@ public class Main {
         View view = new View();
         view.setTitle(resources.getString(view.getTitle()));
 
+        // TODO
         // Translate file choosers:
         JFileChooser[] fcs = {
-            view.getComparerView().getUiPath().getFileChooser(),
-            view.getSettingsView().getDestinationEntry().getFileChooser(),
+            /*view.getComparerView().getUiPath().getFileChooser(),*/
+            /*view.getSettingsView().getDestinationEntry().getFileChooser(),*/
             view.getGalleryView().getFileChooser()
         };
 
@@ -92,6 +91,23 @@ public class Main {
               if (approveButtonKey != null && resources.containsKey(approveButtonKey)) {
                   fc.setApproveButtonText(resources.getString(approveButtonKey));
               }
+        }
+
+        FileChooser[] fileChoosers = {
+            view.getComparerView().getFileChooser(),
+            view.getSettingsView().getDestinationEntry().getFileChooser()
+        };
+
+        for (FileChooser fc : fileChoosers) {
+            JFileChooser fileChooser = fc.getFileChooser();
+            String titleKey = fileChooser.getDialogTitle();
+            if (titleKey != null && resources.containsKey(titleKey)) {
+                fileChooser.setDialogTitle(resources.getString(titleKey));
+            }
+            String approveButtonKey = fileChooser.getApproveButtonText();
+            if (approveButtonKey != null && resources.containsKey(approveButtonKey)) {
+                fileChooser.setApproveButtonText(resources.getString(approveButtonKey));
+            }
         }
 
         for(JPanel p : view.getScenes()) updateComponents(p, resources);

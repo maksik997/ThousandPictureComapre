@@ -1,9 +1,9 @@
 package pl.magzik;
 
 import com.formdev.flatlaf.util.SystemInfo;
-import pl.magzik.ui.UiManagerInterface;
+import pl.magzik.ui.interfaces.UiManagerInterface;
 import pl.magzik.ui.components.Utility;
-import pl.magzik.ui.logging.MessageInterface;
+import pl.magzik.ui.interfaces.logging.MessageInterface;
 import pl.magzik.ui.views.*;
 
 import javax.swing.*;
@@ -28,7 +28,7 @@ public class View extends JFrame implements MessageInterface, UiManagerInterface
         menuView = new MenuView();
         galleryView = new GalleryView();
         settingsView = SettingsView.Factory.create();
-        comparerView = new ComparerView();
+        comparerView = ComparerView.Factory.create();
         creditsView = new CreditsView();
 
         scenes.add(galleryView);

@@ -3,8 +3,8 @@ package pl.magzik.controllers;
 import pl.magzik.async.ExecutorServiceManager;
 import pl.magzik.controllers.localization.TranslationInterface;
 import pl.magzik.modules.ComparerModule;
-import pl.magzik.ui.UiManagerInterface;
-import pl.magzik.ui.logging.MessageInterface;
+import pl.magzik.ui.interfaces.UiManagerInterface;
+import pl.magzik.ui.interfaces.logging.MessageInterface;
 import pl.magzik.ui.views.ComparerView;
 
 import javax.swing.*;
@@ -56,8 +56,10 @@ public class ComparerController {
     private final ExecutorService executor;
 
     /**
-     * Constructs a new {@code ComparerController} with the specified view, module, translation interface, message interface,
-     * and UI manager interface. Initializes the controller by setting up list models and adding action listeners to the view.
+     * Constructs a new {@code ComparerController} with the specified view, module, translation interface,
+     * message interface, and UI manager interface.
+     * Initializes the controller by setting up list models and
+     * adding action listeners to the view.
      * <p>
      * The constructor performs the following steps:
      * <ul>
@@ -87,8 +89,8 @@ public class ComparerController {
 
         // Initialize
 
-        initializeListModel(cModule.getMappedListModel(), cView.getUiOutput().getMappedObjectList());
-        initializeListModel(cModule.getDuplicateListModel(), cView.getUiOutput().getDuplicateList());
+        initializeListModel(cModule.getMappedListModel(), cView.getFoundList());
+        initializeListModel(cModule.getDuplicateListModel(), cView.getDuplicateList());
 
         // Listeners
 
@@ -100,9 +102,9 @@ public class ComparerController {
      * <p>
      * This method configures the action listeners for the following buttons:
      * <ul>
-     *   <li>{@code PathButton}: Opens a file chooser and sets the selected file path to the {@link ComparerModule}.</li>
+     *   <li>{@code PathButton}: Opens a file chooser and sets the selected file path in the {@link ComparerModule}.</li>
      *   <li>{@code LoadButton}: Validates the path and initiates the load task if a path is specified.</li>
-     *   <li>{@code MoveButton}: Checks if there are comparer outputs available and initiates the move task if so.</li>
+     *   <li>{@code MoveButton}: Checks if there are comparison results available and initiates the move task if so.</li>
      *   <li>{@code ResetButton}: Clears the view, resets the module, and updates the UI to its initial state.</li>
      * </ul>
      * </p>
@@ -112,7 +114,7 @@ public class ComparerController {
      * </p>
      */
     private void addActionListeners() {
-        cView.getUiPath().getPathButton().addActionListener(_ -> handlePathButtonClick());
+        cView.getPathButton().addActionListener(_ -> handlePathButtonClick());
         cView.getLoadButton().addActionListener(_ -> handleLoadButtonClick());
         cView.getMoveButton().addActionListener(_ -> handleMoveButtonClick());
         cView.getResetButton().addActionListener(_ -> handleResetButtonClick());
@@ -120,23 +122,22 @@ public class ComparerController {
 
     /**
      * Handles the click event of the path button in the UI. This method opens a file chooser dialog
-     * for the user to select a file. If a file is chosen successfully, the method updates the data source
+     * for the user to select a file. If a file is selected successfully, the method updates the data source
      * in the {@link ComparerModule} with the selected file.
      * <p>
      * The method performs the following actions:
      * <ul>
-     *   <li>Invokes the file chooser dialog through the {@link pl.magzik.ui.components.PathPanel} component.</li>
+     *   <li>Invokes the file chooser dialog through the {@link pl.magzik.ui.components.general.DirectoryFileChooser} component.</li>
      *   <li>If the user selects a file, updates the {@link ComparerModule} with the chosen file.</li>
      * </ul>
      * <p>
-     * It is important to note that if the file chooser dialog is not successfully opened or if no file
-     * is selected, no changes are made to the data source.
+     * If the file chooser dialog is not successfully opened or if no file is selected, no changes are made to the data source.
      * </p>
      */
     private void handlePathButtonClick() {
-        if (cView.getUiPath().openFileChooser()) {
+        if (cView.getFileChooser().perform()) {
             cModule.setSources(
-                new File(cView.getUiPath().getPath())
+                new File(cView.getPathTextField().getText())
             );
         }
     }
@@ -149,7 +150,7 @@ public class ComparerController {
      * <p>
      * The method performs the following actions:
      * <ul>
-     *   <li>Retrieves the file path from the {@link pl.magzik.ui.components.PathPanel} component.</li>
+     *   <li>Retrieves the file path.</li>
      *   <li>If the file path is {@code null}, displays an error message indicating that images are required.</li>
      *   <li>If the file path is valid, starts the load task.</li>
      * </ul>
@@ -158,7 +159,7 @@ public class ComparerController {
      * </p>
      */
     private void handleLoadButtonClick() {
-        String path = cView.getUiPath().getPath();
+        String path = cView.getPathTextField().getText();
         if (path == null) {
             mi.showErrorMessage(
                 ti.translate("error.comparer.lack_of_images.desc"),
@@ -219,10 +220,10 @@ public class ComparerController {
         cModule.reset();
 
         cView.getLoadButton().setEnabled(true);
-        cView.getUiPath().getPathButton().setEnabled(true);
+        cView.getPathButton().setEnabled(true);
         cView.getResetButton().setEnabled(false);
         cView.getMoveButton().setEnabled(false);
-        cView.getStateLabel().setText(ti.translate("comparer.state.ready"));
+        cView.getStatusLabel().setText(ti.translate("comparer.state.ready"));
     }
 
     /**
@@ -274,7 +275,7 @@ public class ComparerController {
      */
     private void unlockButtonPanel() {
         cView.getResetButton().setEnabled(true);
-        cView.getStateLabel().setText(ti.translate("comparer.state.done"));
+        cView.getStatusLabel().setText(ti.translate("comparer.state.done"));
         umi.useCursor(UiManagerInterface.DEFAULT_CURSOR);
     }
 
@@ -355,7 +356,7 @@ public class ComparerController {
         SwingUtilities.invokeLater(() -> {
             cView.blockDestructiveButtons();
             umi.useCursor(UiManagerInterface.WAIT_CURSOR);
-            cView.getStateLabel().setText(ti.translate(state));
+            cView.getStatusLabel().setText(ti.translate(state));
         });
     }
 
@@ -380,8 +381,8 @@ public class ComparerController {
 
         SwingUtilities.invokeLater(() -> {
             fulfilListModel(model, sources);
-            cView.getUiTray().update(total, duplicates);
-            cView.getStateLabel().setText(ti.translate(state));
+            cView.updateTray(total, duplicates);
+            cView.getStatusLabel().setText(ti.translate(state));
         });
     }
 

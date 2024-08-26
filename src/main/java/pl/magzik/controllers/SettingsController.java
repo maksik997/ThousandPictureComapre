@@ -7,7 +7,7 @@ import pl.magzik.modules.GalleryModule;
 import pl.magzik.modules.SettingsModule;
 import pl.magzik.ui.components.settings.ComboBoxSettingsEntry;
 import pl.magzik.ui.components.settings.SettingsEntry;
-import pl.magzik.ui.logging.MessageInterface;
+import pl.magzik.ui.interfaces.logging.MessageInterface;
 import pl.magzik.ui.views.SettingsView;
 
 import java.beans.PropertyChangeListener;

@@ -1,14 +1,18 @@
 package pl.magzik.ui.components.settings;
 
 import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.general.DirectoryFileChooser;
 
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
-import java.io.File;
 
 /**
- * Implementation of {@link SettingsEntry} for paths ({@link JTextField} and {@link JButton})
+ * Implementation of {@link SettingsEntry} for managing path settings with a {@link JTextField}
+ * and a {@link JButton} for opening a directory chooser.
+ * <p>This component allows users to select a directory, with the chosen path displayed in
+ * a non-editable {@link JTextField}. The {@link JButton} triggers a {@link DirectoryFileChooser}
+ * to allow users to select a directory from the file system.</p>
  * */
 public class PathSettingsEntry extends SettingsEntry<JPanel, String> {
     private static final Border panelBorder = new CompoundBorder(
@@ -22,14 +26,18 @@ public class PathSettingsEntry extends SettingsEntry<JPanel, String> {
 
     private JTextField pathTextField;
     private JButton openButton;
-    private final JFileChooser fileChooser;
+    private final DirectoryFileChooser fileChooser;
 
     /**
-     * @param label {@link String} title of a label component.
-     * @param value {@link JPanel} panel to be used as a value component
-     *                           (Panel must contain only {@link JTextField} and {@link JButton}).
-     * @throws NullPointerException if given panel doesn't contain {@link JTextField} or {@link JButton}.
-     * */
+     * Constructs a {@code PathSettingsEntry} with the specified label and value panel.
+     *
+     * @param label The title of the label component.
+     * @param value A {@link JPanel} containing a {@link JTextField} and a {@link JButton}.
+     *              The panel must contain exactly these components. If not, a
+     *              {@link NullPointerException} is thrown.
+     * @throws NullPointerException If the given panel does not contain both a {@link JTextField}
+     *                              and a {@link JButton}.
+     */
     public PathSettingsEntry(String label, JPanel value) {
         super(label, value);
 
@@ -52,48 +60,36 @@ public class PathSettingsEntry extends SettingsEntry<JPanel, String> {
         pathTextField.setFont(Utility.fontHelveticaPlain);
         pathTextField.setBorder(textFieldBorder);
 
-        fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fileChooser.setDialogTitle("view.settings.file_chooser.destination.title");
-        fileChooser.setApproveButtonText("view.settings.file_chooser.destination.button.approve");
-        resetFileChooser();
-
-        openButton.addActionListener(_ -> openFileChooser());
+        fileChooser = new DirectoryFileChooser("view.settings.file_chooser.destination.title", openButton, this::setValue);
+        openButton.addActionListener(_ -> fileChooser.perform());
     }
 
+    /**
+     * Gets the {@link DirectoryFileChooser} associated with this {@code PathSettingsEntry}.
+     *
+     * @return The {@code DirectoryFileChooser} instance used for selecting directories.
+     */
+    public DirectoryFileChooser getFileChooser() {
+        return fileChooser;
+    }
+
+    /**
+     * Gets the current value of the path as a {@link String}.
+     *
+     * @return The current directory path displayed in the {@link JTextField}.
+     */
     @Override
     public String getValue() {
         return pathTextField.getText();
     }
 
+    /**
+     * Sets the path value displayed in the {@link JTextField}.
+     *
+     * @param value The new path to be displayed in the {@link JTextField}.
+     */
     @Override
     protected void setValueProperty(String value) {
         pathTextField.setText(value);
-    }
-
-    /**
-     * Returns {@link JFileChooser}. Used only for component translation.
-     * @return {@link JFileChooser}
-     * */
-    public JFileChooser getFileChooser() {
-        return fileChooser;
-    }
-
-    /**
-     * Resets {@link JFileChooser}'s a path to {@code System.getProperty("user.home")}
-     * */
-    private void resetFileChooser() {
-        fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-    }
-
-    /**
-     * Opens {@link JFileChooser} gui-wise and sets, if selected, directory to a {@link JTextField}
-     * */
-    private void openFileChooser() {
-        resetFileChooser();
-        int result = fileChooser.showOpenDialog(openButton);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            setValue(fileChooser.getSelectedFile().getAbsolutePath());
-        }
     }
 }

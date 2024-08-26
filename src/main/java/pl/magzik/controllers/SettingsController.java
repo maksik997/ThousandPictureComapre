@@ -231,6 +231,8 @@ public class SettingsController {
                 ti.translate("message.restart_required.title")
             );
         }
+
+        sView.getSaveButton().setEnabled(false);
     }
 
     /**

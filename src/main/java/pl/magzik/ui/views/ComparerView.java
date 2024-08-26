@@ -12,6 +12,9 @@ import java.awt.*;
 
 public class ComparerView extends AbstractView {
 
+    // TODO START HERE NEXT
+    // TODO UPDATE, CLEAN THIS...
+
     private final PathPanel pathPanel;
 
     private final OutputPanel outputPanel;
@@ -91,6 +94,9 @@ public class ComparerView extends AbstractView {
         mainPanel.add(contentPanel);
 
         this.add(mainPanel);
+
+        resetButton.setEnabled(false);
+        moveButton.setEnabled(false);
     }
 
     public void clear() {
@@ -125,5 +131,24 @@ public class ComparerView extends AbstractView {
 
     public JLabel getStateLabel() {
         return stateLabel;
+    }
+
+    /**
+     * Disables all buttons associated with destructive actions in the user interface.
+     * This includes:
+     * <ul>
+     *     <li>The path button in the path panel</li>
+     *     <li>The load button</li>
+     *     <li>The move button</li>
+     *     <li>The reset button</li>
+     * </ul>
+     * This method is typically used to prevent user interactions with these buttons
+     * during critical operations where such actions could interfere with the process.
+     */
+    public void blockDestructiveButtons() {
+        pathPanel.getPathButton().setEnabled(false);
+        loadButton.setEnabled(false);
+        moveButton.setEnabled(false);
+        resetButton.setEnabled(false);
     }
 }

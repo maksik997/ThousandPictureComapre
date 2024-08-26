@@ -28,4 +28,14 @@ public interface MessageInterface {
      * @param message A {@link String} to be used as a message.
      * */
     void showInformationMessage(String message, String title);
+
+    /**
+     * Shows confirmation message. With given title and message.
+     *
+     * @param title A {@link String} to be used as a title.
+     * @param message A {@link String} to be used as a message.
+     *
+     * @return an int indicating the option selected by the user,
+     * */
+    int showConfirmationMessage(String message, String title);
 }

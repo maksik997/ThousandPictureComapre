@@ -1,6 +1,7 @@
 package pl.magzik;
 
 import com.formdev.flatlaf.util.SystemInfo;
+import pl.magzik.ui.UiManagerInterface;
 import pl.magzik.ui.components.Utility;
 import pl.magzik.ui.logging.MessageInterface;
 import pl.magzik.ui.views.*;
@@ -10,7 +11,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class View extends JFrame implements MessageInterface {
+public class View extends JFrame implements MessageInterface, UiManagerInterface {
 
     // Different Panels
     private final ComparerView comparerView;
@@ -71,6 +72,15 @@ public class View extends JFrame implements MessageInterface {
         return List.copyOf(scenes);
     }
 
+    /**
+     * Toggles the current UI scene to the specified scene.
+     * This method removes all currently displayed scenes from the view and adds the new scene based on the given parameter.
+     * After updating the scene, it repaints and revalidates the UI to reflect the changes.
+     *
+     * @param scene The scene to switch to, represented by the {@link Utility.Scene} enumeration.
+     *              Valid values are SETTINGS, COMPARER, GALLERY, MENU, and CREDITS.
+     */
+    @Override
     public void toggleScene(Utility.Scene scene) {
         scenes.forEach(this::remove);
 
@@ -84,6 +94,17 @@ public class View extends JFrame implements MessageInterface {
         
         repaint();
         revalidate();
+    }
+
+    /**
+     * Sets the cursor for the entire UI.
+     * This method updates the cursor displayed over the UI components.
+     *
+     * @param cursor The cursor to be used, provided as an instance of {@link Cursor}.
+     */
+    @Override
+    public void useCursor(Cursor cursor) {
+        super.setCursor(cursor);
     }
 
     @Override
@@ -113,6 +134,16 @@ public class View extends JFrame implements MessageInterface {
             String.format(message),
             title,
             JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    @Override
+    public int showConfirmationMessage(String message, String title) {
+        return JOptionPane.showConfirmDialog(
+            this,
+            message,
+            title,
+            JOptionPane.YES_NO_OPTION
         );
     }
 }

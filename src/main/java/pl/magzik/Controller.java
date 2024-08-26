@@ -1,8 +1,8 @@
 package pl.magzik;
 
+import pl.magzik.controllers.ComparerController;
 import pl.magzik.controllers.SettingsController;
 import pl.magzik.controllers.localization.TranslationInterface;
-import pl.magzik.modules.ComparerModule;
 import pl.magzik.modules.GalleryModule;
 import pl.magzik.ui.components.Utility;
 import pl.magzik.ui.views.*;
@@ -14,13 +14,11 @@ import javax.swing.event.TableModelEvent;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 import java.util.List;
 
 public class Controller implements TranslationInterface {
@@ -37,11 +35,13 @@ public class Controller implements TranslationInterface {
         // Initialize view controllable elements
         initView();
         initMenuView();
-        initComparerView();
+        //initComparerView();
         //initSettingsView();
         initGalleryView();
 
+        // TODO SOMETHING WITH THIS
         SettingsController settingsController = new SettingsController(view.getSettingsView(), model.getSettingsModule(), model.getGalleryModule(), this, view, model.getComparerModule(), model.getGalleryModule());
+        ComparerController comparerController = new ComparerController(view.getComparerView(), model.getComparerModule(), this, view, view);
     }
 
     @Override
@@ -82,88 +82,6 @@ public class Controller implements TranslationInterface {
         mv.getSettingsButton().addActionListener(_ -> view.toggleScene(Utility.Scene.SETTINGS));
         mv.getCreditsButton().addActionListener(_ -> view.toggleScene(Utility.Scene.CREDITS));
         mv.getExitButton().addActionListener(_ -> System.exit(0));
-    }
-
-    private void initComparerView() {
-        ComparerView cView = view.getComparerView();
-        ComparerModule cModule = model.getComparerModule();
-
-        // Path button action listener
-        cView.getUiPath().getPathButton().addActionListener(_ -> {
-            if (cView.getUiPath().openFileChooser()) {
-                model.getComparerModule().setSources(
-                    new File(cView.getUiPath().getPath())
-                );
-            }
-        });
-
-        // List model initialization
-        cView.getUiOutput().getDuplicateList().setModel(
-            cModule.getDuplicateListModel()
-        );
-        cView.getUiOutput().getMappedObjectList().setModel(
-            cModule.getMappedListModel()
-        );
-
-        // Load files & compareAndExtract button
-        cView.getLoadButton().addActionListener(_ -> {
-            // Assign a user picked path for Picture Comparer
-            String path = cView.getUiPath().getPath();
-            if (path == null) {
-                view.showErrorMessage(
-                    translate("error.general.title"),
-                    translate("error.comparer.lack_of_images.desc")
-                );
-
-                return;
-            }
-
-            // Block destructive buttons :)
-            cView.getUiPath().getPathButton().setEnabled(false);
-            cView.getLoadButton().setEnabled(false);
-            cView.getMoveButton().setEnabled(false);
-            cView.getResetButton().setEnabled(false);
-
-            // Execute map task
-            cModule.getMapObjects().execute();
-        });
-
-        // Move files button
-        cView.getMoveButton().addActionListener(_ -> {
-            // Check if moving files is valid
-            if (cModule.getComparerOutputSize() <= 0) {
-                view.showErrorMessage(
-                    translate("error.comparer.loading_needed.desc"),
-                    translate("error.general.title")
-                );
-                return;
-            }
-
-            // Block destructive buttons :)
-            cView.getUiPath().getPathButton().setEnabled(false);
-            cView.getLoadButton().setEnabled(false);
-            cView.getMoveButton().setEnabled(false);
-            cView.getResetButton().setEnabled(false);
-
-            // Execute transferObject task
-            cModule.getTransferObjects().execute();
-        });
-
-        // Reset Button
-        cView.getResetButton().addActionListener(_ -> {
-            comparerTasks();
-            cView.clear();
-            cModule.reset();
-
-            cView.getLoadButton().setEnabled(true);
-            cView.getMoveButton().setEnabled(true);
-
-            cView.getStateLabel().setText(translate("comparer.state.ready"));
-        });
-
-        // Workers
-        comparerTasks();
-
     }
 
     private void initGalleryView() {
@@ -468,146 +386,6 @@ public class Controller implements TranslationInterface {
         resetGalleryRemoveImagesTask();
     }
 
-    private void comparerTasks() {
-        // todo
-        //  I should probably add some more EDT safety,
-        //  like for example don't edit GUI elements inside a doInBackground(),
-
-        ComparerView cView = view.getComparerView();
-        ComparerModule cModule = model.getComparerModule();
-
-        cModule.setMapObjects(new SwingWorker<>() {
-            @Override
-            protected Void doInBackground() {
-                // If a task stays in this state, that means that Picture Comparer failed the task.
-                // Probably cuz of FileVisitor
-                cView.getStateLabel().setText(translate("comparer.state.prepare"));
-                view.setCursor(
-                        Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
-                );
-
-                try {
-                    cModule.load();
-                } catch (IOException | InterruptedException | TimeoutException e) {
-                    view.showErrorMessage(
-                        translate("error.general.desc"),
-                        translate("error.general.title"),
-                        e
-                    );
-
-                    return null;
-                }
-
-                cView.getUiTray().update(
-                        cModule.getSourcesSize(),
-                        0
-                );
-
-                cModule.getMappedListModel().addAll(
-                        cModule.getSources().stream()
-                                .map(File::getName)
-                                .toList()
-                );
-
-                cView.getStateLabel().setText(translate("comparer.state.map"));
-
-                try {
-                    cModule.compareAndExtract();
-                } catch (IOException | ExecutionException e) {
-                    view.showErrorMessage(
-                        translate("error.general.desc"),
-                        translate("error.general.title"),
-                        e
-                    );
-
-                    return null;
-                }
-
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                if (state() == State.CANCELLED)
-                    return;
-
-                cView.getStateLabel().setText(translate("comparer.state.update"));
-                cView.getUiTray().update(
-                        cModule.getSourcesSize(),
-                        cModule.getComparerOutputSize()
-                );
-
-                cModule.getDuplicateListModel().addAll(
-                        cModule.getComparerOutput().stream()
-//                                        .map(Record::getFile)
-                                .map(File::getName)
-                                .collect(Collectors.toList())
-                );
-
-                if (cModule.getComparerOutputSize() > 0)
-                    cView.getMoveButton().setEnabled(true);
-                cView.getResetButton().setEnabled(true);
-                cView.getUiPath().getPathButton().setEnabled(true);
-
-                cView.getStateLabel().setText(translate("comparer.state.done"));
-                view.setCursor(Cursor.getDefaultCursor());
-            }
-        });
-        cModule.setTransferObjects(new SwingWorker<>() {
-            @Override
-            protected Void doInBackground() {
-                cView.getStateLabel().setText(translate("comparer.state.prepare"));
-                view.setCursor(
-                        Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
-                );
-
-                cView.getStateLabel().setText(translate("comparer.state.move"));
-                try {
-                    cModule.fileTransfer();
-                } catch (IOException e) {
-                    view.showErrorMessage(
-                        translate("error.general.desc"),
-                        translate("error.general.title"),
-                        e
-                    );
-
-                    return null;
-                }
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                if (state() == State.CANCELLED)
-                    return;
-
-                cView.getResetButton().setEnabled(true);
-                cView.getUiPath().getPathButton().setEnabled(true);
-
-                cView.getStateLabel().setText(translate("comparer.state.done"));
-                view.setCursor(Cursor.getDefaultCursor());
-
-                int option = JOptionPane.showConfirmDialog(
-                        null,
-                        translate("message.confirmation.comparer_restart.desc"),
-                        translate("message.confirmation.title"),
-                        JOptionPane.YES_NO_OPTION
-                );
-
-                if (option == JOptionPane.OK_OPTION) {
-                    comparerTasks();
-                    cView.clear();
-                    cModule.reset();
-
-                    cView.getLoadButton().setEnabled(true);
-                    cView.getMoveButton().setEnabled(true);
-
-                    cView.getStateLabel().setText(translate("comparer.state.ready"));
-                }
-            }
-        });
-    }
-
     private void resetGalleryDistinctTasks() {
         // Todo: EDT safety
 
@@ -619,7 +397,7 @@ public class Controller implements TranslationInterface {
         gModule.setMapObjects(new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                view.useCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
                 try {
                     gModule.prepareComparer(
@@ -651,7 +429,7 @@ public class Controller implements TranslationInterface {
 
             @Override
             protected void done() {
-                view.setCursor(Cursor.getDefaultCursor());
+                view.useCursor(Cursor.getDefaultCursor());
 
                 int ans = JOptionPane.showConfirmDialog(
                     view,
@@ -671,7 +449,7 @@ public class Controller implements TranslationInterface {
         gModule.setRemoveObjects(new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                view.setCursor(
+                view.useCursor(
                         Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
                 );
 
@@ -691,7 +469,7 @@ public class Controller implements TranslationInterface {
             @Override
             protected void done() {
                 gView.getElementCount().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
-                view.setCursor(Cursor.getDefaultCursor());
+                view.useCursor(Cursor.getDefaultCursor());
                 gView.unlockModule();
 
                 view.showInformationMessage(
@@ -704,7 +482,7 @@ public class Controller implements TranslationInterface {
         gModule.setTransferObjects(new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                view.setCursor(
+                view.useCursor(
                         Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
                 );
 
@@ -723,7 +501,7 @@ public class Controller implements TranslationInterface {
             @Override
             protected void done() {
                 gView.getElementCount().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
-                view.setCursor(Cursor.getDefaultCursor());
+                view.useCursor(Cursor.getDefaultCursor());
                 gView.unlockModule();
 
                 view.showInformationMessage(
@@ -745,7 +523,7 @@ public class Controller implements TranslationInterface {
         gModule.setUnifyNames(new SwingWorker<>() {
             @Override
             protected Void doInBackground()  {
-                view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                view.useCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
                 try {
                     gModule.unifyNames();
@@ -779,7 +557,7 @@ public class Controller implements TranslationInterface {
                 );
 
                 gView.unlockModule();
-                view.setCursor(Cursor.getDefaultCursor());
+                view.useCursor(Cursor.getDefaultCursor());
                 resetGalleryUnifyNamesTask();
             }
         });
@@ -794,7 +572,7 @@ public class Controller implements TranslationInterface {
         gModule.setAddImages(new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                view.useCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
                 List<String> paths = gView.openFileChooser();
                 if (paths == null) return null;
@@ -815,7 +593,7 @@ public class Controller implements TranslationInterface {
             protected void done() {
                 gView.getElementCount().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
                 gView.unlockModule();
-                view.setCursor(Cursor.getDefaultCursor());
+                view.useCursor(Cursor.getDefaultCursor());
                 resetGalleryAddImagesTask();
             }
         });
@@ -830,7 +608,7 @@ public class Controller implements TranslationInterface {
         gModule.setRemoveImages(new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
-                view.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                view.useCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
                 // Important note!
                 // We must sort indexes and then reverse them
@@ -879,7 +657,7 @@ public class Controller implements TranslationInterface {
             @Override
             protected void done() {
                 gView.unlockModule();
-                view.setCursor(Cursor.getDefaultCursor());
+                view.useCursor(Cursor.getDefaultCursor());
                 resetGalleryRemoveImagesTask();
             }
         });

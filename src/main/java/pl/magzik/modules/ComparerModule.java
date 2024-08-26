@@ -79,7 +79,7 @@ public class ComparerModule implements ComparerInterface {
     }
 
     public List<File> getComparerOutput() {
-        Objects.requireNonNull(comparerOutput);
+//        Objects.requireNonNull(comparerOutput);
         return comparerOutput;
     }
 

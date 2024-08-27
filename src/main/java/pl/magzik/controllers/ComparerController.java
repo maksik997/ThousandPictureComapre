@@ -486,7 +486,7 @@ public class ComparerController {
         SwingUtilities.invokeLater(() -> mi.showErrorMessage(
             ti.translate("error.general.desc"),
             ti.translate("error.general.title"),
-            (Exception) ex
+            (Exception) ex.getCause()
         ));
 
         return null;

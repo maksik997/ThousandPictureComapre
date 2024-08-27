@@ -1,5 +1,7 @@
 package pl.magzik.ui.interfaces.logging;
 
+import java.util.Objects;
+
 /**
  * Provides methods for information and error showing.
  * */
@@ -37,5 +39,5 @@ public interface MessageInterface {
      *
      * @return an int indicating the option selected by the user,
      * */
-    int showConfirmationMessage(String message, String title);
+    int showConfirmationMessage(Object message, String title);
 }

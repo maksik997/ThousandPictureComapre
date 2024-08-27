@@ -111,7 +111,7 @@ public class CreditsView extends AbstractView {
      * Labels can be {@code null} to create vertical spacing between sections.
      *
      * @param mainPanel The panel to which the labels will be added.
-     * @param c         The {@link GridBagConstraints} used to layout the labels.
+     * @param c         The {@link GridBagConstraints} used to lay out the labels.
      * @param labels    The labels to be added to the panel.
      */
     private void addLabels(JPanel mainPanel, GridBagConstraints c, JLabel... labels) {

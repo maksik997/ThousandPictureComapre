@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GalleryModule implements ComparerInterface{
@@ -170,12 +172,46 @@ public class GalleryModule implements ComparerInterface{
         saveToFile(galleryTableModel.getImages());
     }
 
-    public void removeImage(int idx) {
-        galleryTableModel.removeEntry(idx);
+    public void removeImage(List<Integer> indexes) {
+        indexes = indexes.stream()
+            .map(tableRowSorter::convertRowIndexToModel)
+            .collect(Collectors.toList());
+
+        indexes.sort(Integer::compare);
+
+        int l = 0, r = indexes.size() - 1;
+        while (l < r) {
+            int t = indexes.get(l);
+            indexes.set(l, indexes.get(r));
+            indexes.set(r, t);
+            l++;
+            r--;
+        }
+
+        galleryTableModel.removeAllEntries(indexes);
     }
 
-    public void deleteImage(int idx) throws IOException {
-        galleryTableModel.deleteImage(idx);
+    public void deleteImage(List<Integer> indexes) {
+        indexes = indexes.stream()
+            .map(tableRowSorter::convertRowIndexToModel)
+            .collect(Collectors.toList());
+
+        indexes.sort(Integer::compare);
+
+        int l = 0, r = indexes.size() - 1;
+        while (l < r) {
+            int t = indexes.get(l);
+            indexes.set(l, indexes.get(r));
+            indexes.set(r, t);
+            l++;
+            r--;
+        }
+
+        try {
+            galleryTableModel.deleteAllImages(indexes);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public void openImage(int idx) throws IOException {
@@ -210,6 +246,7 @@ public class GalleryModule implements ComparerInterface{
 
     // Filtering
     public void filterTable(String filter) {
+        filter = Pattern.quote(filter);
         RowFilter<GalleryTableModel, Object> rowFilter = RowFilter.regexFilter(".*"+filter+".*", 0);
         tableRowSorter.setRowFilter(rowFilter);
     }

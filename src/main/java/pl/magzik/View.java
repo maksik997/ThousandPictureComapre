@@ -11,6 +11,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public class View extends JFrame implements MessageInterface, UiManagerInterface {
 
@@ -150,7 +151,7 @@ public class View extends JFrame implements MessageInterface, UiManagerInterface
     }
 
     @Override
-    public int showConfirmationMessage(String message, String title) {
+    public int showConfirmationMessage(Object message, String title) {
         return JOptionPane.showConfirmDialog(
             this,
             message,

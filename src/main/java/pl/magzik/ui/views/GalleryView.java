@@ -1,6 +1,7 @@
 package pl.magzik.ui.views;
 
 import pl.magzik.Controller;
+import pl.magzik.controllers.GalleryController;
 import pl.magzik.ui.components.Utility;
 import pl.magzik.ui.components.general.FileChooser;
 import pl.magzik.ui.components.general.MultipleFileSelectionStrategy;
@@ -11,6 +12,9 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -258,18 +262,10 @@ public class GalleryView extends AbstractView {
         return fileChooser;
     }
 
-    /**
-     * Disables all buttons in the gallery view.
-     */
-    public void lockModule() {
-        for (JButton button : buttons) button.setEnabled(false);
-    }
-
-    /**
-     * Enables all buttons in the gallery view.
-     */
-    public void unlockModule() {
-        for (JButton button : buttons) button.setEnabled(true);
+    public List<Integer> getAndClearSelectedRows() {
+        List<Integer> list = Arrays.stream(galleryTable.getSelectedRows()).boxed().toList();
+        SwingUtilities.invokeLater(galleryTable::clearSelection);
+        return list;
     }
 
     /**
@@ -286,16 +282,30 @@ public class GalleryView extends AbstractView {
      *
      * @throws NullPointerException if the {@code controller} is {@code null}.
      */
-    public void setFileChooser(Controller controller) {
+    public void setFileChooser(GalleryController controller) {
         Objects.requireNonNull(controller);
 
         fileChooser = new FileChooser<>(
-            "view.gallery.file_chooser.dialog.title",
-            openButton,
-            controller::addImages,
-            new MultipleFileSelectionStrategy()
+                "view.gallery.file_chooser.dialog.title",
+                openButton,
+                controller::handleAddImages,
+                new MultipleFileSelectionStrategy()
         );
         fileChooser.getFileChooser().setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+    }
+
+    /**
+     * Disables all buttons in the gallery view.
+     */
+    public void lockModule() {
+        for (JButton button : buttons) button.setEnabled(false);
+    }
+
+    /**
+     * Enables all buttons in the gallery view.
+     */
+    public void unlockModule() {
+        for (JButton button : buttons) button.setEnabled(true);
     }
 
     /**
@@ -346,6 +356,30 @@ public class GalleryView extends AbstractView {
         private static JTable createTable() {
             JTable table = new JTable();
             table.getTableHeader().setReorderingAllowed(false);
+
+            table.addMouseListener(new MouseAdapter() {
+
+                private static final int DOUBLE_CLICK_THRESHOLD = 500;
+                private long lastClickTime = 0;
+
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    long curr = System.currentTimeMillis();
+
+                    if (curr - lastClickTime <= DOUBLE_CLICK_THRESHOLD) {
+                        int r = table.rowAtPoint(e.getPoint());
+                        int c = table.columnAtPoint(e.getPoint());
+
+                        if (table.isCellEditable(r, c)) {
+                            table.editCellAt(r, c);
+                            Component editor = table.getEditorComponent();
+                            editor.requestFocus();
+                        }
+                    }
+
+                    lastClickTime = curr;
+                }
+            });
 
             return table;
         }

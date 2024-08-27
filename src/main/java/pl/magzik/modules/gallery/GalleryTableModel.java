@@ -114,6 +114,15 @@ public class GalleryTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
+    public void removeAllEntries(Integer... rows) {
+        removeAllEntries(Arrays.asList(rows));
+    }
+
+    public void removeAllEntries(List<Integer> rows) {
+        for (Integer row : rows) images.remove(row.intValue());
+        fireTableDataChanged();
+    }
+
     public void deleteImage(int row) throws IOException {
         // This method will remove entry from table and will delete image from disk.
         Entry entry = images.get(row);
@@ -121,6 +130,13 @@ public class GalleryTableModel extends AbstractTableModel {
 
         Path path = entry.getPath();
         Files.delete(path);
+    }
+
+    public void deleteAllImages(List<Integer> rows) throws IOException {
+        List<Path> entries = rows.stream().map(images::get).map(Entry::getPath).toList();
+        removeAllEntries(rows);
+
+        for (Path path : entries) Files.delete(path);
     }
 
     public void openEntry(int row) throws IOException {

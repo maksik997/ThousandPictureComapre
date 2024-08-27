@@ -29,7 +29,7 @@ public class ExecutorServiceManager {
      * </p>
      */
     private ExecutorServiceManager() {
-        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
+        this.executorService = Executors.newCachedThreadPool();
         addExecutorShutdownHook();
     }
 

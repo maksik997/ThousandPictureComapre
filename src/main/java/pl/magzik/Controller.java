@@ -1,6 +1,7 @@
 package pl.magzik;
 
 import pl.magzik.controllers.ComparerController;
+import pl.magzik.controllers.GalleryController;
 import pl.magzik.controllers.MenuController;
 import pl.magzik.controllers.SettingsController;
 import pl.magzik.ui.interfaces.TranslationInterface;
@@ -35,12 +36,26 @@ public class Controller implements TranslationInterface {
 
         // Initialize view controllable elements
         initView();
-        initGalleryView();
+//        initGalleryView();
 
         // TODO SOMETHING WITH THIS
         MenuController menuController = new MenuController(view.getMenuView(), view);
         ComparerController comparerController = new ComparerController(view.getComparerView(), model.getComparerModule(), this, view, view);
         SettingsController settingsController = new SettingsController(view.getSettingsView(), model.getSettingsModule(), model.getGalleryModule(), this, view, model.getComparerModule(), model.getGalleryModule());
+        GalleryController galleryController = new GalleryController(view.getGalleryView(), model.getGalleryModule(), view, view, this);
+
+
+        GalleryView gView = view.getGalleryView();
+        JFileChooser fc = gView.getFileChooser().getFileChooser();
+        String titleKey = fc.getDialogTitle();
+        if (titleKey != null && resourceBundle.containsKey(titleKey)) {
+            fc.setDialogTitle(resourceBundle.getString(titleKey));
+        }
+        String approveButtonKey = fc.getApproveButtonText();
+        gView.getFileChooser().getFileChooser().setApproveButtonText(translate(approveButtonKey));
+        if (approveButtonKey != null && resourceBundle.containsKey(approveButtonKey)) {
+            fc.setApproveButtonText(resourceBundle.getString(approveButtonKey));
+        }
     }
 
     @Override
@@ -72,12 +87,12 @@ public class Controller implements TranslationInterface {
         });
     }
 
-    private void initGalleryView() {
+    /*private void initGalleryView() {
         GalleryView gView = view.getGalleryView();
         GalleryModule gModule = model.getGalleryModule();
 
         // Initialize FileChooser in Gallery View
-        gView.setFileChooser(this);
+//        gView.setFileChooser(this);
 
         JFileChooser fc = gView.getFileChooser().getFileChooser();
         String titleKey = fc.getDialogTitle();
@@ -391,7 +406,7 @@ public class Controller implements TranslationInterface {
     }
 
     // WILL LAND IN GALLERY CONTROLLER
-    public void addImages(List<String> list) {
+    public void handleAddImages(List<String> list) {
         try {
             model.getGalleryModule().addImage(list);
         } catch (IOException e) {
@@ -591,7 +606,7 @@ public class Controller implements TranslationInterface {
                 view.useCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
                 if (!gView.getFileChooser().perform()) return null;
-                /*List<String> paths = GalleryView.getPaths();
+                *//*List<String> paths = GalleryView.getPaths();
 
                 try {
                     gModule.addImage(paths);
@@ -600,7 +615,7 @@ public class Controller implements TranslationInterface {
                         translate("error.add.ioexception.desc"),
                         translate("error.general.title")
                     );
-                }*/
+                }*//*
 
                 return null;
             }
@@ -677,5 +692,5 @@ public class Controller implements TranslationInterface {
                 resetGalleryRemoveImagesTask();
             }
         });
-    }
+    }*/
 }

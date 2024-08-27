@@ -47,7 +47,7 @@ public class Main {
                 FlatLightLaf.setup();
             }
 
-            View view = initView(resources);
+            View view = new View(resources);
 
             ResourceBundle varResources = ResourceBundle.getBundle("variables", locale);
 
@@ -71,27 +71,8 @@ public class Main {
     }
 
     private static View initView(ResourceBundle resources) throws IOException {
-        View view = new View();
+        View view = new View(resources);
         view.setTitle(resources.getString(view.getTitle()));
-
-        // TODO
-        // Translate file choosers:
-        JFileChooser[] fcs = {
-            /*view.getComparerView().getUiPath().getFileChooser(),*/
-            /*view.getSettingsView().getDestinationEntry().getFileChooser(),*/
-            /*view.getGalleryView().getFileChooser()*/
-        };
-
-        for (JFileChooser fc : fcs) {
-              String titleKey = fc.getDialogTitle();
-              if (titleKey != null && resources.containsKey(titleKey)) {
-                  fc.setDialogTitle(resources.getString(titleKey));
-              }
-              String approveButtonKey = fc.getApproveButtonText();
-              if (approveButtonKey != null && resources.containsKey(approveButtonKey)) {
-                  fc.setApproveButtonText(resources.getString(approveButtonKey));
-              }
-        }
 
         FileChooser<?>[] fileChoosers = {
             view.getComparerView().getFileChooser(),

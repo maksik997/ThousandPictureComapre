@@ -49,7 +49,7 @@ public class SettingsModule implements Module {
             "destination-for-pc", System.getProperty("user.home")
         ));
         setts.add(Entry.create(
-            "mode", "not-recursive"
+            "recursive-mode", "no"
         ));
         setts.add(Entry.create(
             "phash", "yes"

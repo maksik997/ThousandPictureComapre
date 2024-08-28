@@ -1,6 +1,7 @@
 package pl.magzik.modules;
 
 import pl.magzik.IO.FileOperator;
+import pl.magzik.modules.loader.Module;
 
 import javax.swing.*;
 import java.io.File;
@@ -9,16 +10,16 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-public class ComparerModule implements ComparerInterface {
+public class ComparerModule implements ComparerInterface, Module {
     private File destination;
 
     private List<File> sources;
 
     private List<File> comparerOutput;
 
-    private final DefaultListModel<String> duplicateListModel, mappedListModel;
+    private DefaultListModel<String> duplicateListModel, mappedListModel;
 
-    private final FileOperator fileOperator;
+    private FileOperator fileOperator;
 
     private Mode mode;
 
@@ -26,7 +27,10 @@ public class ComparerModule implements ComparerInterface {
 
     private SwingWorker<Void, Void> mapObjects, transferObjects;
 
-    public ComparerModule() {
+    public ComparerModule() { }
+
+    @Override
+    public void load() {
         destination = new File(System.getProperty("user.dir"));
         sources = new LinkedList<>();
         comparerOutput = null;
@@ -49,7 +53,7 @@ public class ComparerModule implements ComparerInterface {
     }
 
     // Load images
-    public void load() throws IOException, InterruptedException, TimeoutException {
+    public void loadImages() throws IOException, InterruptedException, TimeoutException {
         Objects.requireNonNull(sources);
         sources = fileOperator.loadFiles(mode == Mode.RECURSIVE ? Integer.MAX_VALUE : 1, filePredicate, sources);
     }

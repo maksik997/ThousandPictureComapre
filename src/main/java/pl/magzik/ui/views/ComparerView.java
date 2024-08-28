@@ -115,7 +115,7 @@ public class ComparerView extends AbstractView {
     }
 
     /**
-     * Creates and configures the button panel with load, move, and reset buttons.
+     * Creates and configures the button panel with loadImages, move, and reset buttons.
      *
      * @return A {@code JPanel} containing the buttons for loading, moving, and resetting.
      */
@@ -268,7 +268,7 @@ public class ComparerView extends AbstractView {
     }
 
     /**
-     * Gets the load button.
+     * Gets the loadImages button.
      *
      * @return The {@code JButton} for loading files.
      */
@@ -324,7 +324,7 @@ public class ComparerView extends AbstractView {
     /**
      * Disables all buttons associated with destructive actions.
      * <p>
-     * This includes the path button, load button, move button, and reset button.
+     * This includes the path button, loadImages button, move button, and reset button.
      * </p>
      */
     public void blockDestructiveButtons() {

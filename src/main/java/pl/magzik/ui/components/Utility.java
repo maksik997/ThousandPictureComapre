@@ -47,10 +47,7 @@ public class Utility {
         textField.setHorizontalAlignment(SwingConstants.CENTER);
 
         textField.setBorder(new TitledBorder(
-            new LineBorder(
-                Color.GRAY,
-                    2
-            ),
+            textField.getBorder(),
             title,
             TitledBorder.CENTER, TitledBorder.TOP,
             Utility.fontSmallHelveticaBold

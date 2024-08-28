@@ -1,5 +1,7 @@
 package pl.magzik.modules;
 
+import pl.magzik.modules.loader.Module;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,13 +11,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
-public class SettingsModule {
+public class SettingsModule implements Module {
     private final Path configPath;
 
     private List<Entry> setts;
 
-    public SettingsModule(String configPath) throws IOException {
+    public SettingsModule(String configPath) {
         this.configPath = Path.of(configPath);
+    }
+
+    @Override
+    public void load() throws IOException {
         this.setts = new ArrayList<>();
 
         if (!this.configPath.toFile().exists()) {

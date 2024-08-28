@@ -28,14 +28,15 @@ public class View extends JFrame implements MessageInterface, UiManagerInterface
     private final ResourceBundle resourceBundle;
 
     public View(ResourceBundle resourceBundle) throws HeadlessException {
-        scenes = new ArrayList<>();
-
-        menuView = MenuView.Factory.create();
-        galleryView = GalleryView.Factory.create();
-        settingsView = SettingsView.Factory.create();
-        comparerView = ComparerView.Factory.create();
-        creditsView = new CreditsView();
         this.resourceBundle = resourceBundle;
+
+        this.scenes = new ArrayList<>();
+        this.menuView = MenuView.Factory.create();
+        this.galleryView = GalleryView.Factory.create();
+        this.settingsView = SettingsView.Factory.create();
+        this.comparerView = ComparerView.Factory.create();
+        this.creditsView = new CreditsView();
+
 
         scenes.add(galleryView);
         scenes.add(settingsView);
@@ -47,9 +48,6 @@ public class View extends JFrame implements MessageInterface, UiManagerInterface
 
         this.add(menuView);
 
-        if (SystemInfo.isMacOS) {
-            getRootPane().putClientProperty("apple.awt.windowTitleVisible", false);
-        }
         this.setTitle("general.title");
         this.setIconImage(icon.getImage());
         this.setMinimumSize(new Dimension(800, 650));
@@ -68,6 +66,17 @@ public class View extends JFrame implements MessageInterface, UiManagerInterface
                     .addActionListener(_ -> toggleScene(Utility.Scene.MENU));
             }
         });
+    }
+
+    public LoadingFrame showLoadingFrame() {
+        LoadingFrame loadingFrame = new LoadingFrame();
+        translateComponents(loadingFrame.getContentPane());
+        SwingUtilities.invokeLater(() -> loadingFrame.setVisible(true));
+        return loadingFrame;
+    }
+
+    public void disposeLoadingFrame(LoadingFrame loadingFrame) {
+        SwingUtilities.invokeLater(loadingFrame::dispose);
     }
 
     public ComparerView getComparerView() {

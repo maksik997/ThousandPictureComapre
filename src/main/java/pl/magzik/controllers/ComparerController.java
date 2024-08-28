@@ -103,7 +103,7 @@ public class ComparerController {
      * This method configures the action listeners for the following buttons:
      * <ul>
      *   <li>{@code PathButton}: Opens a file chooser and sets the selected file path in the {@link ComparerModule}.</li>
-     *   <li>{@code LoadButton}: Validates the path and initiates the load task if a path is specified.</li>
+     *   <li>{@code LoadButton}: Validates the path and initiates the loadImages task if a path is specified.</li>
      *   <li>{@code MoveButton}: Checks if there are comparison results available and initiates the move task if so.</li>
      *   <li>{@code ResetButton}: Clears the view, resets the module, and updates the UI to its initial state.</li>
      * </ul>
@@ -143,7 +143,7 @@ public class ComparerController {
     }
 
     /**
-     * Handles the click event of the load button in the UI. This method checks if the user has
+     * Handles the click event of the loadImages button in the UI. This method checks if the user has
      * specified a file path. If no file path is set, an error message is displayed to inform the user
      * that images are required for the comparison operation. If a file path is available, it initiates
      * the loading task.
@@ -152,7 +152,7 @@ public class ComparerController {
      * <ul>
      *   <li>Retrieves the file path.</li>
      *   <li>If the file path is {@code null} or empty, displays an error message indicating that images are required.</li>
-     *   <li>If the file path is valid, starts the load task.</li>
+     *   <li>If the file path is valid, starts the loadImages task.</li>
      * </ul>
      * <p>
      * The error message is displayed using the {@link MessageInterface} to inform the user of the issue.
@@ -205,7 +205,7 @@ public class ComparerController {
      * <ul>
      *   <li>Clears the user interface using {@link ComparerView#clear()}.</li>
      *   <li>Resets the internal state of the {@link ComparerModule} using {@link ComparerModule#reset()}.</li>
-     *   <li>Enables the load button and the path button, making them available for user interaction.</li>
+     *   <li>Enables the loadImages button and the path button, making them available for user interaction.</li>
      *   <li>Disables the reset button and the move button to prevent further actions until the state is fully reset.</li>
      *   <li>Updates the state label to indicate that the application is ready for new tasks by setting the text to
      *       the translated value for the ready state.</li>
@@ -283,7 +283,7 @@ public class ComparerController {
     // Handling async tasks and long operations.
 
     /**
-     * Initiates the load task sequence. This includes preparing the UI,
+     * Initiates the loadImages task sequence. This includes preparing the UI,
      * loading files, updating the UI after loading, comparing files, and
      * finally updating the UI after comparison. Any exceptions are handled
      * and the completion of the task is managed.
@@ -340,7 +340,7 @@ public class ComparerController {
     /**
      * Prepares the user interface for a task by performing the following actions:
      * <ul>
-     *   <li>Disables buttons that may disrupt the task (e.g., load, move, reset).</li>
+     *   <li>Disables buttons that may disrupt the task (e.g., loadImages, move, reset).</li>
      *   <li>Sets the cursor to a wait cursor to indicate that a background operation is in progress.</li>
      *   <li>Updates the state label to indicate that the process is starting.</li>
      * </ul>
@@ -414,7 +414,7 @@ public class ComparerController {
     }
 
     /**
-     * Handles the completion of the load task. Updates the UI to enable
+     * Handles the completion of the loadImages task. Updates the UI to enable
      * the necessary buttons and resets the cursor to default. Also updates
      * the state label to indicate that the task is complete.
      */
@@ -430,7 +430,7 @@ public class ComparerController {
     /**
      * Handles the reset after moving files if the user chose to reset the comparer.
      * Clears the view, resets the module, and updates the UI to reflect the
-     * ready state. Re-enables the load and move buttons.
+     * ready state. Re-enables the loadImages and move buttons.
      *
      * @param isReset {@code true} if the comparer was reset, {@code false} otherwise.
      */
@@ -448,11 +448,11 @@ public class ComparerController {
      * {@link CompletionException} to be handled by the CompletableFuture pipeline.
      *
      * @throws CompletionException if an {@link IOException}, {@link InterruptedException},
-     *         or {@link TimeoutException} is thrown by {@link ComparerModule#load()}.
+     *         or {@link TimeoutException} is thrown by {@link ComparerModule#loadImages()}.
      */
     private void loadFiles() {
         try {
-            cModule.load();
+            cModule.loadImages();
         } catch (IOException | InterruptedException | TimeoutException e) {
             throw new CompletionException(e);
         }

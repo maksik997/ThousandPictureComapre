@@ -1,146 +1,245 @@
 package pl.magzik;
 
-import com.formdev.flatlaf.util.SystemInfo;
-import pl.magzik.modules.gallery.GalleryTableModel;
-import pl.magzik.ui.components.general.FileChooser;
-import pl.magzik.ui.views.LoadingFrame;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.util.SystemInfo;
+import pl.magzik.modules.loader.ModuleLoader;
+import pl.magzik.ui.views.LoadingFrame;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
-import java.awt.*;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
+/**
+ * Entry point of the application that initializes and starts the application.
+ * <p>
+ * This class sets up the application environment, including loading configuration settings,
+ * initializing modules, setting up UI properties, and launching the main application view.
+ * </p>
+ */
 public class Main {
+
+    /**
+     * The main method that serves as the entry point for the application.
+     * <p>
+     * It initializes the model, sets up the module loader, loads initial modules,
+     * configures the UI, and launches the application view. If an error occurs during
+     * initialization or loading, it is handled by displaying an error message and exiting the application.
+     * </p>
+     * @param args command-line arguments (not used)
+     */
     public static void main(String[] args) {
-        if (SystemInfo.isMacOS) {
-            System.setProperty("apple.awt.application.name", "Thousand Picture Comapre`");
-            System.setProperty("apple.awt.application.appearance", "system");
-        }
-
-        FlatDarculaLaf.setup();
-        setUIManagerProperties();
-
-        Locale locale = Locale.getDefault();
-        ResourceBundle resources = ResourceBundle.getBundle("localization", locale);
-
-        LoadingFrame loadingFrame = new LoadingFrame();
-        updateComponents(loadingFrame.getContentPane(), resources);
-
-        SwingUtilities.invokeLater(() -> loadingFrame.setVisible(true));
-
         try {
-            Model model = new Model();
+            Model model = initializeModel();
+            ModuleLoader moduleLoader = initializeModuleLoader(model);
+            loadInitialModule(moduleLoader, model);
 
-            // Take valid locale and update resource bundle
-            locale = Locale.forLanguageTag(model.getSettingsModule().getSetting("language"));
-            ResourceBundle.clearCache();
-            resources = ResourceBundle.getBundle("localization", locale);
+            setupUIManagerProperties();
+            setupLookAndFeel(model.getSettingsModule().getSetting("theme"));
 
-            // Setup theme
-            if (model.getSettingsModule().getSetting("theme").equals("dark")) {
-                FlatDarculaLaf.setup();
-            } else {
-                FlatLightLaf.setup();
-            }
+            Locale locale = getLocale(model);
+            View view = initializeView(locale);
+            configureView(view);
 
-            View view = new View(resources);
+            LoadingFrame loadingFrame = createLoadingFrame(view, moduleLoader);
 
-            ResourceBundle varResources = ResourceBundle.getBundle("variables", locale);
+            loadModules(view, moduleLoader);
 
-            new Controller(view, model, varResources);
+            Controller controller = initializeController(view, model, locale);
 
-            updateAfterwardsComponents(model, resources);
-
-            loadingFrame.dispose();
-            SwingUtilities.invokeLater(() -> view.setVisible(true));
-
+            launchApplication(view, loadingFrame);
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            System.exit(1);
+            handleError(e);
         }
     }
 
-    private static void setUIManagerProperties(){
-        UIManager.put("TextComponent.arc", 10);
+    /**
+     * Initializes the {@code Model} instance.
+     * @return a new instance of {@code Model}
+     * @throws IOException if an error occurs while initializing the model
+     */
+    private static Model initializeModel() throws IOException {
+        return new Model();
+    }
+
+    /**
+     * Initializes the {@code ModuleLoader} with modules from the provided {@code Model}.
+     * @param model the {@code Model} instance from which modules are retrieved
+     * @return a configured {@code ModuleLoader}
+     * @throws NullPointerException if {@code model} is {@code null}
+     */
+    private static ModuleLoader initializeModuleLoader(Model model) {
+        Objects.requireNonNull(model);
+
+        return ModuleLoader.create(model.getSettingsModule())
+                    .with(model.getComparerModule())
+                    .with(model.getGalleryModule())
+                    .ready();
+    }
+
+    /**
+     * Loads the initial module using the provided {@code ModuleLoader} and {@code Model}.
+     * @param moduleLoader the {@code ModuleLoader} used to load the initial module
+     * @param model the {@code Model} instance used to load settings
+     * @throws IOException if an error occurs while loading the module or settings
+     * @throws NullPointerException if {@code moduleLoader} or {@code model} is {@code null}
+     */
+    private static void loadInitialModule(ModuleLoader moduleLoader, Model model) throws IOException {
+        Objects.requireNonNull(moduleLoader);
+        Objects.requireNonNull(model);
+
+        moduleLoader.loadNext(); // Settings Module
+        model.getSettingsModule().loadSettings();
+    }
+
+    /**
+     * Configures UIManager properties for custom look and feel.
+     */
+    private static void setupUIManagerProperties(){
+        UIManager.put("Button.arc", 999);
+        UIManager.put("Component.arc", 999);
+        UIManager.put("TextComponent.arc", 999);
+        UIManager.put("Component.arrowType", "chevron");
         UIManager.put("Component.focusWidth", 1);
         UIManager.put("Button.innerFocusWidth", 0);
     }
 
-    private static View initView(ResourceBundle resources) throws IOException {
-        View view = new View(resources);
-        view.setTitle(resources.getString(view.getTitle()));
+    /**
+     * Sets up the look and feel of the application based on the specified theme.
+     * @param theme the theme to apply ("dark" or "light")
+     * @throws NullPointerException if {@code theme} is {@code null}
+     */
+    private static void setupLookAndFeel(String theme) {
+        Objects.requireNonNull(theme, "Settings module isn't loaded.");
 
-        FileChooser<?>[] fileChoosers = {
-            view.getComparerView().getFileChooser(),
-            view.getSettingsView().getDestinationEntry().getFileChooser()
-        };
-
-        for (FileChooser<?> fc : fileChoosers) {
-            JFileChooser fileChooser = fc.getFileChooser();
-            String titleKey = fileChooser.getDialogTitle();
-            if (titleKey != null && resources.containsKey(titleKey)) {
-                fileChooser.setDialogTitle(resources.getString(titleKey));
-            }
-            String approveButtonKey = fileChooser.getApproveButtonText();
-            if (approveButtonKey != null && resources.containsKey(approveButtonKey)) {
-                fileChooser.setApproveButtonText(resources.getString(approveButtonKey));
-            }
-        }
-
-        for(JPanel p : view.getScenes()) updateComponents(p, resources);
-        return view;
+        if (theme.equalsIgnoreCase("dark")) FlatDarculaLaf.setup();
+        else FlatLightLaf.setup();
     }
 
-    private static void updateComponents(Container container, ResourceBundle resources) {
-        String key;
-        for (Component component : container.getComponents()) {
-            if (component instanceof JComponent c) {
-                if (c.getBorder() instanceof TitledBorder border) {
-                    key = border.getTitle();
-                    if (key != null && resources.containsKey(key))
-                        border.setTitle(resources.getString(key));
-                }
-            }
+    /**
+     * Retrieves the locale for the application based on the model settings.
+     * @param model the {@code Model} instance used to get the language setting
+     * @return the {@code Locale} instance for the application
+     * @throws NullPointerException if {@code model} is {@code null}
+     */
+    private static Locale getLocale(Model model) {
+        Objects.requireNonNull(model);
 
-            if (component instanceof JLabel label) {
-                key = label.getText();
-                if (key != null && resources.containsKey(key))
-                    label.setText(resources.getString(key));
-            } else if (component instanceof JButton button) {
-                key = button.getText();
-                if (key != null && resources.containsKey(key))
-                    button.setText(resources.getString(key));
-            } else if (component instanceof JCheckBox checkBox) {
-                key = checkBox.getText();
-                if (key != null && resources.containsKey(key))
-                    checkBox.setText(resources.getString(key));
-            } else if (component instanceof Container) {
-                if (component instanceof JTabbedPane tabbedPane) {
-                    for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-                        key = tabbedPane.getTitleAt(i);
-                        if (key != null && resources.containsKey(key))
-                            tabbedPane.setTitleAt(i, resources.getString(key));
-                    }
-                }
+        return Locale.forLanguageTag(model.getSettingsModule().getSetting("language"));
+    }
 
-                updateComponents((Container) component, resources);
-            }
+    /**
+     * Initializes the {@code View} instance with the specified locale.
+     * @param locale the {@code Locale} to use it for resource bundles
+     * @return a new {@code View} instance
+     * @throws NullPointerException if {@code locale} is {@code null}
+     */
+    private static View initializeView(Locale locale) {
+        Objects.requireNonNull(locale);
+
+        ResourceBundle resources = ResourceBundle.getBundle("localization", locale);
+
+        return new View(resources);
+    }
+
+    /**
+     * Configures the {@link View} for macOS-specific properties.
+     * <p>
+     * This method checks if the application is running on macOS and, if so, sets several macOS-specific
+     * system properties to customize the appearance and behavior of the application window. These properties include:
+     * </p>
+     * <ul>
+     *     <li>{@code apple.awt.application.name} - Sets the name of the application as it appears in the macOS menu bar.</li>
+     *     <li>{@code apple.awt.application.appearance} - Configures the appearance of the application (e.g., light or dark mode).</li>
+     *     <li>{@code apple.awt.windowTitleVisible} - Controls whether the window title is visible.</li>
+     * </ul>
+     * <p>
+     * If the application is not running on macOS, this method does nothing.
+     * </p>
+     *
+     * @param view the {@link View} instance to be configured
+     */
+    private static void configureView(View view) {
+        if (SystemInfo.isMacOS) {
+            System.setProperty("apple.awt.application.name", "Thousand Picture Comapre`");
+            System.setProperty("apple.awt.application.appearance", "system");
+            view.getRootPane().putClientProperty("apple.awt.windowTitleVisible", false);
         }
     }
 
-    private static void updateAfterwardsComponents(Model model, ResourceBundle resources) {
-        GalleryTableModel gtm = model.getGalleryModule().getGalleryTableModel();
-        String key;
-        for (int i = 0; i < gtm.getColumnCount(); i++) {
-            key = gtm.getColumnName(i);
-            if (key != null && resources.containsKey(key)) gtm.setColumnName(i, resources.getString(key));
-        }
-        gtm.refresh();
+    /**
+     * Creates and shows the loading frame while modules are being loaded.
+     * @param view the {@code View} instance used to show the loading frame
+     * @param moduleLoader the {@code ModuleLoader} used to track loading progress
+     * @return the {@code LoadingFrame} instance
+     * @throws NullPointerException if {@code view} or {@code moduleLoader} is {@code null}
+     */
+    private static LoadingFrame createLoadingFrame(View view, ModuleLoader moduleLoader) {
+        LoadingFrame lf = view.showLoadingFrame();
+        moduleLoader.addPropertyChangeListener(lf);
+
+        return lf;
     }
 
+    /**
+     * Loads all modules sequentially using the provided {@code ModuleLoader}.
+     * @param view the {@code View} instance (used for displaying progress)
+     * @param moduleLoader the {@code ModuleLoader} used to load modules
+     * @throws IOException if an error occurs while loading modules
+     * @throws NullPointerException if {@code view} or {@code moduleLoader} is {@code null}
+     */
+    private static void loadModules(View view, ModuleLoader moduleLoader) throws IOException {
+        Objects.requireNonNull(view);
+        Objects.requireNonNull(moduleLoader);
 
+        while (moduleLoader.hasNext()) {
+            moduleLoader.loadNext();
+        }
+    }
+
+    /**
+     * Initializes the {@code Controller} with the provided view, model, and locale.
+     * @param view the {@code View} instance
+     * @param model the {@code Model} instance
+     * @param locale the {@code Locale} instance used for resource bundles
+     * @return a new {@code Controller} instance
+     * @throws NullPointerException if {@code view}, {@code model}, or {@code locale} is {@code null}
+     */
+    private static Controller initializeController(View view, Model model, Locale locale) {
+        ResourceBundle varResources = ResourceBundle.getBundle("variables", locale);
+        return new Controller(view, model, varResources);
+    }
+
+    /**
+     * Launches the application by disposing of the loading frame and making the main view visible.
+     * @param view the {@code View} instance to be made visible
+     * @param loadingFrame the {@code LoadingFrame} to be disposed
+     * @throws NullPointerException if {@code view} or {@code loadingFrame} is {@code null}
+     */
+    private static void launchApplication(View view, LoadingFrame loadingFrame) {
+        Objects.requireNonNull(view);
+
+        view.disposeLoadingFrame(loadingFrame);
+        SwingUtilities.invokeLater(() -> view.setVisible(true));
+    }
+
+    /**
+     * Handles errors by showing a dialog with the error message and exiting the application.
+     * @param e the {@code Exception} that occurred
+     * @throws NullPointerException if {@code e} is {@code null}
+     */
+    private static void handleError(Exception e) {
+        Objects.requireNonNull(e);
+
+        JOptionPane.showMessageDialog(
+            null,
+            "Could not start application.\nError message:\n" + e.getMessage(),
+            "Error:",
+            JOptionPane.ERROR_MESSAGE
+        );
+
+        System.exit(1);
+    }
 }

@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class Model {
 
-    private static final String configPath = "./data/config.cfg";
+    public static final String configPath = "./data/config.cfg";
 
     private final ComparerModule comparerModule;
 
@@ -18,7 +18,7 @@ public class Model {
 
     public Model() throws IOException {
         this.settingsModule = new SettingsModule(configPath);
-        this.settingsModule.loadSettings();
+//        this.settingsModule.loadSettings();
 
         this.comparerModule = new ComparerModule();
         this.galleryModule = new GalleryModule();

@@ -4,6 +4,7 @@ import pl.magzik.modules.gallery.Entry;
 import pl.magzik.modules.gallery.GalleryTableModel;
 import pl.magzik.modules.gallery.GalleryTableRowSorter;
 import pl.magzik.IO.FileOperator;
+import pl.magzik.modules.loader.Module;
 
 import javax.swing.*;
 import javax.swing.table.TableRowSorter;
@@ -19,14 +20,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class GalleryModule implements ComparerInterface{
+public class GalleryModule implements ComparerInterface, Module {
 
     private static final Path imageReferenceFilePath = Path.of(".", "data", "gallery.tp"),
         tagsReferenceFilePath = Path.of(".", "data", "tags.tp");
 
-    private final GalleryTableModel galleryTableModel;
+    private GalleryTableModel galleryTableModel;
 
-    private final TableRowSorter<GalleryTableModel> tableRowSorter;
+    private TableRowSorter<GalleryTableModel> tableRowSorter;
 
     private File destination;
 
@@ -34,7 +35,7 @@ public class GalleryModule implements ComparerInterface{
 
     private List<File> comparerOutput;
 
-    private final FileOperator fileOperator;
+    private FileOperator fileOperator;
 
     private Mode mode;
 
@@ -42,11 +43,14 @@ public class GalleryModule implements ComparerInterface{
 
     private String nameTemplate;
 
-    private final Set<String> existingTags;
+    private Set<String> existingTags;
 
     private SwingWorker<Void, Void> mapObjects, transferObjects, removeObjects, unifyNames, addImages, removeImages;
 
-    public GalleryModule() throws IOException {
+    public GalleryModule() { }
+
+    @Override
+    public void load() throws IOException {
         galleryTableModel = new GalleryTableModel();
         tableRowSorter = new GalleryTableRowSorter(galleryTableModel);
         existingTags = new HashSet<>();

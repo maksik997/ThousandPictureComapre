@@ -1,6 +1,8 @@
 package pl.magzik;
 
 import pl.magzik.controllers.*;
+import pl.magzik.ui.localization.DefaultTranslationStrategy;
+import pl.magzik.ui.localization.TranslationStrategy;
 
 import java.util.ResourceBundle;
 
@@ -28,7 +30,7 @@ public class Controller {
     private final ComparerController comparerController;
     private final GalleryController galleryController;
     private final SettingsController settingsController;
-    private final TranslationController translationController;
+    private final TranslationStrategy translationStrategy;
 
     /**
      * Constructs the main {@code Controller} for the application.
@@ -45,15 +47,15 @@ public class Controller {
         this.view = view;
         this.model = model;
         this.resourceBundle = resourceBundle;
-        this.translationController = new TranslationController(resourceBundle);
-        this.menuController = new MenuController(view.getMenuView(), view);
-        this.comparerController = new ComparerController(view.getComparerView(), model.getComparerModule(), translationController, view, view);
-        this.galleryController = new GalleryController(view.getGalleryView(), model.getGalleryModule(), view, view, translationController);
-        this.settingsController = new SettingsController(view.getSettingsView(), model.getSettingsModule(), model.getGalleryModule(), translationController, view, model.getComparerModule(), model.getGalleryModule());
+        this.translationStrategy = new DefaultTranslationStrategy(resourceBundle);
+        this.menuController = new MenuController(view.getMenuView(), view.getSceneManager());
+        this.comparerController = new ComparerController(view.getComparerView(), model.getComparerModule(), translationStrategy, view.getUiManager(), view.getUiManager());
+        this.galleryController = new GalleryController(view.getGalleryView(), model.getGalleryModule(), view.getUiManager(), view.getUiManager(), translationStrategy);
+        this.settingsController = new SettingsController(view.getSettingsView(), model.getSettingsModule(), model.getGalleryModule(), translationStrategy, view.getUiManager(), model.getComparerModule(), model.getGalleryModule());
 
         // Translate Components Post-construct
-        view.translateComponents();
-        view.translateComponents(model.getGalleryModule().getGalleryTableModel());
+        view.getTranslationStrategy().translateComponents(view);
+        view.getTranslationStrategy().translateComponents(model.getGalleryModule().getGalleryTableModel());
     }
 
 }

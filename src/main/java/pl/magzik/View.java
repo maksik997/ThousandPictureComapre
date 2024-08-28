@@ -1,309 +1,212 @@
 package pl.magzik;
 
-import com.formdev.flatlaf.util.SystemInfo;
-import pl.magzik.modules.gallery.GalleryTableModel;
-import pl.magzik.ui.components.general.FileChooser;
-import pl.magzik.ui.interfaces.UiManagerInterface;
-import pl.magzik.ui.components.Utility;
-import pl.magzik.ui.interfaces.logging.MessageInterface;
+import pl.magzik.ui.UiManager;
+import pl.magzik.ui.localization.ComponentTranslationStrategy;
+import pl.magzik.ui.scenes.SceneManager;
 import pl.magzik.ui.views.*;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.awt.event.ActionListener;
+import java.util.*;
 
-public class View extends JFrame implements MessageInterface, UiManagerInterface {
+/**
+ * Represents the main application window that handles scene management and user interface operations.
+ * <p>
+ * The {@code View} class extends {@link JFrame} and serves as the primary container for different scenes
+ * within the application. It manages various views such as {@link ComparerView}, {@link SettingsView},
+ * {@link GalleryView}, {@link MenuView}, and {@link CreditsView}, and provides methods for switching between
+ * these scenes. It also integrates translation and UI management functionalities.
+ * </p>
+ */
+public class View extends JFrame {
 
-    // Different Panels
     private final ComparerView comparerView;
     private final SettingsView settingsView;
     private final GalleryView galleryView;
     private final MenuView menuView;
     private final CreditsView creditsView;
-    private final List<JPanel> scenes;
-    private final ResourceBundle resourceBundle;
+    private final SceneManager sceneManager;
+    private final ComponentTranslationStrategy translationStrategy;
+    private final UiManager uiManager;
 
-    public View(ResourceBundle resourceBundle) throws HeadlessException {
-        this.resourceBundle = resourceBundle;
+    /**
+     * Constructs a new {@code View} instance with the specified views and translation strategy.
+     *
+     * @param comparerView the {@link ComparerView} instance. Must not be {@code null}.
+     * @param settingsView the {@link SettingsView} instance. Must not be {@code null}.
+     * @param galleryView the {@link GalleryView} instance. Must not be {@code null}.
+     * @param menuView the {@link MenuView} instance. Must not be {@code null}.
+     * @param creditsView the {@link CreditsView} instance. Must not be {@code null}.
+     * @param translationStrategy the {@link ComponentTranslationStrategy} used for translating UI components. Must not be {@code null}.
+     * @throws HeadlessException if the environment does not support a display.
+     */
+    private View(ComparerView comparerView, SettingsView settingsView, GalleryView galleryView, MenuView menuView, CreditsView creditsView, ComponentTranslationStrategy translationStrategy) throws HeadlessException {
+        this.comparerView = comparerView;
+        this.settingsView = settingsView;
+        this.galleryView = galleryView;
+        this.menuView = menuView;
+        this.creditsView = creditsView;
+        this.sceneManager = new SceneManager(this);
+        this.translationStrategy = translationStrategy;
+        this.uiManager = new UiManager(this);
 
-        this.scenes = new ArrayList<>();
-        this.menuView = MenuView.Factory.create();
-        this.galleryView = GalleryView.Factory.create();
-        this.settingsView = SettingsView.Factory.create();
-        this.comparerView = ComparerView.Factory.create();
-        this.creditsView = new CreditsView();
-
-
-        scenes.add(galleryView);
-        scenes.add(settingsView);
-        scenes.add(comparerView);
-        scenes.add(menuView);
-        scenes.add(creditsView);
-
-        ImageIcon icon = new ImageIcon("data/thumbnail_64x64.png");
-
-        this.add(menuView);
-
-        this.setTitle("general.title");
-        this.setIconImage(icon.getImage());
-        this.setMinimumSize(new Dimension(800, 650));
-        this.pack();
-        this.setLocationRelativeTo(null);
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-
+        addScenes();
         addListeners();
+        setUpFrame();
     }
 
+    /**
+     * Adds all scenes to the {@link SceneManager}.
+     * <p>
+     * This method registers each view with the {@link SceneManager} to manage scene switching.
+     * </p>
+     */
+    private void addScenes() {
+        sceneManager.addScene(SceneManager.Scene.GALLERY, galleryView);
+        sceneManager.addScene(SceneManager.Scene.SETTINGS, settingsView);
+        sceneManager.addScene(SceneManager.Scene.COMPARER, comparerView);
+        sceneManager.addScene(SceneManager.Scene.MENU, menuView);
+        sceneManager.addScene(SceneManager.Scene.CREDITS, creditsView);
+    }
+
+    /**
+     * Adds action listeners to all "back" buttons to switch back to the {@link SceneManager.Scene#MENU}.
+     * <p>
+     * This method sets up a common listener for the "back" buttons in the scenes to return to the menu.
+     * </p>
+     */
     private void addListeners() {
-        scenes.forEach( p -> {
-            if (p instanceof AbstractView) {
-                ((AbstractView) p)
-                    .getBackButton()
-                    .addActionListener(_ -> toggleScene(Utility.Scene.MENU));
-            }
-        });
+        ActionListener backButtonListener = _ -> sceneManager.switchScene(SceneManager.Scene.MENU);
+
+        sceneManager.getScenes().stream()
+                .filter(p -> p instanceof AbstractView)
+                .map(AbstractView.class::cast)
+                .forEach(p -> p.getBackButton().addActionListener(backButtonListener));
     }
 
-    public LoadingFrame showLoadingFrame() {
-        LoadingFrame loadingFrame = new LoadingFrame();
-        translateComponents(loadingFrame.getContentPane());
-        SwingUtilities.invokeLater(() -> loadingFrame.setVisible(true));
-        return loadingFrame;
+    /**
+     * Configures the main application frame.
+     * <p>
+     * This method sets the icon, title, minimum size, and default close operation for the {@code View} frame.
+     * It also adds the initial {@link MenuView} to the frame.
+     * </p>
+     */
+    private void setUpFrame() {
+        ImageIcon icon = new ImageIcon("data/thumbnail_64x64.png");
+        setIconImage(icon.getImage());
+        setTitle("general.title");
+        setMinimumSize(new Dimension(800, 650));
+        pack();
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        add(menuView);
     }
 
-    public void disposeLoadingFrame(LoadingFrame loadingFrame) {
-        SwingUtilities.invokeLater(loadingFrame::dispose);
-    }
-
+    /**
+     * Returns the {@link ComparerView} instance.
+     *
+     * @return the {@link ComparerView} instance.
+     */
     public ComparerView getComparerView() {
         return comparerView;
     }
 
+    /**
+     * Returns the {@link SettingsView} instance.
+     *
+     * @return the {@link SettingsView} instance.
+     */
     public SettingsView getSettingsView() {
         return settingsView;
     }
 
+    /**
+     * Returns the {@link GalleryView} instance.
+     *
+     * @return the {@link GalleryView} instance.
+     */
     public GalleryView getGalleryView() {
         return galleryView;
     }
 
+    /**
+     * Returns the {@link MenuView} instance.
+     *
+     * @return the {@link MenuView} instance.
+     */
     public MenuView getMenuView() {
         return menuView;
     }
 
     /**
-     * Returns an unmodifiable view of the list of scenes.
-     * <p>
-     * This method provides access to the current list of scenes represented by {@code JPanel} instances.
-     * The list returned by this method is a copy of the internal list to prevent external modifications.
+     * Returns the {@link CreditsView} instance.
      *
-     * @return An unmodifiable {@code List} of {@code JPanel} instances representing the scenes.
-     *
-     * @see List#copyOf(Collection)
+     * @return the {@link CreditsView} instance.
      */
-    @Override
-    public List<JPanel> getScenes() {
-        return List.copyOf(scenes);
+    public CreditsView getCreditsView() {
+        return creditsView;
     }
 
     /**
-     * Toggles the current UI scene to the specified scene.
-     * This method removes all currently displayed scenes from the view and adds the new scene based on the given parameter.
-     * After updating the scene, it repaints and revalidates the UI to reflect the changes.
+     * Returns the {@link SceneManager} instance used for scene management.
      *
-     * @param scene The scene to switch to, represented by the {@link Utility.Scene} enumeration.
-     *              Valid values are SETTINGS, COMPARER, GALLERY, MENU, and CREDITS.
+     * @return the {@link SceneManager} instance.
      */
-    @Override
-    public void toggleScene(Utility.Scene scene) {
-        scenes.forEach(this::remove);
+    public SceneManager getSceneManager() {
+        return sceneManager;
+    }
 
-        switch (scene) {
-            case SETTINGS -> add(settingsView);
-            case COMPARER -> add(comparerView);
-            case GALLERY -> add(galleryView);
-            case MENU -> add(menuView);
-            case CREDITS -> add(creditsView);
+    /**
+     * Returns the {@link ComponentTranslationStrategy} used for translating components.
+     *
+     * @return the {@link ComponentTranslationStrategy} instance.
+     */
+    public ComponentTranslationStrategy getTranslationStrategy() {
+        return translationStrategy;
+    }
+
+    /**
+     * Returns the {@link UiManager} instance used for UI operations.
+     *
+     * @return the {@link UiManager} instance.
+     */
+    public UiManager getUiManager() {
+        return uiManager;
+    }
+
+    /**
+     * Factory class for creating {@link View} instances.
+     * <p>
+     * The {@code Factory} class provides a method to create a fully initialized {@link View} instance
+     * using the specified {@link ResourceBundle} for localization.
+     * </p>
+     */
+    public static class Factory {
+
+        /**
+         * Creates a new {@link View} instance with the provided {@link ResourceBundle}.
+         *
+         * @param resourceBundle the {@link ResourceBundle} for localization. Must not be {@code null}.
+         * @return a new {@link View} instance.
+         * @throws IllegalArgumentException if {@code resourceBundle} is {@code null}.
+         */
+        public static View create(ResourceBundle resourceBundle) {
+            Objects.requireNonNull(resourceBundle);
+
+            ComparerView comparerView = ComparerView.Factory.create();
+            SettingsView settingsView = SettingsView.Factory.create();
+            GalleryView galleryView = GalleryView.Factory.create();
+            MenuView menuView = MenuView.Factory.create();
+            CreditsView creditsView = new CreditsView();
+            ComponentTranslationStrategy translationStrategy = new ComponentTranslationStrategy(resourceBundle);
+
+            return new View(
+              comparerView, settingsView,
+                galleryView, menuView,
+                creditsView, translationStrategy
+            );
         }
-        
-        repaint();
-        revalidate();
-    }
-
-    /**
-     * Sets the cursor for the entire UI.
-     * This method updates the cursor displayed over the UI components.
-     *
-     * @param cursor The cursor to be used, provided as an instance of {@link Cursor}.
-     */
-    @Override
-    public void useCursor(Cursor cursor) {
-        super.setCursor(cursor);
-    }
-
-    @Override
-    public void showErrorMessage(String message, String title) {
-        JOptionPane.showMessageDialog(
-            this,
-            String.format(message),
-            title,
-            JOptionPane.ERROR_MESSAGE
-        );
-    }
-
-    @Override
-    public void showErrorMessage(String message, String title, Exception e) {
-        JOptionPane.showMessageDialog(
-            this,
-            String.format(message, e.getMessage()),
-            title,
-            JOptionPane.ERROR_MESSAGE
-        );
-    }
-
-    @Override
-    public void showInformationMessage(String message, String title) {
-        JOptionPane.showMessageDialog(
-            this,
-            String.format(message),
-            title,
-            JOptionPane.INFORMATION_MESSAGE
-        );
-    }
-
-    @Override
-    public int showConfirmationMessage(Object message, String title) {
-        return JOptionPane.showConfirmDialog(
-            this,
-            message,
-            title,
-            JOptionPane.YES_NO_OPTION
-        );
-    }
-
-    /**
-     * Translates the components of the user interface to the current locale.
-     * <p>
-     * This method iterates through all components within the `scenes` collection and translates their titles, labels,
-     * and other text attributes. It also translates the text of file choosers used within the `comparerView`, `settingsView`,
-     * and `galleryView` components. This method is typically called after the UI components have been fully constructed to
-     * ensure that all text is translated to the current locale.
-     * </p>
-     */
-    public void translateComponents() {
-        setTitle(translate(getTitle()));
-        for (JPanel panel : scenes) translateComponents(panel);
-
-        FileChooser<?>[] fileChoosers = {
-            comparerView.getFileChooser(),
-            settingsView.getDestinationEntry().getFileChooser(),
-            galleryView.getFileChooser()
-        };
-
-        translateComponents(fileChoosers);
-    }
-
-    /**
-     * Recursively translates the components within the specified container.
-     * <p>
-     * This method traverses all components contained within the provided {@link Container}. It translates the text of
-     * {@link JLabel}, {@link JButton}, {@link JCheckBox}, and {@link TitledBorder} components. Additionally, it handles
-     * translation of tab titles in {@link JTabbedPane} components. For containers, it recursively processes their child
-     * components.
-     * </p>
-     *
-     * @param container the {@link Container} whose components are to be translated. Must not be {@code null}.
-     */
-    private void translateComponents(Container container) {
-        String key;
-        for (Component component : container.getComponents()) {
-            if (component instanceof JComponent c) {
-                if (c.getBorder() instanceof TitledBorder border) {
-                    key = border.getTitle();
-                    border.setTitle(translate(key));
-                }
-            }
-
-            if (component instanceof JLabel label) {
-                key = label.getText();
-                label.setText(translate(key));
-            } else if (component instanceof JButton button) {
-                key = button.getText();
-                button.setText(translate(key));
-            } else if (component instanceof JCheckBox checkBox) {
-                key = checkBox.getText();
-                checkBox.setText(translate(key));
-            } else if (component instanceof Container) {
-                if (component instanceof JTabbedPane tabbedPane) {
-                    for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-                        key = tabbedPane.getTitleAt(i);
-                        tabbedPane.setTitleAt(i, translate(key));
-                    }
-                }
-                translateComponents((Container) component);
-            }
-        }
-    }
-
-    /**
-     * Translates the text attributes of the specified file choosers.
-     * <p>
-     * This method updates the dialog title and approve button text of each {@link JFileChooser} contained within the provided
-     * {@link FileChooser} instances. It ensures that the file choosers reflect the current locale settings.
-     * </p>
-     *
-     * @param fileChoosers an array of {@link FileChooser} instances whose {@link JFileChooser} components are to be translated.
-     *                    Must not be {@code null}.
-     */
-    private void translateComponents(FileChooser<?>... fileChoosers) {
-        for (FileChooser<?> fc : fileChoosers) {
-            JFileChooser fileChooser = fc.getFileChooser();
-
-            String titleKey = fileChooser.getDialogTitle();
-            String approveButtonKey = fileChooser.getApproveButtonText();
-
-            fileChooser.setDialogTitle(translate(titleKey));
-            fileChooser.setApproveButtonText(translate(approveButtonKey));
-        }
-    }
-
-    /**
-     * Translates the column names of the provided {@link GalleryTableModel} to the current locale.
-     * <p>
-     * This method iterates through each column in the given {@link GalleryTableModel}, retrieves the column name,
-     * translates it using the {@link #translate(String)} method, and sets the translated name back to the column.
-     * After all column names have been translated, the method refreshes the table model to ensure the changes are
-     * reflected in the user interface.
-     * </p>
-     *
-     * @param gtm the {@link GalleryTableModel} whose column names are to be translated. Must not be {@code null}.
-     * @throws NullPointerException if {@code gtm} is {@code null}.
-     */
-    public void translateComponents(GalleryTableModel gtm) {
-        String key;
-        for (int i = 0; i < gtm.getColumnCount(); i++) {
-            key = gtm.getColumnName(i);
-            gtm.setColumnName(i, translate(key));
-        }
-        gtm.refresh();
-    }
-
-    /**
-     * Translates the provided key into the corresponding localized string.
-     * <p>
-     * This method looks up the specified key in the resource bundle and returns the translated string. If the key is not
-     * found in the resource bundle or if the key is {@code null}, the original key is returned.
-     * </p>
-     *
-     * @param key the key to be translated. Can be {@code null}.
-     * @return the translated string if the key exists in the resource bundle; otherwise, returns the original key.
-     */
-    private String translate(String key) {
-        if (key == null || !resourceBundle.containsKey(key)) return key;
-        return resourceBundle.getString(key);
     }
 }

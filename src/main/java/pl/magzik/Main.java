@@ -5,7 +5,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.util.SystemInfo;
 import pl.magzik.modules.loader.ModuleLoader;
 import pl.magzik.modules.theme.ThemeDetector;
-import pl.magzik.ui.views.LoadingFrame;
+import pl.magzik.ui.LoadingFrame;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -95,7 +95,7 @@ public class Main {
     }
 
     /**
-     * Configures UIManager properties for custom look and feel.
+     * Configures UiManager properties for custom look and feel.
      */
     private static void setupUIManagerProperties(){
         UIManager.put("Button.arc", 999);
@@ -157,7 +157,7 @@ public class Main {
 
         ResourceBundle resources = ResourceBundle.getBundle("localization", locale);
 
-        return new View(resources);
+        return View.Factory.create(resources);
     }
 
     /**
@@ -193,7 +193,7 @@ public class Main {
      * @throws NullPointerException if {@code view} or {@code moduleLoader} is {@code null}
      */
     private static LoadingFrame createLoadingFrame(View view, ModuleLoader moduleLoader) {
-        LoadingFrame lf = view.showLoadingFrame();
+        LoadingFrame lf = LoadingFrame.createAndShow(view.getTranslationStrategy());
         moduleLoader.addPropertyChangeListener(lf);
 
         return lf;
@@ -237,7 +237,7 @@ public class Main {
     private static void launchApplication(View view, LoadingFrame loadingFrame) {
         Objects.requireNonNull(view);
 
-        view.disposeLoadingFrame(loadingFrame);
+        loadingFrame.dispose();
         SwingUtilities.invokeLater(() -> view.setVisible(true));
     }
 

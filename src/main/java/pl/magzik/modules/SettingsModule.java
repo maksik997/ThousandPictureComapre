@@ -1,5 +1,6 @@
 package pl.magzik.modules;
 
+import com.formdev.flatlaf.util.SystemInfo;
 import pl.magzik.modules.loader.Module;
 
 import java.io.BufferedWriter;
@@ -43,7 +44,7 @@ public class SettingsModule implements Module {
             "theme", "dark"
         ));
         setts.add(Entry.create(
-            "themes", String.join(",", "dark", "light", "system")
+            "themes", SystemInfo.isWindows ? String.join(",", "dark", "light", "system") : String.join(",", "dark", "light")
         ));
         setts.add(Entry.create(
             "destination-for-pc", System.getProperty("user.home")

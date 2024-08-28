@@ -1,4 +1,4 @@
-package pl.magzik.ui.components.general;
+package pl.magzik.ui.components.filechoosers;
 
 import java.io.File;
 

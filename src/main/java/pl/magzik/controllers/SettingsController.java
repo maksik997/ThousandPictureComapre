@@ -1,13 +1,13 @@
 package pl.magzik.controllers;
 
-import pl.magzik.ui.interfaces.TranslationInterface;
+import pl.magzik.ui.localization.TranslationStrategy;
 import pl.magzik.modules.ComparerInterface;
 import pl.magzik.modules.ComparerModule;
 import pl.magzik.modules.GalleryModule;
 import pl.magzik.modules.SettingsModule;
 import pl.magzik.ui.components.settings.ComboBoxSettingsEntry;
 import pl.magzik.ui.components.settings.SettingsEntry;
-import pl.magzik.ui.interfaces.logging.MessageInterface;
+import pl.magzik.ui.logging.MessageInterface;
 import pl.magzik.ui.views.SettingsView;
 
 import java.beans.PropertyChangeListener;
@@ -44,7 +44,7 @@ import java.util.function.Function;
  *   <li>{@link SettingsView} - The view component that provides the user interface for settings.</li>
  *   <li>{@link SettingsModule} - The module responsible for storing and managing the settings data.</li>
  *   <li>{@link GalleryModule} - A module that also implements {@link ComparerInterface} and is affected by certain settings.</li>
- *   <li>{@link TranslationInterface} - For translating strings used in the settings view.</li>
+ *   <li>{@link TranslationStrategy} - For translating strings used in the settings view.</li>
  *   <li>{@link MessageInterface} - For displaying messages to the user.</li>
  *   <li>{@link ComparerInterface} - An interface representing modules that require updates based on settings.</li>
  * </ul>
@@ -58,7 +58,7 @@ public class SettingsController {
     private final SettingsView sView;
     private final SettingsModule sModule;
     private final GalleryModule gModule;
-    private final TranslationInterface ti;
+    private final TranslationStrategy ti;
     private final MessageInterface mi;
 
     private final List<ComparerInterface> cis;
@@ -69,11 +69,11 @@ public class SettingsController {
      * @param sView The {@link SettingsView} instance to interact with the user interface.
      * @param sModule The {@link SettingsModule} instance to handle the settings data.
      * @param gModule The {@link GalleryModule} instance, which also implements {@link ComparerInterface}.
-     * @param ti The {@link TranslationInterface} instance for translating strings.
+     * @param ti The {@link TranslationStrategy} instance for translating strings.
      * @param mi The {@link MessageInterface} instance for showing messages.
      * @param cis An array of {@link ComparerInterface} implementations, which may include {@link GalleryModule}.
      */
-    public SettingsController(SettingsView sView, SettingsModule sModule, GalleryModule gModule, TranslationInterface ti, MessageInterface mi, ComparerInterface... cis) {
+    public SettingsController(SettingsView sView, SettingsModule sModule, GalleryModule gModule, TranslationStrategy ti, MessageInterface mi, ComparerInterface... cis) {
         this.sView = sView;
         this.sModule = sModule;
         this.gModule = gModule;

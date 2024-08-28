@@ -1,6 +1,4 @@
-package pl.magzik.ui.interfaces.logging;
-
-import java.util.Objects;
+package pl.magzik.ui.logging;
 
 /**
  * Provides methods for information and error showing.

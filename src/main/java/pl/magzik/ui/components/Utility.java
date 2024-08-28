@@ -56,7 +56,4 @@ public class Utility {
         return textField;
     }
 
-    public enum Scene {
-        SETTINGS, COMPARER, GALLERY, MENU, CREDITS
-    }
 }

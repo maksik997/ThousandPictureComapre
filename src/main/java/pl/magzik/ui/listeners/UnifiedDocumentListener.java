@@ -1,4 +1,4 @@
-package pl.magzik.ui.interfaces;
+package pl.magzik.ui.listeners;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;

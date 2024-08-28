@@ -3,10 +3,10 @@ package pl.magzik.controllers;
 import pl.magzik.async.Command;
 import pl.magzik.async.ExecutorServiceManager;
 import pl.magzik.modules.GalleryModule;
-import pl.magzik.ui.interfaces.TranslationInterface;
-import pl.magzik.ui.interfaces.UiManagerInterface;
-import pl.magzik.ui.interfaces.UnifiedDocumentListener;
-import pl.magzik.ui.interfaces.logging.MessageInterface;
+import pl.magzik.ui.localization.TranslationStrategy;
+import pl.magzik.ui.cursor.CursorManagerInterface;
+import pl.magzik.ui.listeners.UnifiedDocumentListener;
+import pl.magzik.ui.logging.MessageInterface;
 import pl.magzik.ui.views.GalleryView;
 
 import javax.swing.*;
@@ -31,8 +31,8 @@ public class GalleryController {
     private final GalleryView gView;
     private final GalleryModule gModule;
     private final MessageInterface mi;
-    private final UiManagerInterface umi;
-    private final TranslationInterface ti;
+    private final CursorManagerInterface umi;
+    private final TranslationStrategy ti;
     private final ExecutorService executor;
 
     /**
@@ -43,11 +43,11 @@ public class GalleryController {
      *
      * @param gView the {@link GalleryView} used to interact with the UI.
      * @param gModule the {@link GalleryModule} that handles gallery data and operations.
-     * @param umi the {@link UiManagerInterface} for managing the user interface state.
+     * @param umi the {@link CursorManagerInterface} for managing the user interface state.
      * @param mi the {@link MessageInterface} for displaying messages to the user.
-     * @param ti the {@link TranslationInterface} for translating messages.
+     * @param ti the {@link TranslationStrategy} for translating messages.
      */
-    public GalleryController(GalleryView gView, GalleryModule gModule, UiManagerInterface umi, MessageInterface mi, TranslationInterface ti) {
+    public GalleryController(GalleryView gView, GalleryModule gModule, CursorManagerInterface umi, MessageInterface mi, TranslationStrategy ti) {
         this.ti = ti;
         this.umi = umi;
         this.mi = mi;
@@ -534,7 +534,7 @@ public class GalleryController {
     private void prepareUiBefore() {
         SwingUtilities.invokeLater(() -> {
             gView.lockModule();
-            umi.useCursor(UiManagerInterface.WAIT_CURSOR);
+            umi.useCursor(CursorManagerInterface.WAIT_CURSOR);
         });
     }
 
@@ -560,7 +560,7 @@ public class GalleryController {
     private void handleGalleryUnlock(Void res, Throwable ex) {
         SwingUtilities.invokeLater(() -> {
             gView.unlockModule();
-            umi.useCursor(UiManagerInterface.DEFAULT_CURSOR);
+            umi.useCursor(CursorManagerInterface.DEFAULT_CURSOR);
         });
     }
 

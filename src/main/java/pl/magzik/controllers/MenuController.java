@@ -1,30 +1,31 @@
 package pl.magzik.controllers;
 
-import pl.magzik.ui.components.Utility;
-import pl.magzik.ui.interfaces.UiManagerInterface;
+import pl.magzik.ui.scenes.SceneManager;
+import pl.magzik.ui.scenes.SceneManagerInterface;
+import pl.magzik.ui.cursor.CursorManagerInterface;
 import pl.magzik.ui.views.MenuView;
 
 /**
- * Manages the interactions between the {@link MenuView} and the {@link UiManagerInterface}.
+ * Manages the interactions between the {@link MenuView} and the {@link CursorManagerInterface}.
  * <p>
  * This controller handles the user actions on the menu buttons, triggering scene changes
- * through the {@link UiManagerInterface} and handling the exit action.
+ * through the {@link CursorManagerInterface} and handling the exit action.
  * </p>
  */
 public class MenuController {
 
     private final MenuView mView;
-    private final UiManagerInterface uiManager;
+    private final SceneManagerInterface<SceneManager.Scene> sceneManager;
 
     /**
      * Constructs a {@code MenuController} with the specified view and UI manager.
      *
      * @param mView The {@code MenuView} instance that represents the menu UI.
-     * @param uiManager The {@code UiManagerInterface} instance used to manage scene changes.
+     * @param sceneManager The {@code SceneManagerInterface<SceneManager.Scene>} instance used to manage scene changes.
      */
-    public MenuController(MenuView mView, UiManagerInterface uiManager) {
+    public MenuController(MenuView mView, SceneManagerInterface<SceneManager.Scene> sceneManager) {
         this.mView = mView;
-        this.uiManager = uiManager;
+        this.sceneManager = sceneManager;
 
         // Listeners
 
@@ -39,10 +40,10 @@ public class MenuController {
      * </p>
      */
     private void addActionListeners() {
-        mView.getComparerButton().addActionListener(_ -> uiManager.toggleScene(Utility.Scene.COMPARER));
-        mView.getGalleryButton().addActionListener(_ -> uiManager.toggleScene(Utility.Scene.GALLERY));
-        mView.getSettingsButton().addActionListener(_ -> uiManager.toggleScene(Utility.Scene.SETTINGS));
-        mView.getCreditsButton().addActionListener(_ -> uiManager.toggleScene(Utility.Scene.CREDITS));
+        mView.getComparerButton().addActionListener(_ -> sceneManager.switchScene(SceneManager.Scene.COMPARER));
+        mView.getGalleryButton().addActionListener(_ -> sceneManager.switchScene(SceneManager.Scene.GALLERY));
+        mView.getSettingsButton().addActionListener(_ -> sceneManager.switchScene(SceneManager.Scene.SETTINGS));
+        mView.getCreditsButton().addActionListener(_ -> sceneManager.switchScene(SceneManager.Scene.CREDITS));
         mView.getExitButton().addActionListener(_ -> System.exit(0));
     }
 }

@@ -1,10 +1,10 @@
 package pl.magzik.controllers;
 
 import pl.magzik.async.ExecutorServiceManager;
-import pl.magzik.ui.interfaces.TranslationInterface;
+import pl.magzik.ui.localization.TranslationStrategy;
 import pl.magzik.modules.ComparerModule;
-import pl.magzik.ui.interfaces.UiManagerInterface;
-import pl.magzik.ui.interfaces.logging.MessageInterface;
+import pl.magzik.ui.cursor.CursorManagerInterface;
+import pl.magzik.ui.logging.MessageInterface;
 import pl.magzik.ui.views.ComparerView;
 
 import javax.swing.*;
@@ -42,17 +42,17 @@ import java.util.List;
  *
  * @see ComparerView
  * @see ComparerModule
- * @see TranslationInterface
+ * @see TranslationStrategy
  * @see MessageInterface
- * @see UiManagerInterface
+ * @see CursorManagerInterface
  * @see ExecutorService
  */
 public class ComparerController {
     private final ComparerView cView;
     private final ComparerModule cModule;
-    private final TranslationInterface ti;
+    private final TranslationStrategy ti;
     private final MessageInterface mi;
-    private final UiManagerInterface umi;
+    private final CursorManagerInterface umi;
     private final ExecutorService executor;
 
     /**
@@ -63,8 +63,8 @@ public class ComparerController {
      * <p>
      * The constructor performs the following steps:
      * <ul>
-     *   <li>Assigns the provided {@link ComparerView}, {@link ComparerModule}, {@link TranslationInterface},
-     *       {@link MessageInterface}, and {@link UiManagerInterface} to the corresponding fields.</li>
+     *   <li>Assigns the provided {@link ComparerView}, {@link ComparerModule}, {@link TranslationStrategy},
+     *       {@link MessageInterface}, and {@link CursorManagerInterface} to the corresponding fields.</li>
      *   <li>Retrieves the singleton instance of {@link ExecutorService} using {@link ExecutorServiceManager#getInstance()}.</li>
      *   <li>Initializes the list models of the {@code ComparerModule} and associates them with the corresponding UI components
      *       using {@link #initializeListModel(DefaultListModel, JList)}.</li>
@@ -74,12 +74,12 @@ public class ComparerController {
      *
      * @param cView the {@link ComparerView} instance that provides the user interface components. Must not be {@code null}.
      * @param cModule the {@link ComparerModule} instance that handles the core functionality of the application. Must not be {@code null}.
-     * @param ti the {@link TranslationInterface} used for translating text strings. Must not be {@code null}.
+     * @param ti the {@link TranslationStrategy} used for translating text strings. Must not be {@code null}.
      * @param mi the {@link MessageInterface} used for displaying messages to the user. Must not be {@code null}.
-     * @param umi the {@link UiManagerInterface} used for managing the user interface state and cursor. Must not be {@code null}.
+     * @param umi the {@link CursorManagerInterface} used for managing the user interface state and cursor. Must not be {@code null}.
      * @throws NullPointerException if any of the provided parameters are {@code null}.
      */
-    public ComparerController(ComparerView cView, ComparerModule cModule, TranslationInterface ti, MessageInterface mi, UiManagerInterface umi) {
+    public ComparerController(ComparerView cView, ComparerModule cModule, TranslationStrategy ti, MessageInterface mi, CursorManagerInterface umi) {
         this.cView = cView;
         this.cModule = cModule;
         this.ti = ti;
@@ -127,7 +127,7 @@ public class ComparerController {
      * <p>
      * The method performs the following actions:
      * <ul>
-     *   <li>Invokes the file chooser dialog through the {@link pl.magzik.ui.components.general.FileChooser} component.</li>
+     *   <li>Invokes the file chooser dialog through the {@link pl.magzik.ui.components.filechoosers.FileChooser} component.</li>
      *   <li>If the user selects a file, updates the {@link ComparerModule} with the chosen file.</li>
      * </ul>
      * <p>
@@ -271,12 +271,12 @@ public class ComparerController {
      *   <li>Restores the cursor to the default cursor.</li>
      * </ul>
      *
-     * @see UiManagerInterface#DEFAULT_CURSOR
+     * @see CursorManagerInterface#DEFAULT_CURSOR
      */
     private void unlockButtonPanel() {
         cView.getResetButton().setEnabled(true);
         cView.getStatusLabel().setText(ti.translate("comparer.state.done"));
-        umi.useCursor(UiManagerInterface.DEFAULT_CURSOR);
+        umi.useCursor(CursorManagerInterface.DEFAULT_CURSOR);
     }
 
     // Task methods.
@@ -355,7 +355,7 @@ public class ComparerController {
     private void prepareUiBefore(String state) {
         SwingUtilities.invokeLater(() -> {
             cView.blockDestructiveButtons();
-            umi.useCursor(UiManagerInterface.WAIT_CURSOR);
+            umi.useCursor(CursorManagerInterface.WAIT_CURSOR);
             cView.getStatusLabel().setText(ti.translate(state));
         });
     }

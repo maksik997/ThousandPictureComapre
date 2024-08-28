@@ -1,29 +1,24 @@
-package pl.magzik.controllers;
-
-import pl.magzik.ui.interfaces.TranslationInterface;
+package pl.magzik.ui.localization;
 
 import java.util.ResourceBundle;
 
 /**
- * Controller responsible for handling translations within the application.
+ * Provides a default implementation for translating keys to localized strings and vice versa.
  * <p>
- * The {@code TranslationController} class provides methods for translating keys to their localized strings
- * using a {@link ResourceBundle}. It implements the {@link TranslationInterface}, providing a standardized
- * way to translate keys and reverse translate localized strings back to their original keys.
+ * This class uses a {@link ResourceBundle} to perform translations and reverse translations, adhering
+ * to the {@link TranslationStrategy} interface.
  * </p>
  */
-public class TranslationController implements TranslationInterface {
+public class DefaultTranslationStrategy implements TranslationStrategy {
     private final ResourceBundle resourceBundle;
 
     /**
-     * Constructs a new {@code TranslationController} with the specified {@link ResourceBundle}.
-     * <p>
-     * The provided {@code ResourceBundle} is used to look up translations for keys and perform reverse lookups.
-     * </p>
+     * Constructs a new {@code DefaultTranslationStrategy} with the specified {@link ResourceBundle}.
      *
-     * @param resourceBundle the {@link ResourceBundle} containing the translations. Must not be {@code null}.
+     * @param resourceBundle the {@link ResourceBundle} containing translations. Must not be {@code null}.
+     * @throws IllegalArgumentException if {@code resourceBundle} is {@code null}.
      */
-    public TranslationController(ResourceBundle resourceBundle) {
+    public DefaultTranslationStrategy(ResourceBundle resourceBundle) {
         this.resourceBundle = resourceBundle;
     }
 

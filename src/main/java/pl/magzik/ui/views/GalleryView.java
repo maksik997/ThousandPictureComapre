@@ -3,8 +3,8 @@ package pl.magzik.ui.views;
 import pl.magzik.Controller;
 import pl.magzik.controllers.GalleryController;
 import pl.magzik.ui.components.Utility;
-import pl.magzik.ui.components.general.FileChooser;
-import pl.magzik.ui.components.general.MultipleFileSelectionStrategy;
+import pl.magzik.ui.components.filechoosers.FileChooser;
+import pl.magzik.ui.components.filechoosers.MultipleFileSelectionStrategy;
 
 import javax.swing.*;
 import javax.swing.border.Border;

@@ -1,8 +1,8 @@
 package pl.magzik.ui.components.settings;
 
 import pl.magzik.ui.components.Utility;
-import pl.magzik.ui.components.general.FileChooser;
-import pl.magzik.ui.components.general.SingleFileSelectionStrategy;
+import pl.magzik.ui.components.filechoosers.FileChooser;
+import pl.magzik.ui.components.filechoosers.SingleFileSelectionStrategy;
 
 import javax.swing.*;
 import javax.swing.border.*;

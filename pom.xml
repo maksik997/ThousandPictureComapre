@@ -28,10 +28,15 @@
             <version>3.5</version>
         </dependency>
         <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>5.14.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.maksik997</groupId>
             <artifactId>PictureComparer</artifactId>
             <version>0.5.1</version>
         </dependency>
-    </dependencies>
 
+    </dependencies>
 </project>

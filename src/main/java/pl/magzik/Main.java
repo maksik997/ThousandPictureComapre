@@ -46,7 +46,6 @@ public class Main {
             LoadingFrame loadingFrame = createLoadingFrame(view, moduleLoader);
 
             loadModules(view, moduleLoader);
-
             Controller controller = initializeController(view, model, locale);
 
             launchApplication(view, loadingFrame);

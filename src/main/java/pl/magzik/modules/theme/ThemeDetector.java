@@ -31,7 +31,6 @@ public class ThemeDetector {
      * <p>
      * Returns a string indicating the operating system:
      * - "windows" if the system is Windows
-     * - "mac" if the system is macOS
      * - "unknown" if the system is neither Windows nor macOS
      * </p>
      *

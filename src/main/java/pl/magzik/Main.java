@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.util.SystemInfo;
 import pl.magzik.modules.loader.ModuleLoader;
+import pl.magzik.modules.theme.ThemeDetector;
 import pl.magzik.ui.views.LoadingFrame;
 
 import javax.swing.*;
@@ -106,12 +107,28 @@ public class Main {
     }
 
     /**
-     * Sets up the look and feel of the application based on the specified theme.
-     * @param theme the theme to apply ("dark" or "light")
-     * @throws NullPointerException if {@code theme} is {@code null}
+     * Configures the application's look and feel based on the specified theme.
+     * <p>
+     * This method sets the look and feel of the application to either a dark or light theme
+     * based on the value of the {@code theme} parameter. If the specified theme is "system",
+     * it will determine the appropriate theme based on the current system settings.
+     * On non-Windows platforms, using the "system" theme will throw an exception.
+     * </p>
+     *
+     * @param theme the theme to apply. Can be "dark", "light", or "system".
+     *              - "dark" for dark theme,
+     *              - "light" for light theme,
+     *              - "system" for the theme based on the current system settings (Windows only).
+     * @throws NullPointerException if {@code theme} is {@code null}.
+     * @throws UnsupportedOperationException if {@code theme} is "system" and the platform is not Windows.
      */
     private static void setupLookAndFeel(String theme) {
         Objects.requireNonNull(theme, "Settings module isn't loaded.");
+
+        if (theme.equalsIgnoreCase("system")) {
+            if (!SystemInfo.isWindows) handleError(new UnsupportedOperationException("Unsupported system theme setting."));
+            theme = ThemeDetector.isDarkTheme() ? "dark" : "light";
+        }
 
         if (theme.equalsIgnoreCase("dark")) FlatDarculaLaf.setup();
         else FlatLightLaf.setup();

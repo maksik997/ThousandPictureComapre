@@ -43,7 +43,7 @@ public class SettingsModule implements Module {
             "theme", "dark"
         ));
         setts.add(Entry.create(
-            "themes", String.join(",", "dark", "light")
+            "themes", String.join(",", "dark", "light", "system")
         ));
         setts.add(Entry.create(
             "destination-for-pc", System.getProperty("user.home")

@@ -1,5 +1,6 @@
 package pl.magzik.ui;
 
+import pl.magzik.modules.ResourceModule;
 import pl.magzik.ui.components.Utility;
 import pl.magzik.ui.components.panels.ImagePanel;
 import pl.magzik.ui.localization.ComponentTranslationStrategy;
@@ -23,10 +24,6 @@ import java.io.File;
  * the displayed label based on property changes.
  */
 public class LoadingFrame extends JFrame implements PropertyChangeListener {
-
-    // TODO to ResourceManager
-    private static final String iconPath = "data/thumbnail_64x64.png",
-                                backgroundImagePath = "data/loadingImage.jpg";
 
     private final JProgressBar progressBar;
     private final JLabel loadingLabel;
@@ -52,7 +49,7 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
      * Initializes the frame with basic properties such as size, shape, and location.
      */
     private void initialize() {
-        ImageIcon icon = new ImageIcon(iconPath);
+        ImageIcon icon = new ImageIcon(ResourceModule.getInstance().getImage("thumbnail_64x64.png"));
         setType(Type.UTILITY);
         setAlwaysOnTop(true);
         setIconImage(icon.getImage());
@@ -68,7 +65,7 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
      * Creates and adds the background panel to the frame.
      */
     private void createBackgroundPanel() {
-        JPanel backgroundPanel = new ImagePanel(new File(backgroundImagePath));
+        JPanel backgroundPanel = new ImagePanel(ResourceModule.getInstance().getImage("loadingImage.jpg"));
         backgroundPanel.setLayout(new BorderLayout());
 
         addPanel(backgroundPanel);

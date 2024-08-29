@@ -55,9 +55,7 @@ public class GalleryModule implements ComparerInterface, Module {
         tableRowSorter = new GalleryTableRowSorter(galleryTableModel);
         existingTags = new HashSet<>();
 
-        if (Files.exists(imageReferenceFilePath)) {
-            loadFromFile();
-        }
+        loadFromFile();
 
         fileOperator = new FileOperator();
         destination = new File(System.getProperty("user.home"));
@@ -310,6 +308,11 @@ public class GalleryModule implements ComparerInterface, Module {
 
         List<String> images = ResourceModule.getInstance().getTextFile("gallery.tp");
 
+        if (images == null) {
+            ResourceModule.getInstance().addTextFile("gallery.tp", new ArrayList<>());
+            return;
+        }
+
         try {
             images.stream()
                 .map(separateLine)
@@ -344,12 +347,14 @@ public class GalleryModule implements ComparerInterface, Module {
     }
 
     private void saveTagsToFile() throws IOException {
-        try (BufferedWriter writer = Files.newBufferedWriter(tagsReferenceFilePath)) {
+        ResourceModule.getInstance().setTextFile("tags.tp", existingTags.stream().toList());
+
+        /*try (BufferedWriter writer = Files.newBufferedWriter(tagsReferenceFilePath)) {
             for (String tag : existingTags) {
                 writer.write(tag);
                 writer.newLine();
             }
-        }
+        }*/
     }
 
     public GalleryTableModel getGalleryTableModel() {

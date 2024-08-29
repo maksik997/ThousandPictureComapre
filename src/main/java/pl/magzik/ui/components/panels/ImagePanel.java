@@ -13,17 +13,15 @@ import java.io.IOException;
  * </p>
  */
 public class ImagePanel extends JPanel {
-    private Image image;
+    private final Image image;
 
     /**
-     * Constructs an {@code ImagePanel} with the image loaded from the specified file.
+     * Constructs an {@code ImagePanel} with the image.
      *
-     * @param file the {@link File} object representing the image file to be loaded
+     * @param image the {@link Image}.
      */
-    public ImagePanel(File file) {
-        try {
-            this.image = ImageIO.read(file);
-        } catch (IOException ignored) { }
+    public ImagePanel(Image image) {
+        this.image = image;
     }
 
     @Override

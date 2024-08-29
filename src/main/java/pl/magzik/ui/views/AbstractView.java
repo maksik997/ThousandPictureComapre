@@ -1,5 +1,6 @@
 package pl.magzik.ui.views;
 
+import pl.magzik.modules.ResourceModule;
 import pl.magzik.ui.components.Utility;
 
 import javax.swing.*;
@@ -23,7 +24,7 @@ public abstract class AbstractView extends JPanel {
             )
         );
 
-        ImageIcon thumbnail = Utility.getScaledImage(new ImageIcon("data/thumbnail.png"), 50, 50);
+        ImageIcon thumbnail = Utility.getScaledImage(new ImageIcon(ResourceModule.getInstance().getImage("thumbnail.png")), 50, 50);
         JLabel title = new JLabel(
                 "general.title",
                 thumbnail,

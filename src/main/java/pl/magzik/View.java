@@ -1,5 +1,6 @@
 package pl.magzik;
 
+import pl.magzik.modules.ResourceModule;
 import pl.magzik.ui.UiManager;
 import pl.magzik.ui.localization.ComponentTranslationStrategy;
 import pl.magzik.ui.scenes.SceneManager;
@@ -93,7 +94,7 @@ public class View extends JFrame {
      * </p>
      */
     private void setUpFrame() {
-        ImageIcon icon = new ImageIcon("data/thumbnail_64x64.png");
+        ImageIcon icon = new ImageIcon(ResourceModule.getInstance().getImage("thumbnail_64x64.png"));
         setIconImage(icon.getImage());
         setTitle("general.title");
         setMinimumSize(new Dimension(800, 650));

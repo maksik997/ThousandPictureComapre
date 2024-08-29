@@ -75,9 +75,9 @@ public class Main {
         Objects.requireNonNull(model);
 
         return ModuleLoader.create(model.getSettingsModule())
+                    .with(ResourceModule.getInstance())
                     .with(model.getComparerModule())
                     .with(model.getGalleryModule())
-                    .with(ResourceModule.getInstance())
                     .ready();
     }
 
@@ -99,9 +99,9 @@ public class Main {
      * Configures UiManager properties for custom look and feel.
      */
     private static void setupUIManagerProperties(){
-        UIManager.put("Button.arc", 999);
-        UIManager.put("Component.arc", 999);
-        UIManager.put("TextComponent.arc", 999);
+        UIManager.put("Button.arc", 20);
+        UIManager.put("Component.arc", 20);
+        UIManager.put("TextComponent.arc", 20);
         UIManager.put("Component.arrowType", "chevron");
         UIManager.put("Component.focusWidth", 1);
         UIManager.put("Button.innerFocusWidth", 0);

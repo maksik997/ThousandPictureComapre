@@ -266,12 +266,9 @@ public class GalleryModule implements ComparerInterface, Module {
     }
 
     private void loadFromFile() throws IOException {
-        if (!Files.exists(tagsReferenceFilePath)) {
-            Files.createFile(tagsReferenceFilePath);
-        } else {
-            try (BufferedReader reader = Files.newBufferedReader(tagsReferenceFilePath)) {
-                existingTags.addAll(reader.lines().filter(l -> l.matches("^[\\-\\w]+$")).toList());
-            }
+        List<String> tagList = ResourceModule.getInstance().getTextFile("tags.tp");
+        if (tagList == null) {
+            ResourceModule.getInstance().addTextFile("tags.tp", new ArrayList<>());
         }
 
         Function<String, Entry> separateLine = l -> {
@@ -311,8 +308,10 @@ public class GalleryModule implements ComparerInterface, Module {
             }
         };
 
-        try (BufferedReader reader = Files.newBufferedReader(imageReferenceFilePath)) {
-            reader.lines()
+        List<String> images = ResourceModule.getInstance().getTextFile("gallery.tp");
+
+        try {
+            images.stream()
                 .map(separateLine)
                 .filter(Objects::nonNull)
                 .filter(e -> Files.exists(e.getPath()))
@@ -337,16 +336,11 @@ public class GalleryModule implements ComparerInterface, Module {
     }
 
     private static void saveToFile(List<Entry> images) throws IOException {
-        try (BufferedWriter writer = Files.newBufferedWriter(imageReferenceFilePath)) {
-            List<String> toSave = images.stream()
-            .map(Entry::serialize)
-            .toList();
-
-            for (String image : toSave) {
-                writer.write(image);
-                writer.newLine();
-            }
-        }
+        ResourceModule.getInstance().setTextFile(
+            "gallery.tp",
+            images.stream().map(Entry::serialize).toList(),
+            true
+        );
     }
 
     private void saveTagsToFile() throws IOException {

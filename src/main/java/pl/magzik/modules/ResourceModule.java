@@ -222,7 +222,7 @@ public class ResourceModule implements Module {
     }
 
     /**
-     * Saves a specific external resource (text file) to the external resources directory.
+     * Saves a specific external resource (text file) to the external resources' directory.
      *
      * @param fileName The name of the file to be saved.
      * @throws IOException If an I/O error occurs during saving.

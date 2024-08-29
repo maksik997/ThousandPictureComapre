@@ -3,15 +3,10 @@ package pl.magzik.modules;
 import com.formdev.flatlaf.util.SystemInfo;
 import pl.magzik.modules.loader.Module;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * The {@code SettingsModule} class manages application settings.
@@ -25,8 +20,6 @@ import java.util.stream.Stream;
  * </p>
  */
 public class SettingsModule implements Module {
-    private final static Path USER_SETTINGS_DIR = Path.of(System.getProperty("user.home"), ".ThousandPictureComapre");
-    private final static String DEFAULT_CONFIG_FILE = "default.cfg";
 
     private final static Set<String> LANGUAGES = Set.of("en-US", "pl-PL"),
                                      THEMES = new HashSet<>(Set.of("dark", "light"));
@@ -36,7 +29,6 @@ public class SettingsModule implements Module {
     }
 
     private List<Entry> settings;
-    private Path configPath;
 
     /**
      * Constructs a new {@code SettingsModule} instance.
@@ -54,9 +46,7 @@ public class SettingsModule implements Module {
      */
     @Override
     public void load() throws IOException {
-        configPath = USER_SETTINGS_DIR.resolve("config.cfg");
-
-        if (!Files.exists(configPath)) {
+        if (!Files.exists(ResourceModule.CONFIG_PATH)) {
             try {
                 defaultSettings();
             } catch (URISyntaxException e) {
@@ -69,25 +59,17 @@ public class SettingsModule implements Module {
 
     /**
      * Creates default settings by copying from the default configuration file.
-     * Replaces placeholders with user directory path.
+     * Replaces placeholders with a user directory path.
      *
      * @throws URISyntaxException if the default configuration file URI is invalid
      * @throws IOException if an I/O error occurs while reading or writing files
      */
     private void defaultSettings() throws URISyntaxException, IOException {
-        if (Files.exists(USER_SETTINGS_DIR) || USER_SETTINGS_DIR.toFile().mkdirs()) {
-            URL defaultConfigURL = SettingsModule.class.getClassLoader().getResource(DEFAULT_CONFIG_FILE);
-            if (defaultConfigURL == null)
-                throw new IOException("Default configuration file not found");
-
-            URI defaultConfigUri = defaultConfigURL.toURI();
-
-            List<String> lines = Files.readAllLines(Path.of(defaultConfigUri)).stream()
-                .map(l -> l.contains("coutput") ? l.replace("_", USER_SETTINGS_DIR.toString()) : l)
-                .toList();
-
-            Files.write(configPath, lines);
-        }
+        ResourceModule.getInstance().copyReference(
+            "default.cfg",
+            "config.cfg",
+            l -> l.contains("coutput") ? l.replace("_", ResourceModule.EXTERNAL_RESOURCES_DIR.toString()) : l
+        );
     }
 
     /**
@@ -96,12 +78,10 @@ public class SettingsModule implements Module {
      * @throws IOException if an I/O error occurs while writing the file
      */
     public void saveSettings()  throws IOException {
-        try (BufferedWriter writer = Files.newBufferedWriter(configPath)) {
-            for (Entry e : settings) {
-                writer.write(e.toString());
-                writer.newLine();
-            }
-        }
+        ResourceModule.getInstance().setTextFile(
+            "config.cfg",
+            settings.stream().map(Entry::toString).toList()
+        );
     }
 
     /**
@@ -110,9 +90,11 @@ public class SettingsModule implements Module {
      * @throws IOException if an I/O error occurs while reading the file
      */
     private void loadSettings() throws IOException {
-        try (Stream<String> lines = Files.lines(configPath)) {
-            settings = lines.map(Entry::create).toList();
-        }
+        ResourceModule.getInstance().loadExternalResource(ResourceModule.CONFIG_PATH);
+        settings = ResourceModule.getInstance().getTextFile("config.cfg")
+                .stream()
+                .map(Entry::create)
+                .toList();
     }
 
     /**

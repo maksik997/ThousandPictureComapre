@@ -21,6 +21,7 @@ import java.util.ResourceBundle;
  * of the main {@code Controller}, ensuring that they are immutable and their dependencies are satisfied.
  * </p>
  */
+@SuppressWarnings("unused")
 public class Controller {
 
     private final View view;

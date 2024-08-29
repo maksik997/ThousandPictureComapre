@@ -24,6 +24,7 @@ import java.io.File;
  */
 public class LoadingFrame extends JFrame implements PropertyChangeListener {
 
+    // TODO to ResourceManager
     private static final String iconPath = "data/thumbnail_64x64.png",
                                 backgroundImagePath = "data/loadingImage.jpg";
 

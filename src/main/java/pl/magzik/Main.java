@@ -3,6 +3,7 @@ package pl.magzik;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.util.SystemInfo;
+import pl.magzik.modules.ResourceModule;
 import pl.magzik.modules.loader.ModuleLoader;
 import pl.magzik.modules.theme.ThemeDetector;
 import pl.magzik.ui.LoadingFrame;
@@ -76,6 +77,7 @@ public class Main {
         return ModuleLoader.create(model.getSettingsModule())
                     .with(model.getComparerModule())
                     .with(model.getGalleryModule())
+                    .with(ResourceModule.getInstance())
                     .ready();
     }
 

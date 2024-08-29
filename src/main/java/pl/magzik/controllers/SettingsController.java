@@ -100,12 +100,12 @@ public class SettingsController {
     private void initializeSettings() {
         initializeComboboxSetting("language", "languages", sView.getLanguageEntry());
         initializeComboboxSetting("theme", "themes", sView.getThemeEntry());
-        initializeStringSetting("destination-for-pc", sView.getDestinationEntry());
-        initializeStringSetting("unify-names-prefix", sView.getNamesPrefixEntry());
-        initializeBooleanSetting("recursive-mode", sView.getRecursiveModeEntry());
+        initializeStringSetting("coutput", sView.getDestinationEntry());
+        initializeStringSetting("un_prefix", sView.getNamesPrefixEntry());
+        initializeBooleanSetting("rmode", sView.getRecursiveModeEntry());
         initializeBooleanSetting("phash", sView.getPHashModeEntry());
         initializeBooleanSetting("pbp", sView.getPixelByPixelModeEntry());
-        initializeBooleanSetting("unify-names-lowercase", sView.getNamesLowerCaseEntry());
+        initializeBooleanSetting("un_lowercase", sView.getNamesLowerCaseEntry());
     }
 
     /**
@@ -120,7 +120,7 @@ public class SettingsController {
         Objects.requireNonNull(entry);
         Objects.requireNonNull(key);
 
-        String[] values = sModule.getSetting(setting).split(",");
+        String[] values = sModule.getSet(setting).split(",");
 
         entry.initializeComboBox(
             Arrays.stream(values)
@@ -202,12 +202,12 @@ public class SettingsController {
         boolean messageNeeded = updateSettingIfChanged("language", sView.getLanguageEntry().getValue(), comboboxBiConsumer, v -> ti.translate("language." + v));
         messageNeeded |= updateSettingIfChanged("theme", sView.getThemeEntry().getValue(), comboboxBiConsumer, v -> ti.translate("theme." + v));
 
-        updateStringSettingIfChanged("destination-for-pc", sView.getDestinationEntry().getValue());
-        updateBooleanSettingIfChanged("recursive-mode", sView.getRecursiveModeEntry().getValue());
+        updateStringSettingIfChanged("coutput", sView.getDestinationEntry().getValue());
+        updateBooleanSettingIfChanged("rmode", sView.getRecursiveModeEntry().getValue());
         updateBooleanSettingIfChanged("phash", sView.getPHashModeEntry().getValue());
         updateBooleanSettingIfChanged("pbp", sView.getPixelByPixelModeEntry().getValue());
-        updateStringSettingIfChanged("unify-names-prefix", sView.getNamesPrefixEntry().getValue());
-        updateBooleanSettingIfChanged("unify-names-lowercase", sView.getNamesLowerCaseEntry().getValue());
+        updateStringSettingIfChanged("un_prefix", sView.getNamesPrefixEntry().getValue());
+        updateBooleanSettingIfChanged("un_lowercase", sView.getNamesLowerCaseEntry().getValue());
 
         // Updates settings in other modules.
 
@@ -298,12 +298,12 @@ public class SettingsController {
 
         boolean hasSettingChanged = hasSettingChanged("language", sView.getLanguageEntry().getValue(), v -> ti.translate("language." + v));
         hasSettingChanged |= hasSettingChanged("theme", sView.getThemeEntry().getValue(), v -> ti.translate("theme." + v));
-        hasSettingChanged |= hasSettingChanged("destination-for-pc", sView.getDestinationEntry().getValue());
-        hasSettingChanged |= hasSettingChanged("recursive-mode", sView.getRecursiveModeEntry().getValue(), booleanFunction);
+        hasSettingChanged |= hasSettingChanged("coutput", sView.getDestinationEntry().getValue());
+        hasSettingChanged |= hasSettingChanged("rmode", sView.getRecursiveModeEntry().getValue(), booleanFunction);
         hasSettingChanged |= hasSettingChanged("phash", sView.getPHashModeEntry().getValue(), booleanFunction);
         hasSettingChanged |= hasSettingChanged("pbp", sView.getPixelByPixelModeEntry().getValue(), booleanFunction);
-        hasSettingChanged |= hasSettingChanged("unify-names-prefix", sView.getNamesPrefixEntry().getValue());
-        hasSettingChanged |= hasSettingChanged("unify-names-lowercase", sView.getNamesLowerCaseEntry().getValue(), booleanFunction);
+        hasSettingChanged |= hasSettingChanged("un_prefix", sView.getNamesPrefixEntry().getValue());
+        hasSettingChanged |= hasSettingChanged("un_lowercase", sView.getNamesLowerCaseEntry().getValue(), booleanFunction);
         return hasSettingChanged;
     }
 
@@ -357,8 +357,8 @@ public class SettingsController {
      * The method ensures that the external components and modules are updated to reflect the current settings.
      */
     private void updateExternalSettings() {
-        gModule.setNameTemplate(sModule.getSetting("unify-names-prefix"));
-        gModule.setLowercaseExtension(sModule.getSetting("unify-names-lowercase").equals("yes"));
+        gModule.setNameTemplate(sModule.getSetting("un_prefix"));
+        gModule.setLowercaseExtension(sModule.getSetting("un_lowercase").equals("yes"));
 
         for (ComparerInterface c : cis) {
             updateComparerSettings(c);
@@ -382,8 +382,8 @@ public class SettingsController {
         Objects.requireNonNull(ci);
 
         // Retrieve settings
-        String destinationPath = sModule.getSetting("destination-for-pc"),
-        recursiveMode = sModule.getSetting("recursive-mode"),
+        String destinationPath = sModule.getSetting("coutput"),
+        recursiveMode = sModule.getSetting("rmode"),
         pHash = sModule.getSetting("phash"),
         pbp = sModule.getSetting("pbp");
 

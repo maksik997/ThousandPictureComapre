@@ -91,7 +91,6 @@ public class Main {
         Objects.requireNonNull(model);
 
         moduleLoader.loadNext(); // Settings Module
-        model.getSettingsModule().loadSettings();
     }
 
     /**

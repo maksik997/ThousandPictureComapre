@@ -4,22 +4,13 @@ import pl.magzik.modules.ComparerModule;
 import pl.magzik.modules.GalleryModule;
 import pl.magzik.modules.SettingsModule;
 
-import java.io.IOException;
-
 public class Model {
-
-    public static final String configPath = "./data/config.cfg";
-
     private final ComparerModule comparerModule;
-
     private final GalleryModule galleryModule;
-
     private final SettingsModule settingsModule;
 
-    public Model() throws IOException {
-        this.settingsModule = new SettingsModule(configPath);
-//        this.settingsModule.loadSettings();
-
+    public Model() {
+        this.settingsModule = new SettingsModule();
         this.comparerModule = new ComparerModule();
         this.galleryModule = new GalleryModule();
     }

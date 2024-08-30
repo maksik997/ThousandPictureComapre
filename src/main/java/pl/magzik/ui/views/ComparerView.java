@@ -7,6 +7,8 @@ import pl.magzik.ui.components.filechoosers.SingleFileSelectionStrategy;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -20,7 +22,7 @@ import java.util.function.Consumer;
  * The view is initialized with several types of settings entries, including combo boxes,
  * text fields, and checkboxes.</p>
  */
-public class ComparerView extends AbstractView {
+public class ComparerView extends AbstractView implements PropertyChangeListener {
 
     private final JTextField pathTextField;
     private final JButton pathButton;
@@ -115,7 +117,7 @@ public class ComparerView extends AbstractView {
     }
 
     /**
-     * Creates and configures the button panel with loadImages, move, and reset buttons.
+     * Creates and configures the button panel with fileLoad, moveFiles, and release buttons.
      *
      * @return A {@code JPanel} containing the buttons for loading, moving, and resetting.
      */
@@ -259,7 +261,7 @@ public class ComparerView extends AbstractView {
     }
 
     /**
-     * Gets the reset button.
+     * Gets the release button.
      *
      * @return The {@code JButton} for resetting the view.
      */
@@ -268,7 +270,7 @@ public class ComparerView extends AbstractView {
     }
 
     /**
-     * Gets the loadImages button.
+     * Gets the fileLoad button.
      *
      * @return The {@code JButton} for loading files.
      */
@@ -277,7 +279,7 @@ public class ComparerView extends AbstractView {
     }
 
     /**
-     * Gets the move button.
+     * Gets the moveFiles button.
      *
      * @return The {@code JButton} for moving files.
      */
@@ -324,7 +326,7 @@ public class ComparerView extends AbstractView {
     /**
      * Disables all buttons associated with destructive actions.
      * <p>
-     * This includes the path button, loadImages button, move button, and reset button.
+     * This includes the path button, fileLoad button, moveFiles button, and release button.
      * </p>
      */
     public void blockDestructiveButtons() {
@@ -332,6 +334,20 @@ public class ComparerView extends AbstractView {
         loadButton.setEnabled(false);
         moveButton.setEnabled(false);
         resetButton.setEnabled(false);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("comparer-processing")) {
+            SwingUtilities.invokeLater(() -> {
+                boolean val = (boolean) evt.getNewValue();
+                if (val) blockDestructiveButtons();
+                else {
+                    loadButton.setEnabled(true);
+                    pathButton.setEnabled(true);
+                }
+            });
+        }
     }
 
     /**

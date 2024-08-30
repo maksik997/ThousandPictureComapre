@@ -1,7 +1,8 @@
 package pl.magzik.controllers;
 
+import pl.magzik.modules.comparer.ComparerPropertyAccess;
+import pl.magzik.modules.comparer.ComparerPropertyAccess;
 import pl.magzik.ui.localization.TranslationStrategy;
-import pl.magzik.modules.ComparerInterface;
 import pl.magzik.modules.ComparerModule;
 import pl.magzik.modules.GalleryModule;
 import pl.magzik.modules.SettingsModule;
@@ -11,7 +12,6 @@ import pl.magzik.ui.logging.MessageInterface;
 import pl.magzik.ui.views.SettingsView;
 
 import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.function.Function;
 /**
  * The {@code SettingsController} class manages the interaction between the settings user interface and the underlying settings module.
  * It is responsible for initializing the settings view, handling user input, and updating settings both in the internal settings module
- * and external components such as {@link ComparerInterface} instances and the {@link GalleryModule}.
+ * and external components such as {@link ComparerPropertyAccess} instances and the {@link GalleryModule}.
  * <p>
  * This controller listens for changes in settings and enables or disables the save button accordingly. When the user clicks the save button,
  * it updates the settings in the settings module and other related modules if necessary. If any settings have changed and require a restart,
@@ -43,10 +43,10 @@ import java.util.function.Function;
  * <ul>
  *   <li>{@link SettingsView} - The view component that provides the user interface for settings.</li>
  *   <li>{@link SettingsModule} - The module responsible for storing and managing the settings data.</li>
- *   <li>{@link GalleryModule} - A module that also implements {@link ComparerInterface} and is affected by certain settings.</li>
+ *   <li>{@link GalleryModule} - A module that also implements {@link ComparerPropertyAccess} and is affected by certain settings.</li>
  *   <li>{@link TranslationStrategy} - For translating strings used in the settings view.</li>
  *   <li>{@link MessageInterface} - For displaying messages to the user.</li>
- *   <li>{@link ComparerInterface} - An interface representing modules that require updates based on settings.</li>
+ *   <li>{@link ComparerPropertyAccess} - An interface representing modules that require updates based on settings.</li>
  * </ul>
  * </p>
  * <p>
@@ -61,19 +61,19 @@ public class SettingsController {
     private final TranslationStrategy ti;
     private final MessageInterface mi;
 
-    private final List<ComparerInterface> cis;
+    private final List<ComparerPropertyAccess> cis;
 
     /**
      * Constructs a new SettingsController with the given dependencies and initializes the settings view.
      *
      * @param sView The {@link SettingsView} instance to interact with the user interface.
      * @param sModule The {@link SettingsModule} instance to handle the settings data.
-     * @param gModule The {@link GalleryModule} instance, which also implements {@link ComparerInterface}.
+     * @param gModule The {@link GalleryModule} instance, which also implements {@link ComparerPropertyAccess}.
      * @param ti The {@link TranslationStrategy} instance for translating strings.
      * @param mi The {@link MessageInterface} instance for showing messages.
-     * @param cis An array of {@link ComparerInterface} implementations, which may include {@link GalleryModule}.
+     * @param cis An array of {@link ComparerPropertyAccess} implementations, which may include {@link GalleryModule}.
      */
-    public SettingsController(SettingsView sView, SettingsModule sModule, GalleryModule gModule, TranslationStrategy ti, MessageInterface mi, ComparerInterface... cis) {
+    public SettingsController(SettingsView sView, SettingsModule sModule, GalleryModule gModule, TranslationStrategy ti, MessageInterface mi, ComparerPropertyAccess... cis) {
         this.sView = sView;
         this.sModule = sModule;
         this.gModule = gModule;
@@ -351,7 +351,7 @@ public class SettingsController {
      * <ul>
      *   <li>Sets the name template for the {@link GalleryModule} using the value of the "unify-names-prefix" setting.</li>
      *   <li>Configures whether the extensions should be lowercase based on the "unify-names-lowercase" setting.</li>
-     *   <li>Iterates over a collection of {@link ComparerInterface} instances and applies settings updates using the {@link #updateComparerSettings(ComparerInterface)} method.</li>
+     *   <li>Iterates over a collection of {@link ComparerPropertyAccess} instances and applies settings updates using the {@link #updateComparerSettings(ComparerPropertyAccess)} method.</li>
      * </ul>
      *
      * The method ensures that the external components and modules are updated to reflect the current settings.
@@ -360,26 +360,26 @@ public class SettingsController {
         gModule.setNameTemplate(sModule.getSetting("un_prefix"));
         gModule.setLowercaseExtension(sModule.getSetting("un_lowercase").equals("yes"));
 
-        for (ComparerInterface c : cis) {
+        for (ComparerPropertyAccess c : cis) {
             updateComparerSettings(c);
         }
     }
 
     /**
-     * Updates the settings of the given {@link ComparerInterface} instance based on the current values from the settings module.
+     * Updates the settings of the given {@link ComparerPropertyAccess} instance based on the current values from the settings module.
      * This method performs the following updates on the provided comparer interface:
      * <ul>
      *   <li>Sets the destination directory using the "destination-for-pc" setting value.</li>
-     *   <li>Configures the mode of the comparer based on the "recursive-mode" setting. The mode is set to {@link ComparerModule.Mode#RECURSIVE} if the setting value is "yes", otherwise it is set to {@link ComparerModule.Mode#NON_RECURSIVE}.</li>
+     *   <li>Configures the mode of the comparer based on the "recursive-mode" setting. The mode is set to {@link ComparerModule.Mode#RECURSIVE} if the setting value is "yes", otherwise it is set to {@link ComparerModule.Mode#NOT_RECURSIVE}.</li>
      *   <li>Sets the perceptual hash comparison flag based on the "phash" setting. The flag is set to {@code true} if the setting value is "yes".</li>
      *   <li>Configures pixel-by-pixel comparison based on the "pbp" setting. The flag is set to {@code true} if the setting value is "yes".</li>
      * </ul>
      *
-     * @param ci A {@link ComparerInterface} instance to be updated. Must not be {@code null}.
+     * @param cp A {@link ComparerPropertyAccess} instance to be updated. Must not be {@code null}.
      * @throws NullPointerException If the {@code ci} parameter is {@code null}.
      */
-    private void updateComparerSettings(ComparerInterface ci) {
-        Objects.requireNonNull(ci);
+    private void updateComparerSettings(ComparerPropertyAccess cp) {
+        Objects.requireNonNull(cp);
 
         // Retrieve settings
         String destinationPath = sModule.getSetting("coutput"),
@@ -388,11 +388,11 @@ public class SettingsController {
         pbp = sModule.getSetting("pbp");
 
         // Set settings.
-        ci.setDestination(new File(destinationPath));
-        ci.setMode(
-            recursiveMode.equals("yes") ? ComparerModule.Mode.RECURSIVE : ComparerModule.Mode.NON_RECURSIVE
+        cp.setOutputPath(destinationPath);
+        cp.setMode(
+            recursiveMode.equals("yes") ? ComparerModule.Mode.RECURSIVE : ComparerModule.Mode.NOT_RECURSIVE
         );
-        ci.setPHash(pHash.equals("yes"));
-        ci.setPixelByPixel(pbp.equals("yes"));
+        cp.setPerceptualHash(pHash.equals("yes"));
+        cp.setPixelByPixel(pbp.equals("yes"));
     }
 }

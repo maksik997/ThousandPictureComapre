@@ -14,7 +14,7 @@ public interface Loader <T> {
     /**
      * Loads a resource with the given name.
      *
-     * @param resource The name of the resource to load.
+     * @param resource The name of the resource to loadFiles.
      * @return The loaded resource of type {@code T}.
      * @throws IOException If an I/O error occurs during loading.
      * @throws URISyntaxException If the resource name cannot be converted to a URI.

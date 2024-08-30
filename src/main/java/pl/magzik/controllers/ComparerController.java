@@ -1,6 +1,7 @@
 package pl.magzik.controllers;
 
 import pl.magzik.async.ExecutorServiceManager;
+import pl.magzik.modules.comparer.FileHandlerInterface;
 import pl.magzik.ui.localization.TranslationStrategy;
 import pl.magzik.modules.ComparerModule;
 import pl.magzik.ui.cursor.CursorManagerInterface;
@@ -50,6 +51,7 @@ import java.util.List;
 public class ComparerController {
     private final ComparerView cView;
     private final ComparerModule cModule;
+    private final FileHandlerInterface fh;
     private final TranslationStrategy ti;
     private final MessageInterface mi;
     private final CursorManagerInterface umi;
@@ -68,7 +70,7 @@ public class ComparerController {
      *   <li>Retrieves the singleton instance of {@link ExecutorService} using {@link ExecutorServiceManager#getInstance()}.</li>
      *   <li>Initializes the list models of the {@code ComparerModule} and associates them with the corresponding UI components
      *       using {@link #initializeListModel(DefaultListModel, JList)}.</li>
-     *   <li>Adds action listeners to handle user interactions with the buttons in the view using {@link #addActionListeners()}.</li>
+     *   <li>Adds action listeners to handle user interactions with the buttons in the view using {@link #addListeners()}.</li>
      * </ul>
      * </p>
      *
@@ -79,9 +81,10 @@ public class ComparerController {
      * @param umi the {@link CursorManagerInterface} used for managing the user interface state and cursor. Must not be {@code null}.
      * @throws NullPointerException if any of the provided parameters are {@code null}.
      */
-    public ComparerController(ComparerView cView, ComparerModule cModule, TranslationStrategy ti, MessageInterface mi, CursorManagerInterface umi) {
+    public ComparerController(ComparerView cView, ComparerModule cModule, FileHandlerInterface fh, TranslationStrategy ti, MessageInterface mi, CursorManagerInterface umi) {
         this.cView = cView;
         this.cModule = cModule;
+        this.fh = fh;
         this.ti = ti;
         this.mi = mi;
         this.umi = umi;
@@ -94,7 +97,7 @@ public class ComparerController {
 
         // Listeners
 
-        addActionListeners();
+        addListeners();
     }
 
     /**
@@ -103,8 +106,8 @@ public class ComparerController {
      * This method configures the action listeners for the following buttons:
      * <ul>
      *   <li>{@code PathButton}: Opens a file chooser and sets the selected file path in the {@link ComparerModule}.</li>
-     *   <li>{@code LoadButton}: Validates the path and initiates the loadImages task if a path is specified.</li>
-     *   <li>{@code MoveButton}: Checks if there are comparison results available and initiates the move task if so.</li>
+     *   <li>{@code LoadButton}: Validates the path and initiates the fileLoad task if a path is specified.</li>
+     *   <li>{@code MoveButton}: Checks if there are comparison results available and initiates the moveFiles task if so.</li>
      *   <li>{@code ResetButton}: Clears the view, resets the module, and updates the UI to its initial state.</li>
      * </ul>
      * </p>
@@ -113,11 +116,13 @@ public class ComparerController {
      * current state of the application and the provided inputs.
      * </p>
      */
-    private void addActionListeners() {
+    private void addListeners() {
         cView.getPathButton().addActionListener(_ -> handlePathButtonClick());
         cView.getLoadButton().addActionListener(_ -> handleLoadButtonClick());
         cView.getMoveButton().addActionListener(_ -> handleMoveButtonClick());
         cView.getResetButton().addActionListener(_ -> handleResetButtonClick());
+
+        cModule.addPropertyChangeListener(cView);
     }
 
     /**
@@ -136,14 +141,14 @@ public class ComparerController {
      */
     private void handlePathButtonClick() {
         if (cView.getFileChooser().perform()) {
-            cModule.setSources(
+            cModule.setInput(
                 new File(cView.getPathTextField().getText())
             );
         }
     }
 
     /**
-     * Handles the click event of the loadImages button in the UI. This method checks if the user has
+     * Handles the click event of the fileLoad button in the UI. This method checks if the user has
      * specified a file path. If no file path is set, an error message is displayed to inform the user
      * that images are required for the comparison operation. If a file path is available, it initiates
      * the loading task.
@@ -152,7 +157,7 @@ public class ComparerController {
      * <ul>
      *   <li>Retrieves the file path.</li>
      *   <li>If the file path is {@code null} or empty, displays an error message indicating that images are required.</li>
-     *   <li>If the file path is valid, starts the loadImages task.</li>
+     *   <li>If the file path is valid, starts the fileLoad task.</li>
      * </ul>
      * <p>
      * The error message is displayed using the {@link MessageInterface} to inform the user of the issue.
@@ -172,23 +177,23 @@ public class ComparerController {
     }
 
     /**
-     * Handles the click event of the move button in the UI. This method checks if there are any comparison results
+     * Handles the click event of the moveFiles button in the UI. This method checks if there are any comparison results
      * available. If the comparison output size is less than or equal to zero, an error message is displayed to the user,
      * indicating that loading is required before moving. If there are comparison results available, it initiates
-     * the move task.
+     * the moveFiles task.
      * <p>
      * The method performs the following actions:
      * <ul>
      *   <li>Checks the size of the comparison output from the {@link ComparerModule}.</li>
      *   <li>If the comparison output size is {@code <= 0}, displays an error message indicating that loading is required.</li>
-     *   <li>If the comparison output size is greater than 0, starts the move task.</li>
+     *   <li>If the comparison output size is greater than 0, starts the moveFiles task.</li>
      * </ul>
      * <p>
      * The error message is displayed using the {@link MessageInterface} to inform the user of the issue.
      * </p>
      */
     private void handleMoveButtonClick() {
-        if (cModule.getComparerOutputSize() <= 0) {
+        if (cModule.getOutputElementsCount() <= 0) {
             mi.showErrorMessage(
                 ti.translate("error.comparer.loading_needed.desc"),
                 ti.translate("error.general.title")
@@ -200,24 +205,24 @@ public class ComparerController {
     }
 
     /**
-     * Handles the click event of the reset button in the UI. This method resets the application's state by performing
+     * Handles the click event of the release button in the UI. This method resets the application's state by performing
      * the following actions:
      * <ul>
      *   <li>Clears the user interface using {@link ComparerView#clear()}.</li>
-     *   <li>Resets the internal state of the {@link ComparerModule} using {@link ComparerModule#reset()}.</li>
-     *   <li>Enables the loadImages button and the path button, making them available for user interaction.</li>
-     *   <li>Disables the reset button and the move button to prevent further actions until the state is fully reset.</li>
+     *   <li>Resets the internal state of the {@link ComparerModule} using {@link ComparerModule#release()}.</li>
+     *   <li>Enables the fileLoad button and the path button, making them available for user interaction.</li>
+     *   <li>Disables the release button and the moveFiles button to prevent further actions until the state is fully release.</li>
      *   <li>Updates the state label to indicate that the application is ready for new tasks by setting the text to
      *       the translated value for the ready state.</li>
      * </ul>
      * <p>
-     * This method is triggered when the user clicks the reset button. It prepares the application for a new set of
+     * This method is triggered when the user clicks the release button. It prepares the application for a new set of
      * operations by clearing previous data and resetting the UI and internal module state.
      * </p>
      */
     private void handleResetButtonClick() {
         cView.clear();
-        cModule.reset();
+        cModule.release();
 
         cView.getLoadButton().setEnabled(true);
         cView.getPathButton().setEnabled(true);
@@ -263,10 +268,10 @@ public class ComparerController {
     }
 
     /**
-     * Unlocks the button panel by enabling the reset button and updating the UI state.
+     * Unlocks the button panel by enabling the release button and updating the UI state.
      * <p>This method performs the following actions:</p>
      * <ul>
-     *   <li>Enables the reset button on the view.</li>
+     *   <li>Enables the release button on the view.</li>
      *   <li>Updates the state label to indicate that the process is done using the specified translation key.</li>
      *   <li>Restores the cursor to the default cursor.</li>
      * </ul>
@@ -283,7 +288,7 @@ public class ComparerController {
     // Handling async tasks and long operations.
 
     /**
-     * Initiates the loadImages task sequence. This includes preparing the UI,
+     * Initiates the fileLoad task sequence. This includes preparing the UI,
      * loading files, updating the UI after loading, comparing files, and
      * finally updating the UI after comparison. Any exceptions are handled
      * and the completion of the task is managed.
@@ -291,15 +296,15 @@ public class ComparerController {
     private void loadTask() {
         CompletableFuture.runAsync(() -> prepareUiBefore("comparer.state.prepare"), executor)
             .thenRunAsync(this::loadFiles, executor)
-            .thenRunAsync(() -> updateUiAfter("comparer.state.map", cModule.getMappedListModel(), cModule.getSources()), executor)
+            .thenRunAsync(() -> updateUiAfter("comparer.state.map", cModule.getMappedListModel(), cModule.getInput()), executor)
             .thenComposeAsync(_ -> compareTask(), executor)
-            .thenRunAsync(() -> updateUiAfter("comparer.state.update", cModule.getDuplicateListModel(), cModule.getComparerOutput()), executor)
+            .thenRunAsync(() -> updateUiAfter("comparer.state.update", cModule.getDuplicateListModel(), cModule.getOutput()), executor)
             .exceptionally(this::handleException)
             .whenComplete((_, _) -> handleLoadTaskCompletion());
     }
 
     /**
-     * Initiates the move task sequence. This includes preparing the UI,
+     * Initiates the moveFiles task sequence. This includes preparing the UI,
      * moving files, prompting the user with a confirmation dialog about
      * restarting the comparer, and handling the result of that confirmation.
      * Any exceptions during the process are handled.
@@ -322,12 +327,12 @@ public class ComparerController {
      *
      * @return a {@link CompletableFuture} that completes when the comparison task is done.
      * @throws CompletionException if an {@link IOException} or {@link ExecutionException}
-     *         is thrown by {@link ComparerModule#compareAndExtract()}.
+     *         is thrown by {@link ComparerModule#process()}.
      */
     private CompletableFuture<Void> compareTask() {
         return CompletableFuture.runAsync(() -> {
             try {
-                cModule.compareAndExtract();
+                cModule.process();
             } catch (IOException | ExecutionException e) {
                 throw new CompletionException(e);
             }
@@ -340,7 +345,7 @@ public class ComparerController {
     /**
      * Prepares the user interface for a task by performing the following actions:
      * <ul>
-     *   <li>Disables buttons that may disrupt the task (e.g., loadImages, move, reset).</li>
+     *   <li>Disables buttons that may disrupt the task (e.g., fileLoad, moveFiles, release).</li>
      *   <li>Sets the cursor to a wait cursor to indicate that a background operation is in progress.</li>
      *   <li>Updates the state label to indicate that the process is starting.</li>
      * </ul>
@@ -376,8 +381,8 @@ public class ComparerController {
      * @throws NullPointerException if {@code model} or {@code sources} is {@code null}.
      */
     private void updateUiAfter(String state, DefaultListModel<String> model, List<File> sources) {
-        int total = cModule.getSourcesSize(),
-            duplicates = cModule.getComparerOutput() == null ? 0 : cModule.getComparerOutputSize();
+        int total = cModule.getInputElementsCount(),
+            duplicates = cModule.getOutput() == null ? 0 : cModule.getOutputElementsCount();
 
         SwingUtilities.invokeLater(() -> {
             fulfilListModel(model, sources);
@@ -414,7 +419,7 @@ public class ComparerController {
     }
 
     /**
-     * Handles the completion of the loadImages task. Updates the UI to enable
+     * Handles the completion of the fileLoad task. Updates the UI to enable
      * the necessary buttons and resets the cursor to default. Also updates
      * the state label to indicate that the task is complete.
      */
@@ -422,17 +427,17 @@ public class ComparerController {
         SwingUtilities.invokeLater(() -> {
             unlockButtonPanel();
 
-            if (cModule.getComparerOutputSize() > 0)
+            if (cModule.getOutputElementsCount() > 0)
                 cView.getMoveButton().setEnabled(true);
         });
     }
 
     /**
-     * Handles the reset after moving files if the user chose to reset the comparer.
+     * Handles the release after moving files if the user chose to release the comparer.
      * Clears the view, resets the module, and updates the UI to reflect the
-     * ready state. Re-enables the loadImages and move buttons.
+     * ready state. Re-enables the fileLoad and moveFiles buttons.
      *
-     * @param isReset {@code true} if the comparer was reset, {@code false} otherwise.
+     * @param isReset {@code true} if the comparer was release, {@code false} otherwise.
      */
     private void handleComparerReset(boolean isReset) {
         if (!isReset) return;
@@ -448,25 +453,30 @@ public class ComparerController {
      * {@link CompletionException} to be handled by the CompletableFuture pipeline.
      *
      * @throws CompletionException if an {@link IOException}, {@link InterruptedException},
-     *         or {@link TimeoutException} is thrown by {@link ComparerModule#loadImages()}.
+     *         or {@link TimeoutException} is thrown by {@link FileHandlerInterface#loadFiles(List)} ()}.
      */
     private void loadFiles() {
         try {
-            cModule.loadImages();
-        } catch (IOException | InterruptedException | TimeoutException e) {
+            List<File> in = cModule.getInput();
+            List<File> reducedIn = fh.loadFiles(in);
+            cModule.setInput(reducedIn);
+        } catch (IOException e) {
             throw new CompletionException(e);
         }
     }
 
     /**
-     * Moves files as part of the move task. This method may throw exceptions
+     * Moves files as part of the moveFiles task. This method may throw exceptions
      * related to file I/O, which are wrapped in a {@link CompletionException}.
      *
-     * @throws CompletionException if an {@link IOException} is thrown by {@link ComparerModule#fileTransfer()}.
+     * @throws CompletionException if an {@link IOException} is thrown by {@link FileHandlerInterface#moveFiles(File, List)} ()}.
      */
     private void moveFiles() {
         try {
-            cModule.fileTransfer();
+            fh.moveFiles(
+                new File(cModule.getOutputPath()),
+                cModule.getOutput()
+            );
         } catch (IOException e) {
             throw new CompletionException(e);
         }

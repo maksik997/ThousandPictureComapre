@@ -77,14 +77,15 @@ public class Main {
         return ModuleLoader.create(model.getSettingsModule())
                     .with(ResourceModule.getInstance())
                     .with(model.getComparerModule())
+                    .with(model.getComparerFileModule())
                     .with(model.getGalleryModule())
                     .ready();
     }
 
     /**
      * Loads the initial module using the provided {@code ModuleLoader} and {@code Model}.
-     * @param moduleLoader the {@code ModuleLoader} used to load the initial module
-     * @param model the {@code Model} instance used to load settings
+     * @param moduleLoader the {@code ModuleLoader} used to loadFiles the initial module
+     * @param model the {@code Model} instance used to loadFiles settings
      * @throws IOException if an error occurs while loading the module or settings
      * @throws NullPointerException if {@code moduleLoader} or {@code model} is {@code null}
      */
@@ -203,7 +204,7 @@ public class Main {
     /**
      * Loads all modules sequentially using the provided {@code ModuleLoader}.
      * @param view the {@code View} instance (used for displaying progress)
-     * @param moduleLoader the {@code ModuleLoader} used to load modules
+     * @param moduleLoader the {@code ModuleLoader} used to loadFiles modules
      * @throws IOException if an error occurs while loading modules
      * @throws NullPointerException if {@code view} or {@code moduleLoader} is {@code null}
      */

@@ -3,6 +3,8 @@ package pl.magzik.controllers;
 import pl.magzik.async.Command;
 import pl.magzik.async.ExecutorServiceManager;
 import pl.magzik.modules.GalleryModule;
+import pl.magzik.modules.comparer.ComparerProcessor;
+import pl.magzik.modules.comparer.FileHandlerInterface;
 import pl.magzik.ui.localization.TranslationStrategy;
 import pl.magzik.ui.cursor.CursorManagerInterface;
 import pl.magzik.ui.listeners.UnifiedDocumentListener;
@@ -11,6 +13,7 @@ import pl.magzik.ui.views.GalleryView;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +33,8 @@ public class GalleryController {
 
     private final GalleryView gView;
     private final GalleryModule gModule;
+    private final ComparerProcessor cp;
+    private final FileHandlerInterface fh;
     private final MessageInterface mi;
     private final CursorManagerInterface umi;
     private final TranslationStrategy ti;
@@ -47,11 +52,13 @@ public class GalleryController {
      * @param mi the {@link MessageInterface} for displaying messages to the user.
      * @param ti the {@link TranslationStrategy} for translating messages.
      */
-    public GalleryController(GalleryView gView, GalleryModule gModule, CursorManagerInterface umi, MessageInterface mi, TranslationStrategy ti) {
+    public GalleryController(GalleryView gView, GalleryModule gModule, ComparerProcessor cp, FileHandlerInterface fh, CursorManagerInterface umi, MessageInterface mi, TranslationStrategy ti) {
         this.ti = ti;
         this.umi = umi;
         this.mi = mi;
         this.gModule = gModule;
+        this.cp = cp;
+        this.fh = fh;
         this.gView = gView;
         this.executor = ExecutorServiceManager.getInstance().getExecutorService();
 
@@ -96,6 +103,8 @@ public class GalleryController {
         gView.getAddTagButton().addActionListener(_ -> handleAddTagButton());
         gView.getRemoveTagButton().addActionListener(_ -> handleRemoveTagButton());
         gModule.getGalleryTableModel().addTableModelListener(this::handleGalleryTableUpdate);
+
+        cp.addPropertyChangeListener(gView);
     }
 
     /**
@@ -468,7 +477,7 @@ public class GalleryController {
     }
 
     /**
-     * Initiates an asynchronous task to delete images.
+     * Initiates an asynchronous task to deleteFiles images.
      * <p>
      * The task involves preparing the UI, performing the deletion operation, and then updating the UI.
      * If an exception occurs during the execution, it will be handled and the gallery unlock operation will be completed.
@@ -642,15 +651,10 @@ public class GalleryController {
      */
     private void distinctImages() {
         try {
-            gModule.prepareComparer(
-                Arrays.stream(gView.getGalleryTable().getSelectedRows()).boxed().toList()
-            );
-        } catch (IOException | InterruptedException | TimeoutException e) {
-            throw new CompletionException(e);
-        }
-
-        try {
-            gModule.compareAndExtract();
+            List<File> in = gModule.getFiles(gView.getGalleryTable().getSelectedRows());
+            in = fh.loadFiles(in);
+            cp.setInput(in);
+            cp.process();
         } catch (IOException | ExecutionException e) {
             throw new CompletionException(e);
         }
@@ -667,8 +671,13 @@ public class GalleryController {
      */
     private void reduceImages(boolean res) {
         try {
-            if (res) gModule.fileDelete();
-            else gModule.fileTransfer();
+            List<File> out = cp.getOutput();
+            cp.release();
+
+            gModule.performReduction(out);
+
+            if (res) fh.moveFiles(new File(cp.getOutputPath()), out);
+            else fh.deleteFiles(out);
         } catch (IOException e) {
             throw new CompletionException(e);
         }

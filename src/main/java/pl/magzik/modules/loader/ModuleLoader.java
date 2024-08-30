@@ -78,7 +78,7 @@ public class ModuleLoader {
     }
 
     /**
-     * Checks if there are more modules to load.
+     * Checks if there are more modules to loadFiles.
      * @return true if there are more modules, false otherwise
      * @throws IllegalStateException if the loader isn't marked as ready
      */
@@ -93,7 +93,7 @@ public class ModuleLoader {
      * Loads the next module in the sequence.
      * <p>
      * This method will throw an {@link IllegalStateException} if the loader isn't ready or if
-     * there are no more modules to load.
+     * there are no more modules to loadFiles.
      * </p>
      * @throws IOException if an error occurs while loading the module
      */
@@ -102,7 +102,7 @@ public class ModuleLoader {
             throw new IllegalStateException("Loader isn't marked as ready");
 
         if (!hasNext())
-            throw new IllegalStateException("No more modules to load");
+            throw new IllegalStateException("No more modules to loadFiles");
 
         Module module = this.iterator.next();
 

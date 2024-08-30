@@ -14,6 +14,8 @@ import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -26,7 +28,7 @@ import java.util.Objects;
  * <p>
  * This class is designed to be instantiated via its nested {@link Factory} class.
  */
-public class GalleryView extends AbstractView {
+public class GalleryView extends AbstractView implements PropertyChangeListener {
 
     private final JTable galleryTable;
     private final JLabel elementCountLabel;
@@ -306,6 +308,17 @@ public class GalleryView extends AbstractView {
      */
     public void unlockModule() {
         for (JButton button : buttons) button.setEnabled(true);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("comparer-processing")) {
+            SwingUtilities.invokeLater(() -> {
+                boolean val = (boolean) evt.getNewValue();
+                if (val) lockModule();
+                else unlockModule();
+            });
+        }
     }
 
     /**

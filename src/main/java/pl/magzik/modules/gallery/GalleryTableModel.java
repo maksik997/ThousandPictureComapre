@@ -109,7 +109,7 @@ public class GalleryTableModel extends AbstractTableModel {
     }
 
     public void removeEntry(int row) {
-        // This method will remove entry from table. But won't delete it from disk.
+        // This method will remove entry from table. But won't deleteFiles it from disk.
         images.remove(row);
         fireTableDataChanged();
     }
@@ -124,7 +124,7 @@ public class GalleryTableModel extends AbstractTableModel {
     }
 
     public void deleteImage(int row) throws IOException {
-        // This method will remove entry from table and will delete image from disk.
+        // This method will remove entry from table and will deleteFiles image from disk.
         Entry entry = images.get(row);
         removeEntry(row);
 

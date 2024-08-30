@@ -4,7 +4,7 @@ import java.io.File;
 
 /**
  * Interface for a file chooser component that allows for selecting files or directories.
- * Provides methods to reset the file chooser to a default state and open the file chooser dialog.
+ * Provides methods to release the file chooser to a default state and open the file chooser dialog.
  *
  * <p>This interface is intended to be implemented by classes that provide specific
  * file selection mechanisms, such as single or multiple file selection strategies.</p>

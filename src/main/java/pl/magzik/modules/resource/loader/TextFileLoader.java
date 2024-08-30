@@ -15,7 +15,7 @@ public class TextFileLoader implements ExternalResourceLoader<List<String>> {
     /**
      * Loads a text file resource into a list of strings.
      *
-     * @param resource The name of the text file resource to load.
+     * @param resource The name of the text file resource to loadFiles.
      * @return A {@link List} of strings representing the content of the text file.
      * @throws IOException If an I/O error occurs during loading.
      */

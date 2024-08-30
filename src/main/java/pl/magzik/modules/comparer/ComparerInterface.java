@@ -1,4 +1,4 @@
-package pl.magzik.modules;
+package pl.magzik.modules.comparer;
 
 import pl.magzik.Comparator.FilePredicate;
 import pl.magzik.Comparator.ImageFilePredicate;
@@ -15,10 +15,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
+@Deprecated
 public interface ComparerInterface {
     Function<File, ImageRecord> imageRecordFunction = file -> {
         try {
@@ -29,16 +28,16 @@ public interface ComparerInterface {
         }
         return null;
     };
-    List<List<File>> cache = new LinkedList<>();
-    Lock lock = new ReentrantLock();
     FilePredicate filePredicate = new ImageFilePredicate();
 
-    void setDestination(File destination);
+    void setOutputPath(File destination);
     void setMode(Mode mode);
-    void setPHash(boolean pHash);
-    boolean getPHash();
+    void setPerceptualHash(boolean pHash);
     void setPixelByPixel(boolean pixelByPixel);
-    boolean getPixelByPixel();
+
+    boolean isPerceptualHash();
+    boolean isPixelByPixel();
+
     void compareAndExtract() throws IOException, ExecutionException;
     default void fileTransfer() throws IOException {
         throw new UnsupportedOperationException("Unsupported operation.");
@@ -47,42 +46,26 @@ public interface ComparerInterface {
         throw new UnsupportedOperationException("Unsupported operation.");
     }
 
-    default int compare(List<File> sources) throws IOException, ExecutionException {
+    default List<File> compare(List<File> sources) throws IOException, ExecutionException {
         Objects.requireNonNull(sources);
 
         Map<?, List<Record<BufferedImage>>> map;
 
-        if (getPHash() && getPixelByPixel())
+        if (isPerceptualHash() && isPixelByPixel())
             map = Record.process(sources, imageRecordFunction, ImageRecord.pHashFunction, ImageRecord.pixelByPixelFunction);
-        else if (getPHash())
+        else if (isPerceptualHash())
             map = Record.process(sources, imageRecordFunction, ImageRecord.pHashFunction);
-        else if (getPixelByPixel())
+        else if (isPixelByPixel())
             map = Record.process(sources, imageRecordFunction, ImageRecord.pixelByPixelFunction);
         else
             map = Record.process(sources, imageRecordFunction);
 
-        int id;
-
-        lock.lock();
-        try {
-            id = cache.size();
-            cache.add(
-                map.values().parallelStream()
+        return map.values().parallelStream()
                 .filter(list -> list.size() > 1)
                 .map(list -> list.subList(1, list.size()))
                 .flatMap(Collection::stream)
                 .map(Record::getFile)
-                .toList()
-            );
-        } finally {
-          lock.unlock();
-        }
-
-        return id;
-    }
-
-    default List<File> getFromCache(int id) {
-        return cache.get(id);
+                .toList();
     }
 
     default void performMove(List<File> files, File destination) throws IOException {
@@ -128,15 +111,6 @@ public interface ComparerInterface {
             });
         } catch (UncheckedIOException e) {
             throw e.getCause();
-        }
-    }
-
-    default void clearCache() {
-        lock.lock();
-        try {
-            cache.clear();
-        } finally {
-            lock.unlock();
         }
     }
 

@@ -14,7 +14,7 @@ public class ImageLoader implements ResourceLoader<Image> {
     /**
      * Loads an image resource from the given file name.
      *
-     * @param resource The name of the image resource to load.
+     * @param resource The name of the image resource to loadFiles.
      * @return The loaded {@link Image} object.
      * @throws IOException If an I/O error occurs during loading.
      */

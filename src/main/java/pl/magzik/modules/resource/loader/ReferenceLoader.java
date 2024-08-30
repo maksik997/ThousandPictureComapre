@@ -18,7 +18,7 @@ public class ReferenceLoader implements ResourceLoader<URI> {
     /**
      * Loads a URI resource from the given file name.
      *
-     * @param resource The name of the resource to load.
+     * @param resource The name of the resource to loadFiles.
      * @return The loaded {@link URI}.
      * @throws IOException If an I/O error occurs during loading.
      * @throws URISyntaxException If the resource string cannot be converted to a URI.

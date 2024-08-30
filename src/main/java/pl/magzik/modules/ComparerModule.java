@@ -1,113 +1,130 @@
 package pl.magzik.modules;
 
-import pl.magzik.IO.FileOperator;
+import pl.magzik.modules.comparer.ComparerProcessor;
 import pl.magzik.modules.loader.Module;
 
 import javax.swing.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class ComparerModule implements ComparerInterface, Module {
-    private File destination;
+public class ComparerModule implements Module, ComparerProcessor {
+    private String outputPath;
 
-    private List<File> sources;
+    private List<File> input;
 
-    private List<File> comparerOutput;
-
-    private DefaultListModel<String> duplicateListModel, mappedListModel;
-
-    private FileOperator fileOperator;
+    private List<File> output;
 
     private Mode mode;
 
-    private boolean pHash, pixelByPixel;
+    private boolean pHash, pixelByPixel, processing;
 
-    private SwingWorker<Void, Void> mapObjects, transferObjects;
+    private final DefaultListModel<String> duplicateListModel, mappedListModel;
 
-    public ComparerModule() { }
+    private final PropertyChangeSupport pcs;
 
-    @Override
-    public void load() {
-        destination = new File(System.getProperty("user.dir"));
-        sources = new LinkedList<>();
-        comparerOutput = null;
-        fileOperator = new FileOperator();
-        mode = Mode.NON_RECURSIVE;
+    private final ReentrantLock lock;
 
-        pHash = false;
-        pixelByPixel = false;
-
-        duplicateListModel = new DefaultListModel<>();
-        mappedListModel = new DefaultListModel<>();
-    }
-
-    public void reset(){
-        sources = new LinkedList<>();
-        comparerOutput = null;
-
-        duplicateListModel.removeAllElements();
-        mappedListModel.removeAllElements();
-    }
-
-    // Load images
-    public void loadImages() throws IOException, InterruptedException, TimeoutException {
-        Objects.requireNonNull(sources);
-        sources = fileOperator.loadFiles(mode == Mode.RECURSIVE ? Integer.MAX_VALUE : 1, filePredicate, sources);
-    }
-
-    // This method compares all images checksums
-    @Override
-    public void compareAndExtract() throws IOException, ExecutionException {
-        comparerOutput = getFromCache(compare(sources));
+    public ComparerModule() {
+        this.outputPath = System.getProperty("user.home");
+        this.input = new LinkedList<>();
+        this.output = new LinkedList<>();
+        this.mode = Mode.NOT_RECURSIVE;
+        this.pHash = false;
+        this.pixelByPixel = false;
+        this.duplicateListModel = new DefaultListModel<>();
+        this.mappedListModel = new DefaultListModel<>();
+        this.pcs = new PropertyChangeSupport(this);
+        this.lock = new ReentrantLock();
     }
 
     @Override
-    public void fileTransfer() throws IOException {
-        performMove(comparerOutput, destination);
-        clearCache();
-    }
-
-    public File getDestination() {
-        return destination;
-    }
-
-    public List<File> getSources() {
-        return sources;
-    }
-
-    public int getSourcesSize() {
-        return sources.size();
-    }
-
-    public List<File> getComparerOutput() {
-//        Objects.requireNonNull(comparerOutput);
-        return comparerOutput;
-    }
-
-    public int getComparerOutputSize() {
-        Objects.requireNonNull(comparerOutput);
-        return comparerOutput.size();
-    }
-
-    public Mode getMode() {
-        return mode;
+    public void lock() {
+        lock.lock();
+        try {
+            firePropertyChange("comparer-processing", processing, (processing = true));
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
-    public boolean getPHash() {
+    public void release(){
+        lock.lock();
+        try {
+            input = new LinkedList<>();
+            output = new LinkedList<>();
+            duplicateListModel.removeAllElements();
+            mappedListModel.removeAllElements();
+            firePropertyChange("comparer-processing", processing, (processing = false));
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void handle(List<File> output) {
+        this.output = output;
+    }
+
+    @Override
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener(listener);
+    }
+
+    @Override
+    public void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
+        pcs.firePropertyChange(propertyName, oldValue, newValue);
+    }
+
+    @Override
+    public String getOutputPath() {
+        return outputPath;
+    }
+
+    @Override
+    public void setOutputPath(String outputPath) {
+        this.outputPath = outputPath;
+    }
+
+    @Override
+    public List<File> getInput() {
+        return input;
+    }
+
+    @Override
+    public void setInput(List<File> input) {
+        Objects.requireNonNull(input);
+        this.input = input;
+    }
+
+    public int getInputElementsCount() {
+        return input.size();
+    }
+
+    @Override
+    public List<File> getOutput() {
+        return output;
+    }
+
+    public int getOutputElementsCount() {
+        return output.size();
+    }
+
+    @Override
+    public boolean isPerceptualHash() {
         return pHash;
     }
 
     @Override
-    public boolean getPixelByPixel() {
+    public boolean isPixelByPixel() {
         return pixelByPixel;
     }
 
     @Override
-    public void setPHash(boolean pHash) {
+    public void setPerceptualHash(boolean pHash) {
         this.pHash = pHash;
     }
 
@@ -117,37 +134,13 @@ public class ComparerModule implements ComparerInterface, Module {
     }
 
     @Override
-    public void setMode(Mode mode) {
-        this.mode = mode;
+    public Mode getMode() {
+        return mode;
     }
 
     @Override
-    public void setDestination(File destination) {
-        this.destination = destination;
-    }
-
-    public void setSources(List<File> sources) {
-        this.sources = sources;
-    }
-
-    public void setSources(File... sources) {
-        setSources(Arrays.asList(sources));
-    }
-
-    public SwingWorker<Void, Void> getMapObjects() {
-        return mapObjects;
-    }
-
-    public SwingWorker<Void, Void> getTransferObjects() {
-        return transferObjects;
-    }
-
-    public void setMapObjects(SwingWorker<Void, Void> mapObjects) {
-        this.mapObjects = mapObjects;
-    }
-
-    public void setTransferObjects(SwingWorker<Void, Void> transferObjects) {
-        this.transferObjects = transferObjects;
+    public void setMode(Mode mode) {
+        this.mode = mode;
     }
 
     public DefaultListModel<String> getDuplicateListModel() {

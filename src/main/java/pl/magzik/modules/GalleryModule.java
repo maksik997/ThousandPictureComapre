@@ -13,17 +13,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class GalleryModule implements ComparerInterface, Module {
+import static pl.magzik.modules.comparer.FileHandler.PREDICATE;
 
-    private static final Path imageReferenceFilePath = Path.of(".", "data", "gallery.tp"),
-        tagsReferenceFilePath = Path.of(".", "data", "tags.tp");
+public class GalleryModule implements Module {
 
     private GalleryTableModel galleryTableModel;
 
@@ -37,7 +34,7 @@ public class GalleryModule implements ComparerInterface, Module {
 
     private FileOperator fileOperator;
 
-    private Mode mode;
+//    private Mode mode;
 
     private boolean pHash, pixelByPixel, lowercaseExtension, massAction, isFirstTime;
 
@@ -70,35 +67,28 @@ public class GalleryModule implements ComparerInterface, Module {
     }
 
     // Comparer interaction
-    public void prepareComparer(List<Integer> indexes) throws IOException, InterruptedException, TimeoutException {
+    /*@Override
+    public void fileLoad() throws IOException, InterruptedException, TimeoutException {
         // Prepares Picture Comparer with destination path and source path
-        List<Path> toCheck = indexes.stream()
-            .map(tableRowSorter::convertRowIndexToModel)
-            .map(i -> galleryTableModel.getImages().get(i))
-            .map(Entry::getPath)
-            .toList();
+        sources = fileOperator.loadFiles(1, PREDICATE, sources);
+    }*/
 
-        sources = fileOperator.loadFiles(1, filePredicate, toCheck.stream().map(Path::toFile).toList());
-    }
+    /*@Override
+    public void handle(List<File> output) {
+        comparerOutput = output;
+    }*/
 
-    @Override
-    public void compareAndExtract() throws IOException, ExecutionException {
-        comparerOutput = getFromCache(compare(sources));
-    }
-
-    @Override
+    /*@Override
     public void fileDelete() throws IOException {
         performReduction();
         performDelete(comparerOutput, destination);
-        clearCache();
     }
 
     @Override
     public void fileTransfer() throws IOException {
         performReduction();
         performMove(comparerOutput, destination);
-        clearCache();
-    }
+    }*/
 
     // Basic set of operations
 
@@ -124,7 +114,7 @@ public class GalleryModule implements ComparerInterface, Module {
                 );
             }
             else {
-                if (!filePredicate.test(p.toFile())) return;
+                if (!PREDICATE.test(p.toFile())) return;
 
                 galleryTableModel.addEntry(new Entry(p));
             }
@@ -151,7 +141,7 @@ public class GalleryModule implements ComparerInterface, Module {
                     .map(Path::toFile)
                     .filter(f -> {
                         try {
-                            return filePredicate.test(f);
+                            return PREDICATE.test(f);
                         } catch (IOException e) {
                             throw new UncheckedIOException(e);
                         }
@@ -253,11 +243,11 @@ public class GalleryModule implements ComparerInterface, Module {
         tableRowSorter.setRowFilter(rowFilter);
     }
 
-    private void performReduction() throws IOException {
-        if (comparerOutput.isEmpty())
+    public void performReduction(List<File> output) throws IOException {
+        if (output.isEmpty())
             return;
 
-        List<Path> files = comparerOutput.stream().map(File::toPath).toList();
+        List<Path> files = output.stream().map(File::toPath).toList();
         galleryTableModel.reduction(files);
 
         saveToFile();
@@ -320,7 +310,7 @@ public class GalleryModule implements ComparerInterface, Module {
                 .filter(e -> Files.exists(e.getPath()))
                 .filter(e -> {
                     try {
-                        return filePredicate.test(e.getPath().toFile());
+                        return PREDICATE.test(e.getPath().toFile());
                     } catch (IOException ex) {
                         throw new UncheckedIOException(ex);
                     }
@@ -393,26 +383,27 @@ public class GalleryModule implements ComparerInterface, Module {
         return destination;
     }
 
-    public Mode getMode() {
+    /*public Mode getMode() {
         return mode;
-    }
+    }*/
 
     public Set<String> getExistingTags() {
         return existingTags;
     }
 
-    public boolean getPixelByPixel() {
+    public boolean isPixelByPixel() {
         return pixelByPixel;
     }
 
-    @Override
+    /*@Override
     public void setPixelByPixel(boolean pixelByPixel) {
         this.pixelByPixel = pixelByPixel;
     }
 
-    public boolean getPHash() {
+    @Override
+    public boolean isPerceptualHash() {
         return pHash;
-    }
+    }*/
 
     public String getNameTemplate() {
         return nameTemplate;
@@ -426,8 +417,8 @@ public class GalleryModule implements ComparerInterface, Module {
         this.lowercaseExtension = lowercaseExtension;
     }
 
-    @Override
-    public void setPHash(boolean pHash) {
+    /*@Override
+    public void setPerceptualHash(boolean pHash) {
         this.pHash = pHash;
     }
 
@@ -437,8 +428,40 @@ public class GalleryModule implements ComparerInterface, Module {
     }
 
     @Override
-    public void setDestination(File destination) {
-        this.destination = destination;
+    public void setOutputPath(String destination) {
+        this.destination = new File(destination);
+    }
+
+    @Override
+    public String getOutputPath() {
+        return destination.toString();
+    }
+
+    @Override
+    public List<File> getInput() {
+        return sources;
+    }*/
+
+    public void setSources(List<Integer> indexes) {
+        this.sources = indexes.stream()
+                .map(tableRowSorter::convertRowIndexToModel)
+                .map(i -> galleryTableModel.getImages().get(i))
+                .map(Entry::getPath)
+                .map(Path::toFile)
+                .toList();
+    }
+
+    public List<File> getFiles(int... indexes) {
+        return getFiles(Arrays.stream(indexes).boxed().toList());
+    }
+
+    public List<File> getFiles(List<Integer> indexes) {
+        return indexes.stream()
+                        .map(tableRowSorter::convertRowIndexToModel)
+                        .map(i -> galleryTableModel.getImages().get(i))
+                        .map(Entry::getPath)
+                        .map(Path::toFile)
+                        .toList();
     }
 
     public void setUnifyNames(SwingWorker<Void, Void> unifyNames) {

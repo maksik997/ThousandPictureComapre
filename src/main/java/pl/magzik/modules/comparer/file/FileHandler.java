@@ -1,4 +1,4 @@
-package pl.magzik.modules.comparer;
+package pl.magzik.modules.comparer.file;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,7 +9,7 @@ import java.util.List;
  * Interface defining file handling operations including loading, deleting,
  * and moving files.
  */
-public interface FileHandlerInterface {
+public interface FileHandler {
 
     /**
      * Loads files based on the given list.
@@ -40,23 +40,21 @@ public interface FileHandlerInterface {
     }
 
     /**
-     * Moves the specified files to the given destination directory.
+     * Moves the specified files
      *
-     * @param destination the target directory where files should be moved
      * @param files a list of files to be moved
      * @throws IOException if an I/O error occurs during file moving
      */
-    void moveFiles(File destination, List<File> files) throws IOException;
+    void moveFiles(List<File> files) throws IOException;
 
     /**
-     * Moves the specified files to the given destination directory.
+     * Moves the specified files.
      * This method is a convenience overload for moving files by varargs.
      *
-     * @param destination the target directory where files should be moved
      * @param files files to be moved
      * @throws IOException if an I/O error occurs during file moving
      */
-    default void moveFiles(File destination, File... files) throws IOException {
-        moveFiles(destination, Arrays.asList(files));
+    default void moveFiles(File... files) throws IOException {
+        moveFiles(Arrays.asList(files));
     }
 }

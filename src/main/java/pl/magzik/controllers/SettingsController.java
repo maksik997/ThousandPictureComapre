@@ -1,9 +1,9 @@
 package pl.magzik.controllers;
 
-import pl.magzik.modules.comparer.ComparerPropertyAccess;
-import pl.magzik.modules.comparer.ComparerPropertyAccess;
+import pl.magzik.modules.comparer.file.ComparerFilePropertyAccess;
+import pl.magzik.modules.comparer.processing.ComparerPropertyAccess;
 import pl.magzik.ui.localization.TranslationStrategy;
-import pl.magzik.modules.ComparerModule;
+import pl.magzik.modules.comparer.processing.ComparerModule;
 import pl.magzik.modules.GalleryModule;
 import pl.magzik.modules.SettingsModule;
 import pl.magzik.ui.components.settings.ComboBoxSettingsEntry;
@@ -60,26 +60,42 @@ public class SettingsController {
     private final GalleryModule gModule;
     private final TranslationStrategy ti;
     private final MessageInterface mi;
-
-    private final List<ComparerPropertyAccess> cis;
+    private final ComparerFilePropertyAccess cfpa;
+    private final ComparerPropertyAccess cpa;
 
     /**
-     * Constructs a new SettingsController with the given dependencies and initializes the settings view.
+     * Constructs a new {@code SettingsController} with the provided dependencies and initializes the settings view.
+     * <p>
+     * This constructor sets up the controller by associating it with the provided view and module instances,
+     * configuring the initial settings, and setting up the user interface interactions.
+     * <p>
+     * The constructor performs the following actions:
+     * <ul>
+     *   <li>Assigns the provided {@link SettingsView}, {@link SettingsModule}, {@link GalleryModule}, {@link TranslationStrategy},
+     *       {@link MessageInterface}, and {@link ComparerPropertyAccess} implementations to the corresponding fields.</li>
+     *   <li>Initializes the settings through {@link #initializeSettings()}.</li>
+     *   <li>Updates external settings using {@link #updateExternalSettings()}.</li>
+     *   <li>Sets up the save button by attaching an action listener to it and disabling it initially.</li>
+     *   <li>Adds property change listeners to manage the state of the save button.</li>
+     * </ul>
      *
-     * @param sView The {@link SettingsView} instance to interact with the user interface.
-     * @param sModule The {@link SettingsModule} instance to handle the settings data.
-     * @param gModule The {@link GalleryModule} instance, which also implements {@link ComparerPropertyAccess}.
-     * @param ti The {@link TranslationStrategy} instance for translating strings.
-     * @param mi The {@link MessageInterface} instance for showing messages.
-     * @param cis An array of {@link ComparerPropertyAccess} implementations, which may include {@link GalleryModule}.
+     * @param sView The {@link SettingsView} instance used to interact with the user interface. Must not be {@code null}.
+     * @param sModule The {@link SettingsModule} instance responsible for handling the settings data. Must not be {@code null}.
+     * @param gModule The {@link GalleryModule} instance, which also implements {@link ComparerPropertyAccess}. Must not be {@code null}.
+     * @param ti The {@link TranslationStrategy} instance used for translating text strings. Must not be {@code null}.
+     * @param mi The {@link MessageInterface} instance used for displaying messages to the user. Must not be {@code null}.
+     * @param cpa The {@link ComparerPropertyAccess} instance used for accessing comparison properties. Must not be {@code null}.
+     * @param cfpa The {@link ComparerFilePropertyAccess} instance used for handling file-related comparison properties. Must not be {@code null}.
+     * @throws NullPointerException if any of the provided parameters are {@code null}.
      */
-    public SettingsController(SettingsView sView, SettingsModule sModule, GalleryModule gModule, TranslationStrategy ti, MessageInterface mi, ComparerPropertyAccess... cis) {
+    public SettingsController(SettingsView sView, SettingsModule sModule, GalleryModule gModule, TranslationStrategy ti, MessageInterface mi, ComparerPropertyAccess cpa, ComparerFilePropertyAccess cfpa) {
         this.sView = sView;
         this.sModule = sModule;
         this.gModule = gModule;
         this.ti = ti;
         this.mi = mi;
-        this.cis = Arrays.asList(cis);
+        this.cpa = cpa;
+        this.cfpa = cfpa;
 
         // Initialize settings and update external settings.
         initializeSettings();
@@ -347,40 +363,58 @@ public class SettingsController {
 
     /**
      * Updates external settings and configurations based on the current values in the settings module.
+     * <p>
      * This method performs the following actions:
      * <ul>
-     *   <li>Sets the name template for the {@link GalleryModule} using the value of the "unify-names-prefix" setting.</li>
-     *   <li>Configures whether the extensions should be lowercase based on the "unify-names-lowercase" setting.</li>
-     *   <li>Iterates over a collection of {@link ComparerPropertyAccess} instances and applies settings updates using the {@link #updateComparerSettings(ComparerPropertyAccess)} method.</li>
+     *   <li>Sets the name template for the {@link GalleryModule} using the value retrieved from the "unify-names-prefix" setting.
+     *       <p>The value is used to configure the prefix template for unifying names within the gallery module.</p></li>
+     *   <li>Configures whether the file extensions should be converted to lowercase based on the value of the "unify-names-lowercase" setting.
+     *       <p>If the setting value is "yes", extensions will be converted to lowercase; otherwise, they will remain unchanged.</p></li>
+     *   <li>Updates the settings of the {@link ComparerPropertyAccess} and {@link ComparerFilePropertyAccess} instances using the {@link #updateComparerSettings()} method.
+     *       <p>The method applies the settings updates to ensure that all comparer-related configurations are aligned with the current settings.</p></li>
      * </ul>
-     *
-     * The method ensures that the external components and modules are updated to reflect the current settings.
+     * </p>
+     * <p>
+     * The method ensures that the external components and modules reflect the latest configuration settings to maintain consistency across the application.
+     * </p>
      */
     private void updateExternalSettings() {
         gModule.setNameTemplate(sModule.getSetting("un_prefix"));
         gModule.setLowercaseExtension(sModule.getSetting("un_lowercase").equals("yes"));
 
-        for (ComparerPropertyAccess c : cis) {
-            updateComparerSettings(c);
-        }
+        updateComparerSettings();
     }
 
     /**
-     * Updates the settings of the given {@link ComparerPropertyAccess} instance based on the current values from the settings module.
-     * This method performs the following updates on the provided comparer interface:
+     * Updates the settings of the provided {@link ComparerPropertyAccess} and {@link ComparerFilePropertyAccess} instances
+     * based on the current values from the settings module.
+     * <p>
+     * This method performs the following updates on the provided comparer interfaces:
      * <ul>
-     *   <li>Sets the destination directory using the "destination-for-pc" setting value.</li>
-     *   <li>Configures the mode of the comparer based on the "recursive-mode" setting. The mode is set to {@link ComparerModule.Mode#RECURSIVE} if the setting value is "yes", otherwise it is set to {@link ComparerModule.Mode#NOT_RECURSIVE}.</li>
-     *   <li>Sets the perceptual hash comparison flag based on the "phash" setting. The flag is set to {@code true} if the setting value is "yes".</li>
-     *   <li>Configures pixel-by-pixel comparison based on the "pbp" setting. The flag is set to {@code true} if the setting value is "yes".</li>
+     *   <li>Sets the destination directory using the value retrieved from the "coutput" setting.</li>
+     *   <li>Configures the mode of the comparer based on the value of the "rmode" setting:
+     *       <ul>
+     *         <li>If the setting value is "yes", the mode is set to {@link ComparerFilePropertyAccess.Mode#RECURSIVE}.</li>
+     *         <li>Otherwise, the mode is set to {@link ComparerFilePropertyAccess.Mode#NOT_RECURSIVE}.</li>
+     *       </ul>
+     *   </li>
+     *   <li>Sets the perceptual hash comparison flag based on the value of the "phash" setting:
+     *       <ul>
+     *         <li>If the setting value is "yes", the flag is set to {@code true}.</li>
+     *       </ul>
+     *   </li>
+     *   <li>Configures the pixel-by-pixel comparison flag based on the value of the "pbp" setting:
+     *       <ul>
+     *         <li>If the setting value is "yes", the flag is set to {@code true}.</li>
+     *       </ul>
+     *   </li>
      * </ul>
+     * </p>
      *
-     * @param cp A {@link ComparerPropertyAccess} instance to be updated. Must not be {@code null}.
-     * @throws NullPointerException If the {@code ci} parameter is {@code null}.
+     * @throws NullPointerException If any of the settings values retrieved from {@link SettingsModule} are {@code null}.
+     * @throws IllegalArgumentException If any of the setting values retrieved from {@link SettingsModule} are invalid or unexpected.
      */
-    private void updateComparerSettings(ComparerPropertyAccess cp) {
-        Objects.requireNonNull(cp);
-
+    private void updateComparerSettings() {
         // Retrieve settings
         String destinationPath = sModule.getSetting("coutput"),
         recursiveMode = sModule.getSetting("rmode"),
@@ -388,11 +422,11 @@ public class SettingsController {
         pbp = sModule.getSetting("pbp");
 
         // Set settings.
-        cp.setOutputPath(destinationPath);
-        cp.setMode(
-            recursiveMode.equals("yes") ? ComparerModule.Mode.RECURSIVE : ComparerModule.Mode.NOT_RECURSIVE
+        cfpa.setOutputPath(destinationPath);
+        cfpa.setMode(
+            recursiveMode.equals("yes") ? ComparerFilePropertyAccess.Mode.RECURSIVE : ComparerFilePropertyAccess.Mode.NOT_RECURSIVE
         );
-        cp.setPerceptualHash(pHash.equals("yes"));
-        cp.setPixelByPixel(pbp.equals("yes"));
+        cpa.setPerceptualHash(pHash.equals("yes"));
+        cpa.setPixelByPixel(pbp.equals("yes"));
     }
 }

@@ -1,4 +1,4 @@
-package pl.magzik.async;
+package pl.magzik.base.interfaces;
 
 /**
  * Represents a command that can be executed.

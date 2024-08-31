@@ -1,8 +1,9 @@
-package pl.magzik.modules.comparer;
+package pl.magzik.modules.comparer.file;
 
 import pl.magzik.Comparator.FilePredicate;
 import pl.magzik.Comparator.ImageFilePredicate;
 import pl.magzik.IO.FileOperator;
+import pl.magzik.base.interfaces.CheckedConsumer;
 import pl.magzik.modules.loader.Module;
 
 import java.io.File;
@@ -20,37 +21,34 @@ import java.util.concurrent.TimeoutException;
  * loading, deleting, and moving files in the context of file comparison.
  * <p>
  * This class uses {@link FilePredicate} and {@link FileOperator} to handle
- * file operations, and it requires {@link ComparerPropertyAccess} to determine
+ * file operations and requires {@link ComparerFilePropertyAccess} to determine
  * the configuration for file processing.
+ * </p>
  */
-public class ComparerFileModule implements Module, FileHandlerInterface {
+public class ComparerFileModule implements Module, FileHandler, ComparerFilePropertyAccess {
 
+    private Mode mode;
+    private String outputPath;
     private final FilePredicate filePredicate;
     private final FileOperator fileOperator;
-    private final ComparerPropertyAccess comparerPropertyAccess;
 
     /**
      * Constructs an instance of {@code ComparerFileModule}.
-     *
-     * @param comparerPropertyAccess an instance of {@link ComparerPropertyAccess}
-     *        to configure file comparison settings
+     * <p>
+     * Initializes the output path to the user's home directory and sets the default mode to non-recursive.
+     * </p>
      */
-    public ComparerFileModule(ComparerPropertyAccess comparerPropertyAccess) {
+    public ComparerFileModule() {
+        this.outputPath = System.getProperty("user.home");
+        this.mode = Mode.NOT_RECURSIVE;
+
         this.filePredicate = new ImageFilePredicate();
         this.fileOperator = new FileOperator();
-        this.comparerPropertyAccess = comparerPropertyAccess;
     }
 
-    /**
-     * Loads files based on the given list and comparison settings.
-     *
-     * @param input a list of input files to be processed
-     * @return a list of files that were loaded
-     * @throws IOException if an I/O error occurs during file loading
-     */
     @Override
     public List<File> loadFiles(List<File> input) throws IOException {
-        int depth = comparerPropertyAccess.getMode().isRecursive() ? Integer.MAX_VALUE : 1;
+        int depth = mode.isRecursive() ? Integer.MAX_VALUE : 1;
 
         try {
             return fileOperator.loadFiles(depth, filePredicate, input);
@@ -59,29 +57,16 @@ public class ComparerFileModule implements Module, FileHandlerInterface {
         }
     }
 
-    /**
-     * Deletes the specified files.
-     *
-     * @param files a list of files to be deleted
-     * @throws IOException if an I/O error occurs during file deletion
-     */
     @Override
     public void deleteFiles(List<File> files) throws IOException {
         perform(Files::delete, files);
     }
 
-    /**
-     * Moves the specified files to the given destination directory.
-     *
-     * @param destination the target directory where files should be moved
-     * @param files a list of files to be moved
-     * @throws IOException if an I/O error occurs during file moving
-     */
     @Override
-    public void moveFiles(File destination, List<File> files) throws IOException {
+    public void moveFiles(List<File> files) throws IOException {
         perform(p -> Files.move(
             p,
-            Path.of(destination.toString(), p.getFileName().toString()),
+            Path.of(outputPath, p.getFileName().toString()),
             StandardCopyOption.REPLACE_EXISTING
         ), files);
     }
@@ -106,5 +91,15 @@ public class ComparerFileModule implements Module, FileHandlerInterface {
         } catch (UncheckedIOException e) {
             throw e.getCause();
         }
+    }
+
+    @Override
+    public void setOutputPath(String outputPath) {
+        this.outputPath = outputPath;
+    }
+
+    @Override
+    public void setMode(Mode mode) {
+        this.mode = mode;
     }
 }

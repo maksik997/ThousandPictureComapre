@@ -1,10 +1,10 @@
 package pl.magzik.controllers;
 
-import pl.magzik.async.Command;
+import pl.magzik.base.interfaces.Command;
 import pl.magzik.async.ExecutorServiceManager;
 import pl.magzik.modules.GalleryModule;
-import pl.magzik.modules.comparer.ComparerProcessor;
-import pl.magzik.modules.comparer.FileHandlerInterface;
+import pl.magzik.modules.comparer.processing.ComparerProcessor;
+import pl.magzik.modules.comparer.file.FileHandler;
 import pl.magzik.ui.localization.TranslationStrategy;
 import pl.magzik.ui.cursor.CursorManagerInterface;
 import pl.magzik.ui.listeners.UnifiedDocumentListener;
@@ -34,7 +34,7 @@ public class GalleryController {
     private final GalleryView gView;
     private final GalleryModule gModule;
     private final ComparerProcessor cp;
-    private final FileHandlerInterface fh;
+    private final FileHandler fh;
     private final MessageInterface mi;
     private final CursorManagerInterface umi;
     private final TranslationStrategy ti;
@@ -52,7 +52,7 @@ public class GalleryController {
      * @param mi the {@link MessageInterface} for displaying messages to the user.
      * @param ti the {@link TranslationStrategy} for translating messages.
      */
-    public GalleryController(GalleryView gView, GalleryModule gModule, ComparerProcessor cp, FileHandlerInterface fh, CursorManagerInterface umi, MessageInterface mi, TranslationStrategy ti) {
+    public GalleryController(GalleryView gView, GalleryModule gModule, ComparerProcessor cp, FileHandler fh, CursorManagerInterface umi, MessageInterface mi, TranslationStrategy ti) {
         this.ti = ti;
         this.umi = umi;
         this.mi = mi;
@@ -651,6 +651,7 @@ public class GalleryController {
      */
     private void distinctImages() {
         try {
+            cp.lock();
             List<File> in = gModule.getFiles(gView.getGalleryTable().getSelectedRows());
             in = fh.loadFiles(in);
             cp.setInput(in);
@@ -676,7 +677,7 @@ public class GalleryController {
 
             gModule.performReduction(out);
 
-            if (res) fh.moveFiles(new File(cp.getOutputPath()), out);
+            if (res) fh.moveFiles(out);
             else fh.deleteFiles(out);
         } catch (IOException e) {
             throw new CompletionException(e);

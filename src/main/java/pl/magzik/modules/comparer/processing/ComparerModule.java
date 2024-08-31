@@ -1,6 +1,5 @@
-package pl.magzik.modules;
+package pl.magzik.modules.comparer.processing;
 
-import pl.magzik.modules.comparer.ComparerProcessor;
 import pl.magzik.modules.loader.Module;
 
 import javax.swing.*;
@@ -10,36 +9,44 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * The {@code ComparerModule} class is a part of the file comparison processing system.
+ * It handles the management of input and output files, manages processing state, and provides methods
+ * to configure comparison settings.
+ * <p>
+ * This class implements the {@link Module} and {@link ComparerProcessor} interfaces, allowing it to
+ * integrate with other components and perform file comparison operations.
+ * </p>
+ */
 public class ComparerModule implements Module, ComparerProcessor {
-    private String outputPath;
 
     private List<File> input;
-
     private List<File> output;
-
-    private Mode mode;
-
-    private boolean pHash, pixelByPixel, processing;
-
-    private final DefaultListModel<String> duplicateListModel, mappedListModel;
-
+    private boolean pHash, pixelByPixel;
     private final PropertyChangeSupport pcs;
-
     private final ReentrantLock lock;
+    private boolean processing;
 
+    /**
+     * Constructs a new {@code ComparerModule} instance with default values.
+     */
     public ComparerModule() {
-        this.outputPath = System.getProperty("user.home");
-        this.input = new LinkedList<>();
-        this.output = new LinkedList<>();
-        this.mode = Mode.NOT_RECURSIVE;
+        this.input = new ArrayList<>();
+        this.output = new ArrayList<>();
         this.pHash = false;
         this.pixelByPixel = false;
-        this.duplicateListModel = new DefaultListModel<>();
-        this.mappedListModel = new DefaultListModel<>();
         this.pcs = new PropertyChangeSupport(this);
         this.lock = new ReentrantLock();
+        this.processing = false;
     }
 
+    /**
+     * Acquires the lock for processing and sets the processing state to {@code true}.
+     * This method should be called before starting a processing task to ensure thread safety.
+     * <p>
+     * This method uses {@link ReentrantLock} to manage concurrency.
+     * </p>
+     */
     @Override
     public void lock() {
         lock.lock();
@@ -50,14 +57,18 @@ public class ComparerModule implements Module, ComparerProcessor {
         }
     }
 
+    /**
+     * Releases the lock for processing and sets the processing state to {@code false}.
+     * <p>
+     * This method should be called after completing a processing task to release the lock and update the state.
+     * </p>
+     */
     @Override
     public void release(){
         lock.lock();
         try {
-            input = new LinkedList<>();
-            output = new LinkedList<>();
-            duplicateListModel.removeAllElements();
-            mappedListModel.removeAllElements();
+            input = new ArrayList<>();
+            output = new ArrayList<>();
             firePropertyChange("comparer-processing", processing, (processing = false));
         } finally {
             lock.unlock();
@@ -80,16 +91,6 @@ public class ComparerModule implements Module, ComparerProcessor {
     }
 
     @Override
-    public String getOutputPath() {
-        return outputPath;
-    }
-
-    @Override
-    public void setOutputPath(String outputPath) {
-        this.outputPath = outputPath;
-    }
-
-    @Override
     public List<File> getInput() {
         return input;
     }
@@ -100,6 +101,11 @@ public class ComparerModule implements Module, ComparerProcessor {
         this.input = input;
     }
 
+    /**
+     * Returns the number of input files.
+     *
+     * @return the number of input files.
+     */
     public int getInputElementsCount() {
         return input.size();
     }
@@ -109,6 +115,11 @@ public class ComparerModule implements Module, ComparerProcessor {
         return output;
     }
 
+    /**
+     * Returns the number of output files.
+     *
+     * @return the number of output files.
+     */
     public int getOutputElementsCount() {
         return output.size();
     }
@@ -131,23 +142,5 @@ public class ComparerModule implements Module, ComparerProcessor {
     @Override
     public void setPixelByPixel(boolean pixelByPixel) {
         this.pixelByPixel = pixelByPixel;
-    }
-
-    @Override
-    public Mode getMode() {
-        return mode;
-    }
-
-    @Override
-    public void setMode(Mode mode) {
-        this.mode = mode;
-    }
-
-    public DefaultListModel<String> getDuplicateListModel() {
-        return duplicateListModel;
-    }
-
-    public DefaultListModel<String> getMappedListModel() {
-        return mappedListModel;
     }
 }

@@ -1,9 +1,11 @@
 package pl.magzik.controllers;
 
 import pl.magzik.async.ExecutorServiceManager;
-import pl.magzik.modules.comparer.FileHandlerInterface;
+import pl.magzik.modules.comparer.file.FileHandler;
+import pl.magzik.modules.comparer.list.ListModelHandler;
+import pl.magzik.modules.comparer.processing.ComparerProcessor;
 import pl.magzik.ui.localization.TranslationStrategy;
-import pl.magzik.modules.ComparerModule;
+import pl.magzik.modules.comparer.processing.ComparerModule;
 import pl.magzik.ui.cursor.CursorManagerInterface;
 import pl.magzik.ui.logging.MessageInterface;
 import pl.magzik.ui.views.ComparerView;
@@ -50,41 +52,44 @@ import java.util.List;
  */
 public class ComparerController {
     private final ComparerView cView;
-    private final ComparerModule cModule;
-    private final FileHandlerInterface fh;
+    private final ComparerProcessor cp;
+    private final FileHandler fh;
+    private final ListModelHandler<String> lmh;
     private final TranslationStrategy ti;
     private final MessageInterface mi;
     private final CursorManagerInterface umi;
     private final ExecutorService executor;
 
     /**
-     * Constructs a new {@code ComparerController} with the specified view, module, translation interface,
-     * message interface, and UI manager interface.
-     * Initializes the controller by setting up list models and
-     * adding action listeners to the view.
+     * Constructs a new {@code ComparerController} with the specified view, module, file handler, list model handler,
+     * translation strategy, message interface, and cursor manager interface.
      * <p>
-     * The constructor performs the following steps:
+     * This constructor initializes the controller by performing the following actions:
      * <ul>
-     *   <li>Assigns the provided {@link ComparerView}, {@link ComparerModule}, {@link TranslationStrategy},
-     *       {@link MessageInterface}, and {@link CursorManagerInterface} to the corresponding fields.</li>
+     *   <li>Assigns the provided {@link ComparerView}, {@link ComparerModule}, {@link FileHandler}, {@link ListModelHandler},
+     *       {@link TranslationStrategy}, {@link MessageInterface}, and {@link CursorManagerInterface} to the corresponding fields.</li>
      *   <li>Retrieves the singleton instance of {@link ExecutorService} using {@link ExecutorServiceManager#getInstance()}.</li>
-     *   <li>Initializes the list models of the {@code ComparerModule} and associates them with the corresponding UI components
-     *       using {@link #initializeListModel(DefaultListModel, JList)}.</li>
+     *   <li>Initializes the list models for the {@code ComparerModule} and associates them with the corresponding UI components
+     *       using {@link #initializeListModel(ListModel, JList)}.</li>
      *   <li>Adds action listeners to handle user interactions with the buttons in the view using {@link #addListeners()}.</li>
      * </ul>
      * </p>
      *
      * @param cView the {@link ComparerView} instance that provides the user interface components. Must not be {@code null}.
-     * @param cModule the {@link ComparerModule} instance that handles the core functionality of the application. Must not be {@code null}.
+     * @param cp the {@link ComparerProcessor} instance that handles the core functionality of the application.
+     *           Must not be {@code null}.
+     * @param fh the {@link FileHandler} instance used for managing file operations. Must not be {@code null}.
+     * @param lmh the {@link ListModelHandler} instance used for managing list models. Must not be {@code null}.
      * @param ti the {@link TranslationStrategy} used for translating text strings. Must not be {@code null}.
      * @param mi the {@link MessageInterface} used for displaying messages to the user. Must not be {@code null}.
      * @param umi the {@link CursorManagerInterface} used for managing the user interface state and cursor. Must not be {@code null}.
      * @throws NullPointerException if any of the provided parameters are {@code null}.
      */
-    public ComparerController(ComparerView cView, ComparerModule cModule, FileHandlerInterface fh, TranslationStrategy ti, MessageInterface mi, CursorManagerInterface umi) {
+    public ComparerController(ComparerView cView, ComparerProcessor cp, FileHandler fh, ListModelHandler<String> lmh, TranslationStrategy ti, MessageInterface mi, CursorManagerInterface umi) {
         this.cView = cView;
-        this.cModule = cModule;
+        this.cp = cp;
         this.fh = fh;
+        this.lmh = lmh;
         this.ti = ti;
         this.mi = mi;
         this.umi = umi;
@@ -92,8 +97,8 @@ public class ComparerController {
 
         // Initialize
 
-        initializeListModel(cModule.getMappedListModel(), cView.getFoundList());
-        initializeListModel(cModule.getDuplicateListModel(), cView.getDuplicateList());
+        initializeListModel(lmh.getListModel("Output"), cView.getFoundList());
+        initializeListModel(lmh.getListModel("Duplicates"), cView.getDuplicateList());
 
         // Listeners
 
@@ -122,7 +127,7 @@ public class ComparerController {
         cView.getMoveButton().addActionListener(_ -> handleMoveButtonClick());
         cView.getResetButton().addActionListener(_ -> handleResetButtonClick());
 
-        cModule.addPropertyChangeListener(cView);
+        cp.addPropertyChangeListener(cView);
     }
 
     /**
@@ -141,7 +146,7 @@ public class ComparerController {
      */
     private void handlePathButtonClick() {
         if (cView.getFileChooser().perform()) {
-            cModule.setInput(
+            cp.setInput(
                 new File(cView.getPathTextField().getText())
             );
         }
@@ -193,7 +198,7 @@ public class ComparerController {
      * </p>
      */
     private void handleMoveButtonClick() {
-        if (cModule.getOutputElementsCount() <= 0) {
+        if (cp.getOutput().isEmpty()) {
             mi.showErrorMessage(
                 ti.translate("error.comparer.loading_needed.desc"),
                 ti.translate("error.general.title")
@@ -222,7 +227,9 @@ public class ComparerController {
      */
     private void handleResetButtonClick() {
         cView.clear();
-        cModule.release();
+        lmh.clearList("Output");
+        lmh.clearList("Duplicates");
+        cp.release();
 
         cView.getLoadButton().setEnabled(true);
         cView.getPathButton().setEnabled(true);
@@ -242,7 +249,7 @@ public class ComparerController {
      * @param list the {@link JList} to be initialized with the provided model. Must not be {@code null}.
      * @throws NullPointerException if either {@code model} or {@code list} is {@code null}.
      */
-    private void initializeListModel(DefaultListModel<String> model, JList<String> list) {
+    private void initializeListModel(ListModel<String> model, JList<String> list) {
         Objects.requireNonNull(model);
         Objects.requireNonNull(list);
 
@@ -250,21 +257,27 @@ public class ComparerController {
     }
 
     /**
-     * Populates the provided {@link DefaultListModel} with the names of files from the given list of {@link File} objects.
+     * Populates the list model
+     * identified by the specified name with the names of files from the given list of {@link File} objects.
      *
-     * <p>This method clears the existing items in the list model and adds the names of the files from the provided
-     * {@code sources} list. Each file's name is obtained using {@link File#getName()}.</p>
+     * <p>This method performs the following actions:
+     * <ul>
+     *   <li>Clears the existing items in the list model identified by {@code modelName}.</li>
+     *   <li>Adds the names of the files from the provided {@code sources} list to the list model. Each file's name is obtained using {@link File#getName()}.</li>
+     * </ul>
+     * </p>
      *
-     * @param model the {@link DefaultListModel} to be populated with file names. Must not be {@code null}.
+     * @param modelName the name of the {@link DefaultListModel} to be populated with file names. Must not be {@code null}.
      * @param sources the list of {@link File} objects whose names will be added to the list model. Must not be {@code null}.
-     * @throws NullPointerException if either {@code model} or {@code sources} is {@code null}.
+     * @throws NullPointerException if either {@code modelName} or {@code sources} is {@code null}.
+     * @throws IllegalArgumentException if no list model with the specified name exists in the {@link ListModelHandler}.
      */
-    private void fulfilListModel(DefaultListModel<String> model, List<File> sources) {
-        Objects.requireNonNull(model);
+    private void fulfilListModel(String modelName, List<File> sources) {
+        Objects.requireNonNull(modelName);
         Objects.requireNonNull(sources);
 
-        model.clear();
-        model.addAll(sources.stream().map(File::getName).toList());
+        lmh.clearList(modelName);
+        lmh.addAllToList(modelName, sources.stream().map(File::getName).toList());
     }
 
     /**
@@ -296,9 +309,9 @@ public class ComparerController {
     private void loadTask() {
         CompletableFuture.runAsync(() -> prepareUiBefore("comparer.state.prepare"), executor)
             .thenRunAsync(this::loadFiles, executor)
-            .thenRunAsync(() -> updateUiAfter("comparer.state.map", cModule.getMappedListModel(), cModule.getInput()), executor)
+            .thenRunAsync(() -> updateUiAfter("comparer.state.map", "Output", cp.getInput()), executor)
             .thenComposeAsync(_ -> compareTask(), executor)
-            .thenRunAsync(() -> updateUiAfter("comparer.state.update", cModule.getDuplicateListModel(), cModule.getOutput()), executor)
+            .thenRunAsync(() -> updateUiAfter("comparer.state.update", "Duplicates", cp.getOutput()), executor)
             .exceptionally(this::handleException)
             .whenComplete((_, _) -> handleLoadTaskCompletion());
     }
@@ -332,7 +345,7 @@ public class ComparerController {
     private CompletableFuture<Void> compareTask() {
         return CompletableFuture.runAsync(() -> {
             try {
-                cModule.process();
+                cp.process();
             } catch (IOException | ExecutionException e) {
                 throw new CompletionException(e);
             }
@@ -360,32 +373,35 @@ public class ComparerController {
     private void prepareUiBefore(String state) {
         SwingUtilities.invokeLater(() -> {
             cView.blockDestructiveButtons();
+            cp.lock();
             umi.useCursor(CursorManagerInterface.WAIT_CURSOR);
             cView.getStatusLabel().setText(ti.translate(state));
         });
     }
 
     /**
-     * Updates the user interface after a task based on the provided state, model, and list of sources.
+     * Updates the user interface after a task based on the provided state, model name, and list of sources.
      *
      * <p>This method performs the following actions on the Event Dispatch Thread:
      * <ul>
-     *   <li>Populates the given {@link DefaultListModel} with the names of the provided list of {@link File} objects.</li>
-     *   <li>Updates the UI tray with the total number of sources and the number of duplicates (if any).</li>
-     *   <li>Sets the state label text to the translated value of the provided state string.</li>
-     * </ul></p>
+     *   <li>Populates the {@link DefaultListModel} identified by {@code modelName} with the names of the {@link File} objects provided in the {@code sources} list.</li>
+     *   <li>Updates the UI tray with the total number of input elements and the number of output elements (duplicates), if any.</li>
+     *   <li>Sets the state label text to the translated value of the provided {@code state} string using {@link TranslationStrategy#translate(String)}.</li>
+     * </ul>
+     * </p>
      *
-     * @param state the key for the state label text to be translated and set. This should correspond to a translation key.
-     * @param model the {@link DefaultListModel} to be populated with file names. Must not be {@code null}.
+     * @param state the key for the state label text to be translated and set.
+     *              This should correspond to a translation key used by {@link TranslationStrategy}.
+     * @param modelName the name of the {@link DefaultListModel} to be populated with file names. Must not be {@code null}.
      * @param sources the list of {@link File} objects whose names will be added to the list model. Must not be {@code null}.
-     * @throws NullPointerException if {@code model} or {@code sources} is {@code null}.
+     * @throws NullPointerException if {@code modelName} or {@code sources} is {@code null}.
      */
-    private void updateUiAfter(String state, DefaultListModel<String> model, List<File> sources) {
-        int total = cModule.getInputElementsCount(),
-            duplicates = cModule.getOutput() == null ? 0 : cModule.getOutputElementsCount();
+    private void updateUiAfter(String state, String modelName, List<File> sources) {
+        int total = cp.getInput().size(),
+            duplicates = cp.getOutput() == null ? 0 : cp.getOutput().size();
 
         SwingUtilities.invokeLater(() -> {
-            fulfilListModel(model, sources);
+            fulfilListModel(modelName, sources);
             cView.updateTray(total, duplicates);
             cView.getStatusLabel().setText(ti.translate(state));
         });
@@ -427,7 +443,7 @@ public class ComparerController {
         SwingUtilities.invokeLater(() -> {
             unlockButtonPanel();
 
-            if (cModule.getOutputElementsCount() > 0)
+            if (!cp.getOutput().isEmpty())
                 cView.getMoveButton().setEnabled(true);
         });
     }
@@ -453,13 +469,13 @@ public class ComparerController {
      * {@link CompletionException} to be handled by the CompletableFuture pipeline.
      *
      * @throws CompletionException if an {@link IOException}, {@link InterruptedException},
-     *         or {@link TimeoutException} is thrown by {@link FileHandlerInterface#loadFiles(List)} ()}.
+     *         or {@link TimeoutException} is thrown by {@link FileHandler#loadFiles(List)}.
      */
     private void loadFiles() {
         try {
-            List<File> in = cModule.getInput();
+            List<File> in = cp.getInput();
             List<File> reducedIn = fh.loadFiles(in);
-            cModule.setInput(reducedIn);
+            cp.setInput(reducedIn);
         } catch (IOException e) {
             throw new CompletionException(e);
         }
@@ -469,14 +485,11 @@ public class ComparerController {
      * Moves files as part of the moveFiles task. This method may throw exceptions
      * related to file I/O, which are wrapped in a {@link CompletionException}.
      *
-     * @throws CompletionException if an {@link IOException} is thrown by {@link FileHandlerInterface#moveFiles(File, List)} ()}.
+     * @throws CompletionException if an {@link IOException} is thrown by {@link FileHandler#moveFiles(List)}.
      */
     private void moveFiles() {
         try {
-            fh.moveFiles(
-                new File(cModule.getOutputPath()),
-                cModule.getOutput()
-            );
+            fh.moveFiles(cp.getOutput());
         } catch (IOException e) {
             throw new CompletionException(e);
         }

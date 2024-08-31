@@ -1,4 +1,4 @@
-package pl.magzik.modules.comparer;
+package pl.magzik.base.interfaces;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

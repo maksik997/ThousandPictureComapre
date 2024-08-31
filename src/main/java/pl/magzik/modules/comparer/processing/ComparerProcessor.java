@@ -1,8 +1,9 @@
-package pl.magzik.modules.comparer;
+package pl.magzik.modules.comparer.processing;
 
 import pl.magzik.Structures.ImageRecord;
 import pl.magzik.Structures.Record;
 import pl.magzik.Utils.LoggingInterface;
+import pl.magzik.base.interfaces.Processor;
 
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
@@ -100,7 +101,6 @@ public interface ComparerProcessor extends Processor, ComparerPropertyAccess {
      */
     @Override
     default void process() throws IOException, ExecutionException {
-        lock();
         List<File> input = getInput();
         List<File> output = compare(input);
         handle(output);

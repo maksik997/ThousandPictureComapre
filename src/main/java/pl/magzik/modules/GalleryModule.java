@@ -1,5 +1,7 @@
 package pl.magzik.modules;
 
+import pl.magzik.Comparator.FilePredicate;
+import pl.magzik.Comparator.ImageFilePredicate;
 import pl.magzik.modules.gallery.Entry;
 import pl.magzik.modules.gallery.GalleryTableModel;
 import pl.magzik.modules.gallery.GalleryTableRowSorter;
@@ -18,8 +20,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static pl.magzik.modules.comparer.FileHandler.PREDICATE;
-
 public class GalleryModule implements Module {
 
     private GalleryTableModel galleryTableModel;
@@ -33,6 +33,8 @@ public class GalleryModule implements Module {
     private List<File> comparerOutput;
 
     private FileOperator fileOperator;
+
+    private static final FilePredicate PREDICATE = new ImageFilePredicate();
 
 //    private Mode mode;
 

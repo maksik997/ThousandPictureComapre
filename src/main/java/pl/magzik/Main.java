@@ -78,6 +78,7 @@ public class Main {
                     .with(ResourceModule.getInstance())
                     .with(model.getComparerModule())
                     .with(model.getComparerFileModule())
+                    .with(model.getComparerListModule())
                     .with(model.getGalleryModule())
                     .ready();
     }

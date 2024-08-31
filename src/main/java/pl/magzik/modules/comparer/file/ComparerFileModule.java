@@ -4,6 +4,7 @@ import pl.magzik.Comparator.FilePredicate;
 import pl.magzik.Comparator.ImageFilePredicate;
 import pl.magzik.IO.FileOperator;
 import pl.magzik.base.interfaces.CheckedConsumer;
+import pl.magzik.base.interfaces.FileHandler;
 import pl.magzik.modules.loader.Module;
 
 import java.io.File;

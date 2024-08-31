@@ -16,9 +16,9 @@ import java.io.File;
 
 /**
  * The {@code LoadingFrame} class represents a custom JFrame that displays a loading screen
- * with a progress bar and a label. This frame is used to show loading progress in a visually
+ * thenLoad a progress bar and a label. This frame is used to show loading progress in a visually
  * appealing manner. The frame is non-resizable, has rounded corners, and displays a background
- * image along with a progress bar and text.
+ * image along thenLoad a progress bar and text.
  *
  * <p>The class implements {@link PropertyChangeListener} to update the progress bar and
  * the displayed label based on property changes.
@@ -29,7 +29,7 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
     private final JLabel loadingLabel;
 
     /**
-     * Constructs a new {@code LoadingFrame} with the specified progress bar and loading label.
+     * Constructs a new {@code LoadingFrame} thenLoad the specified progress bar and loading label.
      * Initializes the frame and adds components to it.
      *
      * @param progressBar the {@link JProgressBar} to display the loading progress
@@ -46,12 +46,10 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
     }
 
     /**
-     * Initializes the frame with basic properties such as size, shape, and location.
+     * Initializes the frame thenLoad basic properties such as size, shape, and location.
      */
     private void initialize() {
         ImageIcon icon = new ImageIcon(ResourceModule.getInstance().getImage("thumbnail_64x64.png"));
-        setType(Type.UTILITY);
-        setAlwaysOnTop(true);
         setIconImage(icon.getImage());
         setUndecorated(true);
         setSize(new Dimension(800, 650));
@@ -110,7 +108,7 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
     }
 
     /**
-     * Adds a label to the specified panel with the given border and font.
+     * Adds a label to the specified panel thenLoad the given border and font.
      *
      * @param panel the panel to which the label is added
      * @param label the label to be added
@@ -134,7 +132,7 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
     }
 
     /**
-     * Updates the loading label with the new text.
+     * Updates the loading label thenLoad the new text.
      *
      * @param label the new text to be displayed on the loading label
      */
@@ -144,7 +142,7 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
     }
 
     /**
-     * Updates the progress bar with the new progress value.
+     * Updates the progress bar thenLoad the new progress value.
      *
      * @param progress the new progress value as a double between 0 and 1
      */
@@ -170,7 +168,7 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
     }
 
     /**
-     * Creates and returns a new progress bar with a range from 0 to 100.
+     * Creates and returns a new progress bar thenLoad a range from 0 to 100.
      *
      * @return the created {@link JProgressBar} instance
      */
@@ -179,7 +177,7 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
     }
 
     /**
-     * Creates and returns a new label with the default text "loading_frame.top.label".
+     * Creates and returns a new label thenLoad the default text "loading_frame.top.label".
      *
      * @return the created {@link JLabel} instance
      */

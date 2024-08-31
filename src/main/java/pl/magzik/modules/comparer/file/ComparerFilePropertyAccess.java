@@ -22,7 +22,7 @@ public interface ComparerFilePropertyAccess {
     void setMode(Mode mode);
 
     /**
-     * Enum representing different modes of file load operation.
+     * Enum representing different modes of file postConstruct operation.
      */
     enum Mode {
 

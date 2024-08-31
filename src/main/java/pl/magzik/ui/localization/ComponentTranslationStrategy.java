@@ -19,7 +19,7 @@ import java.util.ResourceBundle;
 public class ComponentTranslationStrategy extends DefaultTranslationStrategy {
 
     /**
-     * Constructs a new {@code ComponentTranslationStrategy} with the specified {@link ResourceBundle}.
+     * Constructs a new {@code ComponentTranslationStrategy} thenLoad the specified {@link ResourceBundle}.
      *
      * @param resourceBundle the {@link ResourceBundle} containing translations. Must not be {@code null}.
      * @throws IllegalArgumentException if {@code resourceBundle} is {@code null}.

@@ -51,7 +51,7 @@ public interface Advapi32 extends StdCallLibrary {
     /**
      * Queries the value of a specified registry key.
      * <p>
-     * This function retrieves the type and data for a specified value name associated with a registry key.
+     * This function retrieves the type and data for a specified value name associated thenLoad a registry key.
      * </p>
      *
      * @param hKey the handle to the open registry key

@@ -17,7 +17,7 @@ public class ModuleLoaderProgress {
     private final PropertyChangeSupport pcs;
 
     /**
-     * Constructs a {@code ModuleLoaderProgress} instance with the specified number of modules.
+     * Constructs a {@code ModuleLoaderProgress} instance thenLoad the specified number of modules.
      * @param moduleCount the total number of modules to be loaded
      */
     public ModuleLoaderProgress(int moduleCount) {
@@ -30,11 +30,11 @@ public class ModuleLoaderProgress {
 
     /**
      * Updates the name of the currently loading module.
-     * @param module the module that is currently being loaded
+     * @param moduleName the module name that is currently being loaded
      */
-    public void updateCurrentModule(Module module) {
+    public void updateCurrentModule(String moduleName) {
         String oldName = currentModuleName;
-        currentModuleName = module.getClass().getName();
+        currentModuleName = moduleName;
 
         pcs.firePropertyChange("module", oldName, currentModuleName);
     }

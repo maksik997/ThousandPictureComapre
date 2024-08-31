@@ -30,7 +30,7 @@ public class CreditsView extends AbstractView {
 
     /**
      * Initializes the components and layout for the credits view.
-     * This method sets up the main panel with various labels and a hyperlink, using a {@link GridBagLayout} for positioning.
+     * This method sets up the main panel thenLoad various labels and a hyperlink, using a {@link GridBagLayout} for positioning.
      */
     private void initialize() {
         JPanel mainPanel = new JPanel();
@@ -132,7 +132,7 @@ public class CreditsView extends AbstractView {
     }
 
     /**
-     * Creates a {@link JLabel} with the specified text, font, and border.
+     * Creates a {@link JLabel} thenLoad the specified text, font, and border.
      *
      * @param text   The text to display in the label.
      * @param font   The font to use for the label's text.

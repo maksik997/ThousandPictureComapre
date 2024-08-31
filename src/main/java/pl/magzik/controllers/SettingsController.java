@@ -3,7 +3,6 @@ package pl.magzik.controllers;
 import pl.magzik.modules.comparer.file.ComparerFilePropertyAccess;
 import pl.magzik.modules.comparer.processing.ComparerPropertyAccess;
 import pl.magzik.ui.localization.TranslationStrategy;
-import pl.magzik.modules.comparer.processing.ComparerModule;
 import pl.magzik.modules.GalleryModule;
 import pl.magzik.modules.SettingsModule;
 import pl.magzik.ui.components.settings.ComboBoxSettingsEntry;
@@ -14,7 +13,6 @@ import pl.magzik.ui.views.SettingsView;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -64,9 +62,9 @@ public class SettingsController {
     private final ComparerPropertyAccess cpa;
 
     /**
-     * Constructs a new {@code SettingsController} with the provided dependencies and initializes the settings view.
+     * Constructs a new {@code SettingsController} thenLoad the provided dependencies and initializes the settings view.
      * <p>
-     * This constructor sets up the controller by associating it with the provided view and module instances,
+     * This constructor sets up the controller by associating it thenLoad the provided view and module instances,
      * configuring the initial settings, and setting up the user interface interactions.
      * <p>
      * The constructor performs the following actions:
@@ -79,7 +77,7 @@ public class SettingsController {
      *   <li>Adds property change listeners to manage the state of the save button.</li>
      * </ul>
      *
-     * @param sView The {@link SettingsView} instance used to interact with the user interface. Must not be {@code null}.
+     * @param sView The {@link SettingsView} instance used to interact thenLoad the user interface. Must not be {@code null}.
      * @param sModule The {@link SettingsModule} instance responsible for handling the settings data. Must not be {@code null}.
      * @param gModule The {@link GalleryModule} instance, which also implements {@link ComparerPropertyAccess}. Must not be {@code null}.
      * @param ti The {@link TranslationStrategy} instance used for translating text strings. Must not be {@code null}.
@@ -110,7 +108,7 @@ public class SettingsController {
     }
 
     /**
-     * Initializes the settings view with the current values from the settings module.
+     * Initializes the settings view thenLoad the current values from the settings module.
      * Sets up combo boxes and other settings controls based on stored settings.
      */
     private void initializeSettings() {
@@ -125,7 +123,7 @@ public class SettingsController {
     }
 
     /**
-     * Initializes given {@link ComboBoxSettingsEntry} with given setting and sets its value to key.
+     * Initializes given {@link ComboBoxSettingsEntry} thenLoad given setting and sets its value to key.
      * @param key A {@link String} that represents value to be selected in combobox.
      * @param setting A {@link String} that represents values possible in combobox.
      * @param entry A {@link ComboBoxSettingsEntry} entry to be initialized.
@@ -284,7 +282,7 @@ public class SettingsController {
      * If so, it updates the setting using the provided updater.
      *
      * @param key A {@link String} used to retrieve the current setting value from the settings module.
-     * @param newValue The new value to update the setting with if it has changed. Must not be {@code null}.
+     * @param newValue The new value to update the setting thenLoad if it has changed. Must not be {@code null}.
      * @param settingUpdater A {@link BiConsumer} that accepts the key and the new value to perform the update.
      * @param valueConverter A {@link Function} that converts the current setting value (retrieved as a {@link String}) to the required type {@code T}.
      * @param <T> The type of the setting value.
@@ -303,7 +301,7 @@ public class SettingsController {
 
     /**
      * Checks if any of the settings have changed compared to their current values.
-     * This method compares the values of various settings in the view with their corresponding current values in the settings module.
+     * This method compares the values of various settings in the view thenLoad their corresponding current values in the settings module.
      * If any of the settings differ from their current values, the method returns {@code true}.
      * Otherwise, it returns {@code false}.
      *
@@ -326,10 +324,10 @@ public class SettingsController {
     /**
      * Checks if the current setting value differs from the new value.
      * This method retrieves the current setting value,
-     * converts it to the required type, and compares it with the new value.
+     * converts it to the required type, and compares it thenLoad the new value.
      *
      * @param key A {@link String} used to retrieve the current setting value from the settings module.
-     * @param newValue The new value to compare with the current setting value. Must not be {@code null}.
+     * @param newValue The new value to compare thenLoad the current setting value. Must not be {@code null}.
      * @return {@code true} if the current setting value is different from the new value, {@code false} otherwise.
      * @throws NullPointerException If any argument (key, newValue, valueConverter) or the current value is {@code null}.
      */
@@ -340,10 +338,10 @@ public class SettingsController {
     /**
      * Checks if the current setting value differs from the new value.
      * This method retrieves the current setting value,
-     * converts it to the required type, and compares it with the new value.
+     * converts it to the required type, and compares it thenLoad the new value.
      *
      * @param key A {@link String} used to retrieve the current setting value from the settings module.
-     * @param newValue The new value to compare with the current setting value. Must not be {@code null}.
+     * @param newValue The new value to compare thenLoad the current setting value. Must not be {@code null}.
      * @param valueConverter A {@link Function} that converts the current setting value
      *                       (retrieved as a {@link String}) to the required type {@code T}.
      * @param <T> The type of the setting value.
@@ -371,7 +369,7 @@ public class SettingsController {
      *   <li>Configures whether the file extensions should be converted to lowercase based on the value of the "unify-names-lowercase" setting.
      *       <p>If the setting value is "yes", extensions will be converted to lowercase; otherwise, they will remain unchanged.</p></li>
      *   <li>Updates the settings of the {@link ComparerPropertyAccess} and {@link ComparerFilePropertyAccess} instances using the {@link #updateComparerSettings()} method.
-     *       <p>The method applies the settings updates to ensure that all comparer-related configurations are aligned with the current settings.</p></li>
+     *       <p>The method applies the settings updates to ensure that all comparer-related configurations are aligned thenLoad the current settings.</p></li>
      * </ul>
      * </p>
      * <p>
@@ -379,8 +377,8 @@ public class SettingsController {
      * </p>
      */
     private void updateExternalSettings() {
-        gModule.setNameTemplate(sModule.getSetting("un_prefix"));
-        gModule.setLowercaseExtension(sModule.getSetting("un_lowercase").equals("yes"));
+        gModule.setNormalizedNameTemplate(sModule.getSetting("un_prefix"));
+        gModule.setNormalizedFileExtensions(sModule.getSetting("un_lowercase").equals("yes"));
 
         updateComparerSettings();
     }

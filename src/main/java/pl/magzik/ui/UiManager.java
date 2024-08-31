@@ -19,9 +19,9 @@ public class UiManager implements CursorManagerInterface, MessageInterface {
     private final JFrame frame;
 
     /**
-     * Constructs a new {@code UiManager} with the specified {@link JFrame}.
+     * Constructs a new {@code UiManager} thenLoad the specified {@link JFrame}.
      * <p>
-     * This constructor initializes the {@code UiManager} with the given {@link JFrame}, which is used to set the cursor
+     * This constructor initializes the {@code UiManager} thenLoad the given {@link JFrame}, which is used to set the cursor
      * and display message dialogs.
      * </p>
      *
@@ -48,9 +48,9 @@ public class UiManager implements CursorManagerInterface, MessageInterface {
     }
 
     /**
-     * Displays an error message dialog with the specified message and title.
+     * Displays an error message dialog thenLoad the specified message and title.
      * <p>
-     * This method shows a dialog with an error icon to notify the user of an error condition. The message is formatted
+     * This method shows a dialog thenLoad an error icon to notify the user of an error condition. The message is formatted
      * using {@link String#format(String, Object...)}.
      * </p>
      *
@@ -69,9 +69,9 @@ public class UiManager implements CursorManagerInterface, MessageInterface {
     }
 
     /**
-     * Displays an error message dialog with the specified message, title, and exception details.
+     * Displays an error message dialog thenLoad the specified message, title, and exception details.
      * <p>
-     * This method shows a dialog with an error icon to notify the user of an error condition. The message is formatted
+     * This method shows a dialog thenLoad an error icon to notify the user of an error condition. The message is formatted
      * using {@link String#format(String, Object...)} and includes the exception message.
      * </p>
      *
@@ -91,9 +91,9 @@ public class UiManager implements CursorManagerInterface, MessageInterface {
     }
 
     /**
-     * Displays an information message dialog with the specified message and title.
+     * Displays an information message dialog thenLoad the specified message and title.
      * <p>
-     * This method shows a dialog with an information icon to provide general information to the user. The message is
+     * This method shows a dialog thenLoad an information icon to provide general information to the user. The message is
      * formatted using {@link String#format(String, Object...)}.
      * </p>
      *
@@ -112,9 +112,9 @@ public class UiManager implements CursorManagerInterface, MessageInterface {
     }
 
     /**
-     * Displays a confirmation dialog with the specified message and title.
+     * Displays a confirmation dialog thenLoad the specified message and title.
      * <p>
-     * This method shows a dialog with a question icon and provides options for the user to confirm or cancel. The
+     * This method shows a dialog thenLoad a question icon and provides options for the user to confirm or cancel. The
      * user’s response is returned as an {@code int} indicating the option selected.
      * </p>
      *

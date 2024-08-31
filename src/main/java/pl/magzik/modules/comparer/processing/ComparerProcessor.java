@@ -53,47 +53,53 @@ public interface ComparerProcessor extends Processor, ComparerPropertyAccess {
      * This method signals that the resource is currently in a state where it cannot
      * be used by other components or threads. It is intended to be called before
      * performing operations that require exclusive access to the resource, ensuring
-     * that other parts of the application are aware of the lock and act accordingly.
+     * that other parts of the application are aware of the locked state and act accordingly.
      * </p>
      * <p>
-     * Listeners registered with this method will be notified to update their state or
+     * Listeners registered thenLoad this method will be notified to update their state or
      * disable operations that depend on the locked resource.
      * </p>
      * <p>
-     * This method does not actually implement locking logic; it merely notifies listeners
-     * about the change in the resource's availability state. Actual locking and unlocking
-     * should be handled separately.
+     * This method does not implement actual locking logic; it only notifies listeners
+     * about the change in the resource's availability. The actual locking and unlocking
+     * operations should be managed by separate mechanisms.
      * </p>
      */
-    void lock();
+    void notifyLock();
 
     /**
-     * Releases the resources held by this module and notifies registered listeners.
+     * Notifies listeners that the resource has been unlocked and is now available for use.
      * <p>
-     * This method performs cleanup operations to free any resources or locks that are held by the module,
-     * making it available for further use. It also triggers property change notifications to inform any
-     * registered listeners that the module has been reset and is ready for new operations.
+     * This method signals that the resource is no longer in a locked state and can be accessed
+     * by other components or threads. It should be called after any operations requiring
+     * exclusive access to the resource are completed.
      * </p>
      * <p>
-     * The exact actions taken by this method depend on the specific implementation of the module, but generally
-     * include resetting internal state, releasing locks, and clearing cached data.
+     * The method also triggers property change notifications to inform any registered listeners
+     * that the resource is now available, allowing them to update their state or re-enable operations
+     * that depend on the previously locked resource.
      * </p>
      * <p>
-     * This method is typically called when the module is done processing, or when a reset operation is needed.
-     * After this method is called, the module should be in a state where it can be reused for new operations.
+     * This method does not perform the actual unlocking of resources; it only communicates the change
+     * in availability. The actual release of locks and cleanup should be handled separately.
      * </p>
      */
-    void release();
+    void notifyUnlock();
 
     /**
      * Processes the image files according to the configured strategies and handles the results.
      * <p>
      * This method retrieves the input image files using {@link #getInput()}, processes them
-     * based on the configured strategies, and then handles the resulting files using
+     * based on the configured strategies, and thenLoad handles the resulting files using
      * {@link #handle(List)}.
      * </p>
      * <p>
-     * This method acquires the lock before processing starts by calling {@link #lock()}.
+     * Before starting the processing, the method should acquire the necessary notifyLock to ensure
+     * thread safety by calling {@link #notifyLock()} before invoking this method. Failing to acquire the notifyLock
+     * beforehand may result in concurrent access issues.
+     * </p>
+     * <p>
+     * This method will internally handle the comparison process and manage the output.
      * </p>
      *
      * @throws IOException           If an I/O error occurs during processing.
@@ -110,7 +116,7 @@ public interface ComparerProcessor extends Processor, ComparerPropertyAccess {
      * Compares the given list of image files using the configured strategies.
      * <p>
      * This method uses {@link #processWithStrategy(List)} to process the images and
-     * then extracts the duplicate files using {@link #extract(Map)}.
+     * thenLoad extracts the duplicate files using {@link #extract(Map)}.
      * </p>
      *
      * @param input The list of image files to compare.
@@ -125,7 +131,7 @@ public interface ComparerProcessor extends Processor, ComparerPropertyAccess {
     /**
      * Processes the image files using the appropriate strategy based on the current configuration.
      * <p>
-     * This method calls {@link Record#process(Collection, Function, Function[])} with the appropriate
+     * This method calls {@link Record#process(Collection, Function, Function[])} thenLoad the appropriate
      * functions based on the comparison strategy configured via {@link ComparerPropertyAccess}.
      * </p>
      *

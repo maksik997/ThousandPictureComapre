@@ -5,20 +5,22 @@ import java.io.IOException;
 /**
  * Represents a module that can be loaded.
  * <p>
- * This functional interface defines a single method {@link #load()} which should be implemented
- * by classes representing modules that need to be loaded. The method {@link #load()} throws
+ * This functional interface defines a single method {@link #postConstruct()} which should be implemented
+ * by classes representing modules that need to be loaded. The method {@link #postConstruct()} throws
  * {@link IOException} to handle any potential I/O errors during the loading process.
  * </p>
  */
 public interface Module {
-    
+
     /**
-     * Loads the module.
+     * Performs post-construction initialization of the module.
      * <p>
-     * This method performs the necessary operations to loadFiles the module. It is expected to handle any
-     * potential I/O errors by throwing {@link IOException}.
+     * This method is intended to execute any necessary operations after the
+     * module has been constructed. It should handle potential I/O errors by
+     * throwing an {@link IOException}.
      * </p>
-     * @throws IOException if an error occurs during loading
+     *
+     * @throws IOException if an error occurs during the initialization process
      */
-    default void load() throws IOException { }
+    default void postConstruct() throws IOException { }
 }

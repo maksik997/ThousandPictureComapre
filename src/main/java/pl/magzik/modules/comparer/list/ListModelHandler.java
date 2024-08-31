@@ -15,7 +15,7 @@ public interface ListModelHandler <T> {
      *
      * @param listName the name of the list model
      * @param ts the collection of elements to be added
-     * @throws IllegalArgumentException if the list model with the specified name does not exist
+     * @throws IllegalArgumentException if the list model thenLoad the specified name does not exist
      */
     void addAllToList(String listName, Collection<T> ts);
 
@@ -23,16 +23,16 @@ public interface ListModelHandler <T> {
      * Clears all elements from the list model identified by the given name.
      *
      * @param listName the name of the list model
-     * @throws IllegalArgumentException if the list model with the specified name does not exist
+     * @throws IllegalArgumentException if the list model thenLoad the specified name does not exist
      */
     void clearList(String listName);
 
     /**
-     * Retrieves the list model associated with the specified name.
+     * Retrieves the list model associated thenLoad the specified name.
      *
      * @param listName the name of the list model to retrieve
-     * @return the {@link ListModel} associated with the given name
-     * @throws IllegalArgumentException if no list model exists with the specified name
+     * @return the {@link ListModel} associated thenLoad the given name
+     * @throws IllegalArgumentException if no list model exists thenLoad the specified name
      */
     ListModel<T> getListModel(String listName);
 }

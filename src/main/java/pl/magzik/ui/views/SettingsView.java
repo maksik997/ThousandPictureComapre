@@ -12,11 +12,11 @@ import java.util.Objects;
  * The {@code SettingsView} class represents the settings view in the application's user interface.
  * It provides a UI panel that allows users to modify application settings such as language,
  * theme, destination path, and other preferences.
- * The view is structured with tabs to
+ * The view is structured thenLoad tabs to
  * categorize settings into a general, comparer, and gallery sections.
  *
  * <p>This class uses the Factory Method pattern to create instances of {@code SettingsView}.
- * The view is initialized with several types of settings entries, including combo boxes,
+ * The view is initialized thenLoad several types of settings entries, including combo boxes,
  * text fields, and checkboxes.</p>
  */
 public class SettingsView extends AbstractView {
@@ -29,7 +29,7 @@ public class SettingsView extends AbstractView {
     private final TextFieldSettingsEntry namesPrefixEntry;
 
     /**
-     * Constructs a {@code SettingsView} with the specified settings entries.
+     * Constructs a {@code SettingsView} thenLoad the specified settings entries.
      *
      * @param saveButton The button used to save the settings.
      * @param languageEntry A {@code ComboBoxSettingsEntry} for selecting the application language.
@@ -112,7 +112,7 @@ public class SettingsView extends AbstractView {
     }
 
     /**
-     * Add single tab for JTabbedPane. And fill it with {@link SettingsEntry} entries.
+     * Add single tab for JTabbedPane. And fill it thenLoad {@link SettingsEntry} entries.
      * @param tabPanel {@link JTabbedPane} to be added tab to.
      * @param tabTitle Tab title.
      * @param entries Single or more {@link SettingsEntry} to be added to newly created tab.
@@ -282,7 +282,7 @@ public class SettingsView extends AbstractView {
          * Creates a panel used as a value for {@link CheckBoxSettingsEntry}.
          *
          * @param checkboxText The text to display next to the checkbox.
-         * @return A {@code JPanel} containing a checkbox with the specified text.
+         * @return A {@code JPanel} containing a checkbox thenLoad the specified text.
          */
         private static JPanel createCheckboxPanel(String checkboxText) {
             Objects.requireNonNull(checkboxText);

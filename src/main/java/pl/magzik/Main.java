@@ -3,16 +3,20 @@ package pl.magzik;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.util.SystemInfo;
+import pl.magzik.modules.GalleryModule;
 import pl.magzik.modules.ResourceModule;
+import pl.magzik.modules.gallery.Entry;
+import pl.magzik.modules.gallery.GalleryTableModel;
 import pl.magzik.modules.loader.ModuleLoader;
 import pl.magzik.modules.theme.ThemeDetector;
 import pl.magzik.ui.LoadingFrame;
+import pl.magzik.ui.UiManager;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Entry point of the application that initializes and starts the application.
@@ -47,11 +51,11 @@ public class Main {
 
             LoadingFrame loadingFrame = createLoadingFrame(view, moduleLoader);
 
-            loadModules(view, moduleLoader);
+            loadModules(view.getUiManager(), moduleLoader);
             Controller controller = initializeController(view, model, locale);
 
             launchApplication(view, loadingFrame);
-        } catch (IOException e) {
+        } catch (Exception e) {
             handleError(e);
         }
     }
@@ -59,14 +63,13 @@ public class Main {
     /**
      * Initializes the {@code Model} instance.
      * @return a new instance of {@code Model}
-     * @throws IOException if an error occurs while initializing the model
      */
-    private static Model initializeModel() throws IOException {
+    private static Model initializeModel() {
         return new Model();
     }
 
     /**
-     * Initializes the {@code ModuleLoader} with modules from the provided {@code Model}.
+     * Initializes the {@code ModuleLoader} thenLoad modules from the provided {@code Model}.
      * @param model the {@code Model} instance from which modules are retrieved
      * @return a configured {@code ModuleLoader}
      * @throws NullPointerException if {@code model} is {@code null}
@@ -75,12 +78,51 @@ public class Main {
         Objects.requireNonNull(model);
 
         return ModuleLoader.create(model.getSettingsModule())
-                    .with(ResourceModule.getInstance())
-                    .with(model.getComparerModule())
-                    .with(model.getComparerFileModule())
-                    .with(model.getComparerListModule())
-                    .with(model.getGalleryModule())
+                    .thenLoad(ResourceModule.getInstance())
+                    .thenLoad(model.getComparerModule())
+                    .thenLoad(model.getComparerFileModule())
+                    .thenLoad(model.getComparerListModule())
+                    .thenLoad(() -> {
+                        model.getGalleryModule().postConstruct();
+                        loadGalleryItems(model.getGalleryModule().getGalleryTableModel());
+                    }, GalleryModule.class)
+                    .thenLoad(model.getGalleryFileModule())
                     .ready();
+    }
+
+    private static void loadGalleryItems(GalleryTableModel gtm) throws IOException {
+        Object obj = ResourceModule.getInstance().getObject("gallery.tp");
+        if (obj == null) {
+            ResourceModule.getInstance().addObject("gallery.tp", new ArrayList<>());
+            return;
+        }
+
+        List<Entry> entries = validateEntryList(obj);
+        if (!entries.stream().map(Entry::getPath).allMatch(Files::exists))
+            throw new IOException(
+                    entries.stream()
+                            .map(e -> String.format("Missing file: %s", e.getPath().toString()))
+                            .collect(Collectors.joining("\n"))
+            );
+
+        gtm.addAllEntries(entries);
+    }
+
+    /**
+     * Validates that the provided object is a {@link List} of {@link String}.
+     *
+     * @param obj The object to validate.
+     * @return The object cast to a {@link List<String>} if it is valid.
+     * @throws IllegalArgumentException if the object is not a {@link List<String>}.
+     */
+    @SuppressWarnings("unchecked")
+    private static List<Entry> validateEntryList(Object obj) {
+        if (obj instanceof List<?> list) {
+            if (list.isEmpty() || list.stream().allMatch(e -> e instanceof Entry))
+                return (List<Entry>) obj;
+        }
+
+        throw new IllegalArgumentException("gallery.tp file is not of expected type.");
     }
 
     /**
@@ -150,7 +192,7 @@ public class Main {
     }
 
     /**
-     * Initializes the {@code View} instance with the specified locale.
+     * Initializes the {@code View} instance thenLoad the specified locale.
      * @param locale the {@code Locale} to use it for resource bundles
      * @return a new {@code View} instance
      * @throws NullPointerException if {@code locale} is {@code null}
@@ -204,22 +246,44 @@ public class Main {
 
     /**
      * Loads all modules sequentially using the provided {@code ModuleLoader}.
-     * @param view the {@code View} instance (used for displaying progress)
-     * @param moduleLoader the {@code ModuleLoader} used to loadFiles modules
-     * @throws IOException if an error occurs while loading modules
-     * @throws NullPointerException if {@code view} or {@code moduleLoader} is {@code null}
+     * <p>
+     * This method iterates through all available modules in the {@code ModuleLoader} and attempts to load
+     * each one. If an error occurs during the loading of a module, a confirmation dialog is displayed
+     * to the user, allowing them to decide whether to continue loading the remaining modules or stop.
+     * </p>
+     * <p>
+     * The method ensures that both {@code uiManager} and {@code moduleLoader} are not {@code null}.
+     * If either of these parameters is {@code null}, a {@code NullPointerException} will be thrown.
+     * </p>
+     *
+     * @param uiManager the {@code UiManager} instance used for displaying progress and error messages
+     * @param moduleLoader the {@code ModuleLoader} used to load modules
+     * @throws NullPointerException if {@code uiManager} or {@code moduleLoader} is {@code null}
      */
-    private static void loadModules(View view, ModuleLoader moduleLoader) throws IOException {
-        Objects.requireNonNull(view);
+    private static void loadModules(UiManager uiManager, ModuleLoader moduleLoader) {
+        Objects.requireNonNull(uiManager);
         Objects.requireNonNull(moduleLoader);
 
         while (moduleLoader.hasNext()) {
-            moduleLoader.loadNext();
+            try {
+                moduleLoader.loadNext();
+            } catch (IOException e) {
+                JTextArea textArea = new JTextArea(String.format("Could not load module: %n%s%nDo you wish to continue?", e.getMessage()));
+                textArea.setEditable(false);
+                JScrollPane scrollPane = new JScrollPane(textArea);
+                scrollPane.setBorder(null);
+
+                int res = uiManager.showConfirmationMessage(
+                    scrollPane,
+                    "Loading halted because: " + e.getClass().getSimpleName()
+                );
+                if (res != JOptionPane.YES_OPTION) handleError(e);
+            }
         }
     }
 
     /**
-     * Initializes the {@code Controller} with the provided view, model, and locale.
+     * Initializes the {@code Controller} thenLoad the provided view, model, and locale.
      * @param view the {@code View} instance
      * @param model the {@code Model} instance
      * @param locale the {@code Locale} instance used for resource bundles
@@ -245,19 +309,19 @@ public class Main {
     }
 
     /**
-     * Handles errors by showing a dialog with the error message and exiting the application.
+     * Handles errors by showing a dialog thenLoad the error message and exiting the application.
      * @param e the {@code Exception} that occurred
      * @throws NullPointerException if {@code e} is {@code null}
      */
     private static void handleError(Exception e) {
         Objects.requireNonNull(e);
 
-        JOptionPane.showMessageDialog(
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
             null,
             "Could not start application.\nError message:\n" + e.getMessage(),
             "Error:",
             JOptionPane.ERROR_MESSAGE
-        );
+        ));
 
         System.exit(1);
     }

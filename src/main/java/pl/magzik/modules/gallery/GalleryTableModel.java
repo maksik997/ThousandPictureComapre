@@ -108,10 +108,12 @@ public class GalleryTableModel extends AbstractTableModel {
         fireTableRowsInserted(idx, images.size() - 1);
     }
 
-    public void removeEntry(int row) {
+    public Entry removeEntry(int row) {
         // This method will remove entry from table. But won't deleteFiles it from disk.
+        Entry e = images.get(row);
         images.remove(row);
         fireTableDataChanged();
+        return e;
     }
 
     public void removeAllEntries(Integer... rows) {
@@ -137,6 +139,10 @@ public class GalleryTableModel extends AbstractTableModel {
         removeAllEntries(rows);
 
         for (Path path : entries) Files.delete(path);
+    }
+
+    public Entry getImage(int index) {
+        return images.get(index);
     }
 
     public void openEntry(int row) throws IOException {
@@ -182,13 +188,7 @@ public class GalleryTableModel extends AbstractTableModel {
     }
 
     public void reduction(List<Path> paths) {
-        images.removeAll(paths.stream().map(p -> {
-            try {
-                return new Entry(p);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }).toList());
+        images.removeAll(paths.stream().map(Entry::new).toList());
 
         fireTableDataChanged();
     }

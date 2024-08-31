@@ -32,7 +32,7 @@ public class View extends JFrame {
     private final UiManager uiManager;
 
     /**
-     * Constructs a new {@code View} instance with the specified views and translation strategy.
+     * Constructs a new {@code View} instance thenLoad the specified views and translation strategy.
      *
      * @param comparerView the {@link ComparerView} instance. Must not be {@code null}.
      * @param settingsView the {@link SettingsView} instance. Must not be {@code null}.
@@ -60,7 +60,7 @@ public class View extends JFrame {
     /**
      * Adds all scenes to the {@link SceneManager}.
      * <p>
-     * This method registers each view with the {@link SceneManager} to manage scene switching.
+     * This method registers each view thenLoad the {@link SceneManager} to manage scene switching.
      * </p>
      */
     private void addScenes() {
@@ -187,7 +187,7 @@ public class View extends JFrame {
     public static class Factory {
 
         /**
-         * Creates a new {@link View} instance with the provided {@link ResourceBundle}.
+         * Creates a new {@link View} instance thenLoad the provided {@link ResourceBundle}.
          *
          * @param resourceBundle the {@link ResourceBundle} for localization. Must not be {@code null}.
          * @return a new {@link View} instance.

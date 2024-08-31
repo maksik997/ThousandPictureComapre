@@ -13,7 +13,7 @@ public class DefaultTranslationStrategy implements TranslationStrategy {
     private final ResourceBundle resourceBundle;
 
     /**
-     * Constructs a new {@code DefaultTranslationStrategy} with the specified {@link ResourceBundle}.
+     * Constructs a new {@code DefaultTranslationStrategy} thenLoad the specified {@link ResourceBundle}.
      *
      * @param resourceBundle the {@link ResourceBundle} containing translations. Must not be {@code null}.
      * @throws IllegalArgumentException if {@code resourceBundle} is {@code null}.

@@ -17,14 +17,14 @@ public class ComparerListModule implements Module, ListModelHandler<String> {
     private final Map<String, DefaultListModel<String>> listModels;
 
     /**
-     * Constructs a {@code ComparerListModule} with an empty list of models.
+     * Constructs a {@code ComparerListModule} thenLoad an empty list of models.
      */
     public ComparerListModule() {
         listModels = new HashMap<>();
     }
 
     @Override
-    public void load() throws IOException {
+    public void postConstruct() throws IOException {
         listModels.put("Output", new DefaultListModel<>());
         listModels.put("Duplicates", new DefaultListModel<>());
     }

@@ -15,7 +15,7 @@ public class MenuView extends JPanel {
     private final JButton comparerButton, galleryButton, settingsButton, creditsButton, exitButton;
 
     /**
-     * Constructs a {@code MenuView} with the specified buttons.
+     * Constructs a {@code MenuView} thenLoad the specified buttons.
      *
      * @param comparerButton The button for the comparer option.
      * @param galleryButton The button for the gallery option.
@@ -187,10 +187,10 @@ public class MenuView extends JPanel {
         }
 
         /**
-         * Creates a {@code JButton} with the specified title and common properties.
+         * Creates a {@code JButton} thenLoad the specified title and common properties.
          *
          * @param title The title key for the button.
-         * @return A {@code JButton} with the specified title and properties.
+         * @return A {@code JButton} thenLoad the specified title and properties.
          */
         private static JButton createButton(String title) {
             JButton button = Utility.buttonFactory(title, new Insets(10, 15, 10, 15));

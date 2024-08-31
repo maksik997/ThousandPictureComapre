@@ -9,9 +9,9 @@ import javax.swing.border.*;
 import java.awt.*;
 
 /**
- * Implementation of {@link SettingsEntry} for managing path settings with a {@link JTextField}
+ * Implementation of {@link SettingsEntry} for managing path settings thenLoad a {@link JTextField}
  * and a {@link JButton} for opening a directory chooser.
- * <p>This component allows users to select a directory, with the chosen path displayed in
+ * <p>This component allows users to select a directory, thenLoad the chosen path displayed in
  * a non-editable {@link JTextField}. The {@link JButton} triggers a {@link FileChooser}
  * to allow users to select a directory from the file system.</p>
  * */
@@ -30,7 +30,7 @@ public class PathSettingsEntry extends SettingsEntry<JPanel, String> {
     private final FileChooser<String> fileChooser;
 
     /**
-     * Constructs a {@code PathSettingsEntry} with the specified label and value panel.
+     * Constructs a {@code PathSettingsEntry} thenLoad the specified label and value panel.
      *
      * @param label The title of the label component.
      * @param value A {@link JPanel} containing a {@link JTextField} and a {@link JButton}.
@@ -73,7 +73,7 @@ public class PathSettingsEntry extends SettingsEntry<JPanel, String> {
     }
 
     /**
-     * Gets the {@link FileChooser} associated with this {@code PathSettingsEntry}.
+     * Gets the {@link FileChooser} associated thenLoad this {@code PathSettingsEntry}.
      *
      * @return The {@code FileChooser} instance used for selecting directories.
      */

@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
 public interface Loader <T> {
 
     /**
-     * Loads a resource with the given name.
+     * Loads a resource thenLoad the given name.
      *
      * @param resource The name of the resource to loadFiles.
      * @return The loaded resource of type {@code T}.

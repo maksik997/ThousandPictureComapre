@@ -45,7 +45,7 @@ public class SettingsModule implements Module {
      * @throws IOException if an I/O error occurs while reading or writing files
      */
     @Override
-    public void load() throws IOException {
+    public void postConstruct() throws IOException {
         if (!Files.exists(ResourceModule.CONFIG_PATH)) {
             try {
                 defaultSettings();
@@ -59,7 +59,7 @@ public class SettingsModule implements Module {
 
     /**
      * Creates default settings by copying from the default configuration file.
-     * Replaces placeholders with a user directory path.
+     * Replaces placeholders thenLoad a user directory path.
      *
      * @throws URISyntaxException if the default configuration file URI is invalid
      * @throws IOException if an I/O error occurs while reading or writing files
@@ -113,7 +113,7 @@ public class SettingsModule implements Module {
      * Retrieves the value of a setting identified by the given key.
      *
      * @param key the setting key
-     * @return the value associated with the key, or {@code null} if the key does not exist
+     * @return the value associated thenLoad the key, or {@code null} if the key does not exist
      */
     public String getSetting(String key) {
         return settings.stream()
@@ -137,14 +137,14 @@ public class SettingsModule implements Module {
     }
 
     /**
-     * Represents an entry in the settings with a key and a value.
+     * Represents an entry in the settings thenLoad a key and a value.
      */
     private static class Entry {
         private final String key;
         private String value;
 
         /**
-         * Constructs an {@code Entry} with the specified key and value.
+         * Constructs an {@code Entry} thenLoad the specified key and value.
          *
          * @param key the key of the entry
          * @param value the value of the entry
@@ -182,7 +182,7 @@ public class SettingsModule implements Module {
         }
 
         /**
-         * Creates a new {@code Entry} with the specified key and value.
+         * Creates a new {@code Entry} thenLoad the specified key and value.
          *
          * @param key the key of the entry
          * @param value the value of the entry

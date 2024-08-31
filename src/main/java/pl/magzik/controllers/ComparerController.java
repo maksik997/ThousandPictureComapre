@@ -1,7 +1,7 @@
 package pl.magzik.controllers;
 
 import pl.magzik.async.ExecutorServiceManager;
-import pl.magzik.modules.comparer.file.FileHandler;
+import pl.magzik.base.interfaces.FileHandler;
 import pl.magzik.modules.comparer.list.ListModelHandler;
 import pl.magzik.modules.comparer.processing.ComparerProcessor;
 import pl.magzik.ui.localization.TranslationStrategy;
@@ -214,14 +214,14 @@ public class ComparerController {
      * the following actions:
      * <ul>
      *   <li>Clears the user interface using {@link ComparerView#clear()}.</li>
-     *   <li>Resets the internal state of the {@link ComparerModule} using {@link ComparerModule#release()}.</li>
+     *   <li>Resets the internal state of the {@link ComparerModule} using {@link ComparerModule#notifyUnlock()}.</li>
      *   <li>Enables the fileLoad button and the path button, making them available for user interaction.</li>
-     *   <li>Disables the release button and the moveFiles button to prevent further actions until the state is fully release.</li>
+     *   <li>Disables the notifyUnlock button and the moveFiles button to prevent further actions until the state is fully notifyUnlock.</li>
      *   <li>Updates the state label to indicate that the application is ready for new tasks by setting the text to
      *       the translated value for the ready state.</li>
      * </ul>
      * <p>
-     * This method is triggered when the user clicks the release button. It prepares the application for a new set of
+     * This method is triggered when the user clicks the notifyUnlock button. It prepares the application for a new set of
      * operations by clearing previous data and resetting the UI and internal module state.
      * </p>
      */
@@ -229,7 +229,7 @@ public class ComparerController {
         cView.clear();
         lmh.clearList("Output");
         lmh.clearList("Duplicates");
-        cp.release();
+        cp.notifyUnlock();
 
         cView.getLoadButton().setEnabled(true);
         cView.getPathButton().setEnabled(true);
@@ -239,14 +239,14 @@ public class ComparerController {
     }
 
     /**
-     * Initializes the provided {@link JList} with the given {@link DefaultListModel}.
+     * Initializes the provided {@link JList} thenLoad the given {@link DefaultListModel}.
      * <p>
      * This method sets the model of the {@code JList} to the specified {@code DefaultListModel}.
      * Before performing the initialization, it checks that neither the model nor the list is {@code null}.
      * </p>
      *
      * @param model the {@link DefaultListModel} to be set as the model of the {@code JList}. Must not be {@code null}.
-     * @param list the {@link JList} to be initialized with the provided model. Must not be {@code null}.
+     * @param list the {@link JList} to be initialized thenLoad the provided model. Must not be {@code null}.
      * @throws NullPointerException if either {@code model} or {@code list} is {@code null}.
      */
     private void initializeListModel(ListModel<String> model, JList<String> list) {
@@ -258,7 +258,7 @@ public class ComparerController {
 
     /**
      * Populates the list model
-     * identified by the specified name with the names of files from the given list of {@link File} objects.
+     * identified by the specified name thenLoad the names of files from the given list of {@link File} objects.
      *
      * <p>This method performs the following actions:
      * <ul>
@@ -267,10 +267,10 @@ public class ComparerController {
      * </ul>
      * </p>
      *
-     * @param modelName the name of the {@link DefaultListModel} to be populated with file names. Must not be {@code null}.
+     * @param modelName the name of the {@link DefaultListModel} to be populated thenLoad file names. Must not be {@code null}.
      * @param sources the list of {@link File} objects whose names will be added to the list model. Must not be {@code null}.
      * @throws NullPointerException if either {@code modelName} or {@code sources} is {@code null}.
-     * @throws IllegalArgumentException if no list model with the specified name exists in the {@link ListModelHandler}.
+     * @throws IllegalArgumentException if no list model thenLoad the specified name exists in the {@link ListModelHandler}.
      */
     private void fulfilListModel(String modelName, List<File> sources) {
         Objects.requireNonNull(modelName);
@@ -281,10 +281,10 @@ public class ComparerController {
     }
 
     /**
-     * Unlocks the button panel by enabling the release button and updating the UI state.
+     * Unlocks the button panel by enabling the unlocked button and updating the UI state.
      * <p>This method performs the following actions:</p>
      * <ul>
-     *   <li>Enables the release button on the view.</li>
+     *   <li>Enables the notifyUnlock button on the view.</li>
      *   <li>Updates the state label to indicate that the process is done using the specified translation key.</li>
      *   <li>Restores the cursor to the default cursor.</li>
      * </ul>
@@ -318,7 +318,7 @@ public class ComparerController {
 
     /**
      * Initiates the moveFiles task sequence. This includes preparing the UI,
-     * moving files, prompting the user with a confirmation dialog about
+     * moving files, prompting the user thenLoad a confirmation dialog about
      * restarting the comparer, and handling the result of that confirmation.
      * Any exceptions during the process are handled.
      */
@@ -358,13 +358,13 @@ public class ComparerController {
     /**
      * Prepares the user interface for a task by performing the following actions:
      * <ul>
-     *   <li>Disables buttons that may disrupt the task (e.g., fileLoad, moveFiles, release).</li>
+     *   <li>Disables buttons that may disrupt the task (e.g., fileLoad, moveFiles, notifyUnlock).</li>
      *   <li>Sets the cursor to a wait cursor to indicate that a background operation is in progress.</li>
      *   <li>Updates the state label to indicate that the process is starting.</li>
      * </ul>
      * <p>
      * This method is executed on the Event Dispatch Thread (EDT) to ensure that the UI updates are performed
-     * safely and consistently with Swing's threading model.</p>
+     * safely and consistently thenLoad Swing's threading model.</p>
      *
      * @param state the state identifier used to translate and set the state label text. This should correspond to
      *              a translation key for displaying the appropriate message to the user.
@@ -373,7 +373,7 @@ public class ComparerController {
     private void prepareUiBefore(String state) {
         SwingUtilities.invokeLater(() -> {
             cView.blockDestructiveButtons();
-            cp.lock();
+            cp.notifyLock();
             umi.useCursor(CursorManagerInterface.WAIT_CURSOR);
             cView.getStatusLabel().setText(ti.translate(state));
         });
@@ -384,15 +384,15 @@ public class ComparerController {
      *
      * <p>This method performs the following actions on the Event Dispatch Thread:
      * <ul>
-     *   <li>Populates the {@link DefaultListModel} identified by {@code modelName} with the names of the {@link File} objects provided in the {@code sources} list.</li>
-     *   <li>Updates the UI tray with the total number of input elements and the number of output elements (duplicates), if any.</li>
+     *   <li>Populates the {@link DefaultListModel} identified by {@code modelName} thenLoad the names of the {@link File} objects provided in the {@code sources} list.</li>
+     *   <li>Updates the UI tray thenLoad the total number of input elements and the number of output elements (duplicates), if any.</li>
      *   <li>Sets the state label text to the translated value of the provided {@code state} string using {@link TranslationStrategy#translate(String)}.</li>
      * </ul>
      * </p>
      *
      * @param state the key for the state label text to be translated and set.
      *              This should correspond to a translation key used by {@link TranslationStrategy}.
-     * @param modelName the name of the {@link DefaultListModel} to be populated with file names. Must not be {@code null}.
+     * @param modelName the name of the {@link DefaultListModel} to be populated thenLoad file names. Must not be {@code null}.
      * @param sources the list of {@link File} objects whose names will be added to the list model. Must not be {@code null}.
      * @throws NullPointerException if {@code modelName} or {@code sources} is {@code null}.
      */
@@ -410,11 +410,11 @@ public class ComparerController {
     /**
      * Displays a confirmation dialog to the user about restarting the comparer
      * after moving files. Returns a {@link CompletableFuture} that completes
-     * with a boolean value indicating the user's choice (true for YES, false for NO).
+     * thenLoad a boolean value indicating the user's choice (true for YES, false for NO).
      * This method runs on the Event Dispatch Thread to ensure thread-safety
      * for the Swing components.
      *
-     * @return a {@link CompletableFuture} that completes with a boolean indicating
+     * @return a {@link CompletableFuture} that completes thenLoad a boolean indicating
      *         the user's choice
      */
     private CompletableFuture<Boolean> restartComparerQuestion() {
@@ -449,11 +449,11 @@ public class ComparerController {
     }
 
     /**
-     * Handles the release after moving files if the user chose to release the comparer.
+     * Handles the unlocking after moving files if the user chose to notifyUnlock the comparer.
      * Clears the view, resets the module, and updates the UI to reflect the
      * ready state. Re-enables the fileLoad and moveFiles buttons.
      *
-     * @param isReset {@code true} if the comparer was release, {@code false} otherwise.
+     * @param isReset {@code true} if the comparer was unlocked, {@code false} otherwise.
      */
     private void handleComparerReset(boolean isReset) {
         if (!isReset) return;

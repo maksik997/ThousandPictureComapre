@@ -18,7 +18,7 @@ public interface MessageInterface {
      * (Message must give place for an Exception)
      * @param title A {@link String} to be used as title.
      * @param message A {@link String} to be used as a message.
-     * @param e A {@link Exception} to be used along with a message.
+     * @param e A {@link Exception} to be used along thenLoad a message.
      * */
     void showErrorMessage(String message, String title, Exception e);
 

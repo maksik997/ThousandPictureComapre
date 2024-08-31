@@ -40,7 +40,7 @@ public class ComboBoxSettingsEntry extends SettingsEntry<JComboBox<String>, Stri
     }
 
     /**
-     * Initializes value {@link JComboBox} with given {@link String} array.
+     * Initializes value {@link JComboBox} thenLoad given {@link String} array.
      * @param values values to be inside {@link JComboBox}.
      * */
     public void initializeComboBox(String... values) {

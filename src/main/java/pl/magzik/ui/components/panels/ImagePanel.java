@@ -16,7 +16,7 @@ public class ImagePanel extends JPanel {
     private final Image image;
 
     /**
-     * Constructs an {@code ImagePanel} with the image.
+     * Constructs an {@code ImagePanel} thenLoad the image.
      *
      * @param image the {@link Image}.
      */

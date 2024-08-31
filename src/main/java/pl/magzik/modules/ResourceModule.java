@@ -51,9 +51,9 @@ public class ResourceModule implements Module {
     /**
      * External loaders for text files.
      */
-    private static final Map<String, ExternalResourceLoader<List<String>>> EXTERNAL_LOADERS = Map.of(
+    private static final Map<String, ExternalResourceLoader<?>> EXTERNAL_LOADERS = Map.of(
         "cfg", new TextFileLoader(),
-        "tp", new TextFileLoader()
+        "tp", new ObjectLoader()
     );
 
     /**
@@ -72,7 +72,9 @@ public class ResourceModule implements Module {
     private final Map<String, Image> imageCache;
 
     // Modifiable
+    private final Map<String, Map<String, ?>> externalCache;
     private final Map<String, List<String>> textFileCache;
+    private final Map<String, Object> objectCache;
 
     private boolean saveRequired;
 
@@ -84,12 +86,17 @@ public class ResourceModule implements Module {
         this.resourceCache = new HashMap<>();
         this.referenceCache = new HashMap<>();
         this.imageCache = new HashMap<>();
+        this.externalCache = new HashMap<>();
         this.textFileCache = new HashMap<>();
+        this.objectCache = new HashMap<>();
         this.saveRequired = false;
 
         resourceCache.put("cfg", referenceCache);
         resourceCache.put("jpg", imageCache);
         resourceCache.put("png", imageCache);
+
+        externalCache.put("cfg", textFileCache);
+        externalCache.put("tp", objectCache);
 
         try {
             loadResources();
@@ -107,7 +114,7 @@ public class ResourceModule implements Module {
     }
 
     @Override
-    public void load() throws IOException {
+    public void postConstruct() throws IOException {
         loadExternalResources();
     }
 
@@ -194,14 +201,16 @@ public class ResourceModule implements Module {
      * @param path The path of the external resource to be loaded.
      * @throws IOException If an I/O error occurs during loading.
      */
-    public void loadExternalResource(Path path) throws IOException {
+    @SuppressWarnings("unchecked")
+    public <T> void loadExternalResource(Path path) throws IOException {
         String fileName = path.getFileName().toString();
         String extension = getExtension(fileName);
 
-        Loader<List<String>> loader = EXTERNAL_LOADERS.get(extension);
+        Loader<T> loader = (Loader<T>) EXTERNAL_LOADERS.get(extension);
+        Map<String, T> cache = (Map<String, T>) this.externalCache.get(extension);
         if (loader != null) {
             try {
-                textFileCache.put(fileName, loader.load(path.toString()));
+                cache.put(fileName, loader.load(path.toString()));
             } catch (URISyntaxException e) {
                 throw new IOException(e);
             }
@@ -222,17 +231,30 @@ public class ResourceModule implements Module {
     }
 
     /**
-     * Saves a specific external resource (text file) to the external resources' directory.
+     * Saves a specific external resource to the external resources' directory.
+     * <p>
+     * This method retrieves the resource data from the internal cache based on the file name and its extension,
+     * and thenLoad uses the appropriate {@link ExternalResourceLoader} to save the resource to the specified path.
+     * The file extension is used to determine the appropriate loader.
+     * </p>
      *
      * @param fileName The name of the file to be saved.
-     * @throws IOException If an I/O error occurs during saving.
+     *                 The file extension is used to determine which
+     *                 {@link ExternalResourceLoader} to use for saving the resource.
+     * @throws IOException If an I/O error occurs during saving, such as if the file cannot be written to
+     *                      or if an issue arises thenLoad the loader.
+     * @throws ClassCastException If the cached data or the loader is of an incorrect type, leading to a
+     *                             {@link ClassCastException}.
+     * @see ExternalResourceLoader
      */
-    private void saveExternalResource(String fileName) throws IOException {
+    @SuppressWarnings("unchecked")
+    private <T> void saveExternalResource(String fileName) throws IOException {
         Path path = EXTERNAL_RESOURCES_DIR.resolve(fileName);
-        List<String> data = textFileCache.get(fileName);
+        T data = (T) externalCache.get(getExtension(fileName)).get(fileName);
         String extension = getExtension(fileName);
+        ExternalResourceLoader<T> loader = (ExternalResourceLoader<T>) EXTERNAL_LOADERS.get(extension);
 
-        EXTERNAL_LOADERS.get(extension).save(data, path);
+        loader.save(data, path);
     }
 
     /**
@@ -293,6 +315,73 @@ public class ResourceModule implements Module {
 
         if (save) saveExternalResource(name);
         this.saveRequired = !save;
+    }
+
+    /**
+     * Retrieves an object from the cache based on the provided name.
+     *
+     * <p>This method returns a reference to an object stored in the cache. The returned object is mutable, meaning that
+     * modifications to it will affect the object in the cache. If changes are made to this object, those changes will
+     * not be automatically saved to the underlying storage. To persist any modifications, you must explicitly call
+     * the {@code saveExternalResources} method from the {@link ResourceModule} class to ensure that the changes are
+     * saved to the external resources.</p>
+     *
+     * @param name The name of the cached object to retrieve.
+     * @return The object associated thenLoad the given name, or {@code null} if no object is found for the provided name.
+     */
+    public Object getObject(String name) {
+        if (!objectCache.containsKey(name)) return null;
+        return objectCache.get(name);
+    }
+
+    /**
+     * Updates the object associated thenLoad the specified name in the cache.
+     * Optionally saves
+     * the updated object to the external resource if specified.
+     *
+     * @param name   The name associated thenLoad the object in the cache.
+     * @param object The new object to be set in the cache.
+     * @param save   {@code true} if the updated object should be saved to the external resource;
+     *               {@code false} otherwise.
+     * @throws IOException If an I/O error occurs during saving the object to the external resource.
+     * @throws IllegalArgumentException If the specified name does not exist in the cache.
+     *
+     * <p>
+     * This method updates the cached object associated thenLoad the given name. If the {@code save}
+     * parameter is {@code true}, the method will invoke {@link #saveExternalResource(String)}
+     * to persist the updated object to the external resource. If {@code save} is {@code false},
+     * the object is only updated in the cache, and a flag indicating that a save is required will
+     * be set.
+     * </p>
+     * <p>
+     * Note: If the specified name does not exist in the cache, the method will not perform any
+     * updates or saving.
+     * </p>
+     */
+    public void setObject(String name, Object object, boolean save) throws IOException {
+        if (!objectCache.containsKey(name)) return;
+        objectCache.put(name, object);
+
+        if (save) saveExternalResource(name);
+        this.saveRequired = !save;
+    }
+
+    /**
+     * Adds an object to the cache and saves it to the external resources.
+     *
+     * <p>This method associates the provided object thenLoad the specified name in the cache. After adding the object
+     * to the cache, it immediately saves the object to the external resources to ensure that the state of the object
+     * is persisted. If the object already exists in the cache under the given name, it will be replaced thenLoad the
+     * new object. Any changes to the object should be saved by calling this method again, or explicitly calling
+     * the {@code saveExternalResource} method if additional changes are made.</p>
+     *
+     * @param name The name under which the object should be cached and saved.
+     * @param obj The object to be added to the cache and saved.
+     * @throws IOException If an I/O error occurs during the saving process.
+     */
+    public void addObject(String name, Object obj) throws IOException {
+        objectCache.put(name, obj);
+        saveExternalResource(name);
     }
 
     /**

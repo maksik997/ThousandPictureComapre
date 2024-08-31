@@ -13,7 +13,7 @@ import java.net.URL;
 public interface ResourceLoader <T> extends Loader<T> {
 
     /**
-     * Retrieves the URL of the resource with the specified file name.
+     * Retrieves the URL of the resource thenLoad the specified file name.
      *
      * @param fileName The name of the resource file.
      * @return The URL of the resource.

@@ -2,7 +2,6 @@ package pl.magzik.modules.comparer.processing;
 
 import pl.magzik.modules.loader.Module;
 
-import javax.swing.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
@@ -15,7 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * to configure comparison settings.
  * <p>
  * This class implements the {@link Module} and {@link ComparerProcessor} interfaces, allowing it to
- * integrate with other components and perform file comparison operations.
+ * integrate thenLoad other components and perform file comparison operations.
  * </p>
  */
 public class ComparerModule implements Module, ComparerProcessor {
@@ -28,7 +27,7 @@ public class ComparerModule implements Module, ComparerProcessor {
     private boolean processing;
 
     /**
-     * Constructs a new {@code ComparerModule} instance with default values.
+     * Constructs a new {@code ComparerModule} instance thenLoad default values.
      */
     public ComparerModule() {
         this.input = new ArrayList<>();
@@ -41,14 +40,14 @@ public class ComparerModule implements Module, ComparerProcessor {
     }
 
     /**
-     * Acquires the lock for processing and sets the processing state to {@code true}.
+     * Acquires the notifyLock for processing and sets the processing state to {@code true}.
      * This method should be called before starting a processing task to ensure thread safety.
      * <p>
      * This method uses {@link ReentrantLock} to manage concurrency.
      * </p>
      */
     @Override
-    public void lock() {
+    public void notifyLock() {
         lock.lock();
         try {
             firePropertyChange("comparer-processing", processing, (processing = true));
@@ -58,13 +57,13 @@ public class ComparerModule implements Module, ComparerProcessor {
     }
 
     /**
-     * Releases the lock for processing and sets the processing state to {@code false}.
+     * Releases the notifyLock for processing and sets the processing state to {@code false}.
      * <p>
-     * This method should be called after completing a processing task to release the lock and update the state.
+     * This method should be called after completing a processing task to notifyUnlock the notifyLock and update the state.
      * </p>
      */
     @Override
-    public void release(){
+    public void notifyUnlock(){
         lock.lock();
         try {
             input = new ArrayList<>();
@@ -101,27 +100,9 @@ public class ComparerModule implements Module, ComparerProcessor {
         this.input = input;
     }
 
-    /**
-     * Returns the number of input files.
-     *
-     * @return the number of input files.
-     */
-    public int getInputElementsCount() {
-        return input.size();
-    }
-
     @Override
     public List<File> getOutput() {
         return output;
-    }
-
-    /**
-     * Returns the number of output files.
-     *
-     * @return the number of output files.
-     */
-    public int getOutputElementsCount() {
-        return output.size();
     }
 
     @Override

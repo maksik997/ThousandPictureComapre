@@ -51,7 +51,7 @@ public class Controller {
         this.translationStrategy = new DefaultTranslationStrategy(resourceBundle);
         this.menuController = new MenuController(view.getMenuView(), view.getSceneManager());
         this.comparerController = new ComparerController(view.getComparerView(), model.getComparerModule(), model.getComparerFileModule(), model.getComparerListModule(), translationStrategy, view.getUiManager(), view.getUiManager());
-        this.galleryController = new GalleryController(view.getGalleryView(), model.getGalleryModule(), model.getComparerModule(), model.getComparerFileModule(), view.getUiManager(), view.getUiManager(), translationStrategy);
+        this.galleryController = new GalleryController(view.getGalleryView(), model.getGalleryModule(), model.getComparerModule(), model.getComparerFileModule(), model.getGalleryFileModule(), view.getUiManager(), view.getUiManager(), translationStrategy);
         this.settingsController = new SettingsController(view.getSettingsView(), model.getSettingsModule(), model.getGalleryModule(), translationStrategy, view.getUiManager(), model.getComparerModule(), model.getComparerFileModule());
 
         // Translate Components Post-construct

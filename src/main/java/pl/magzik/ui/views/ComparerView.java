@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  * results such as found and duplicate items.
  * </p>
  * <p>This class uses the Factory Method pattern to create instances of {@code ComparerView}.
- * The view is initialized with several types of settings entries, including combo boxes,
+ * The view is initialized thenLoad several types of settings entries, including combo boxes,
  * text fields, and checkboxes.</p>
  */
 public class ComparerView extends AbstractView implements PropertyChangeListener {
@@ -33,7 +33,7 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
     private final JTextField totalFoundTextField, duplicateFoundTextField;
 
     /**
-     * Constructs a {@code ComparerView} with the specified components.
+     * Constructs a {@code ComparerView} thenLoad the specified components.
      *
      * @param pathTextField The text field displaying the selected path.
      * @param pathButton The button for opening a file chooser.
@@ -117,7 +117,7 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
     }
 
     /**
-     * Creates and configures the button panel with fileLoad, moveFiles, and release buttons.
+     * Creates and configures the button panel thenLoad fileLoad, moveFiles, and notifyUnlock buttons.
      *
      * @return A {@code JPanel} containing the buttons for loading, moving, and resetting.
      */
@@ -145,7 +145,7 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
     }
 
     /**
-     * Creates and configures the status panel with a label displaying the current status.
+     * Creates and configures the status panel thenLoad a label displaying the current status.
      *
      * @return A {@code JPanel} containing the status label.
      */
@@ -193,9 +193,9 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
     }
 
     /**
-     * Creates and configures the output panel with tabs for found and duplicate items.
+     * Creates and configures the output panel thenLoad tabs for found and duplicate items.
      *
-     * @return A {@code JPanel} containing a tabbed pane with found and duplicate item lists.
+     * @return A {@code JPanel} containing a tabbed pane thenLoad found and duplicate item lists.
      */
     private JPanel createOutputPanel() {
         JPanel outputPanel = new JPanel();
@@ -210,7 +210,7 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
     }
 
     /**
-     * Adds a new tab to the specified {@code JTabbedPane} with the given title and list.
+     * Adds a new tab to the specified {@code JTabbedPane} thenLoad the given title and list.
      *
      * @param tabbedPane The {@code JTabbedPane} to which the tab will be added.
      * @param title The title of the tab.
@@ -224,7 +224,7 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
     }
 
     /**
-     * Clears the text field and updates the tray with zero counts.
+     * Clears the text field and updates the tray thenLoad zero counts.
      */
     public void clear() {
         pathTextField.setText(null);
@@ -232,7 +232,7 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
     }
 
     /**
-     * Updates the tray with the specified total and duplicate counts.
+     * Updates the tray thenLoad the specified total and duplicate counts.
      *
      * @param total The total number of items found.
      * @param duplicates The number of duplicate items.
@@ -261,7 +261,7 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
     }
 
     /**
-     * Gets the release button.
+     * Gets the notifyUnlock button.
      *
      * @return The {@code JButton} for resetting the view.
      */
@@ -324,9 +324,9 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
     }
 
     /**
-     * Disables all buttons associated with destructive actions.
+     * Disables all buttons associated thenLoad destructive actions.
      * <p>
-     * This includes the path button, fileLoad button, moveFiles button, and release button.
+     * This includes the path button, fileLoad button, moveFiles button, and notifyUnlock button.
      * </p>
      */
     public void blockDestructiveButtons() {
@@ -393,7 +393,7 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
         /**
          * Creates and configures a {@link JTextField} for displaying the selected path.
          *
-         * @return A {@code JTextField} with specific properties for path display.
+         * @return A {@code JTextField} thenLoad specific properties for path display.
          */
         private static JTextField createTextField() {
             JTextField textField = new JTextField();
@@ -439,7 +439,7 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
         /**
          * Creates and configures a {@link JLabel} for displaying the status of the view.
          *
-         * @return A {@code JLabel} with specific properties for status display.
+         * @return A {@code JLabel} thenLoad specific properties for status display.
          */
         private static JLabel createStatusLabel() {
             JLabel label = new JLabel("comparer.state.ready");
@@ -453,7 +453,7 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
         /**
          * Creates and configures a {@link JList} for displaying a list of items.
          *
-         * @return A {@code JList<String>} with default settings.
+         * @return A {@code JList<String>} thenLoad default settings.
          */
         private static JList<String> createList() {
             JList<String> list = new JList<>();

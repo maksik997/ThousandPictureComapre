@@ -18,7 +18,7 @@ public class MenuController {
     private final SceneManagerInterface<SceneManager.Scene> sceneManager;
 
     /**
-     * Constructs a {@code MenuController} with the specified view and UI manager.
+     * Constructs a {@code MenuController} thenLoad the specified view and UI manager.
      *
      * @param mView The {@code MenuView} instance that represents the menu UI.
      * @param sceneManager The {@code SceneManagerInterface<SceneManager.Scene>} instance used to manage scene changes.

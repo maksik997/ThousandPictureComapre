@@ -709,7 +709,7 @@ public class GalleryController {
      */
     private void unifyNames() {
         try {
-            gModule.unifyNames();
+            gModule.normalizeNames();
         } catch (IOException e) {
             throw new CompletionException(e);
         }

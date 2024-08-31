@@ -1,6 +1,7 @@
 package pl.magzik.modules.gallery.table;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,8 +54,17 @@ public interface GalleryManagementInterface {
      */
     File removeItem(int index);
 
-
-    File removeItem(File file);
+    /**
+     * Removes the specified file from the collection of items.
+     * <p>
+     * This method searches for the provided {@code File} object in the collection and removes
+     * the first occurrence of it. If the file is not found in the collection, the collection remains unchanged.
+     * </p>
+     *
+     * @param file The {@code File} object to be removed from the collection.
+     * @throws NullPointerException if the specified file is {@code null}.
+     */
+    void removeItem(File file);
 
     /**
      * Removes multiple files from the gallery based on their indices.
@@ -73,8 +83,22 @@ public interface GalleryManagementInterface {
             .toList();
     }
 
-    default List<File> removeItemsByFiles(List<File> files) {
-        return files.stream().map(this::removeItem).toList();
+    /**
+     * Removes multiple {@code File} objects from the collection.
+     * <p>
+     * This method iterates through the provided list of {@code File} objects and removes each file
+     * from the collection. If a file is not found in the collection, it is ignored and the collection
+     * remains unchanged for that file.
+     * </p>
+     *
+     * @param files A list of {@code File} objects to be removed from the collection.
+     *              This list can
+     *              contain zero or more files.
+     *              If the list is empty, the collection remains unchanged.
+     * @throws NullPointerException if the provided list or any of its elements are {@code null}.
+     */
+    default void removeItemsByFiles(List<File> files) {
+        files.forEach(this::removeItem);
     }
 
     /**
@@ -147,4 +171,8 @@ public interface GalleryManagementInterface {
      * @return A list of all tags.
      */
     List<String> getAllTags();
+
+    void openImage(int index) throws IOException;
+
+    void normalizeNames() throws IOException;
 }

@@ -25,11 +25,13 @@ public class GalleryModule implements Module, GalleryManagementInterface, Galler
         normalizedNameTemplate = "tp_img_";
     }
 
+    @Override
     public void openImage(int idx) throws IOException {
         galleryTableModel.openEntry(idx);
     }
 
-    public void unifyNames() throws IOException {
+    @Override
+    public void normalizeNames() throws IOException {
         galleryTableModel.unifyNames(normalizedNameTemplate, normalizedFileExtensions);
     }
 
@@ -45,13 +47,24 @@ public class GalleryModule implements Module, GalleryManagementInterface, Galler
 
     @Override
     public File removeItem(int index) {
+        System.out.println(index);
         return galleryTableModel.removeEntry(index).getPath().toFile();
     }
 
     @Override
-    public File removeItem(File file) {
+    public void removeItem(File file) {
         galleryTableModel.getImages().remove(new Entry(file.toPath()));
-        return file;
+    }
+
+    @Override
+    public List<File> removeItems(List<Integer> indexes) { // TODO
+        indexes = new ArrayList<>(indexes); // In case indexes is immutable
+        indexes.sort(Integer::compare);
+        indexes = indexes.reversed();
+
+        return indexes.stream()
+                .map(this::removeItem)
+                .toList();
     }
 
     @Override

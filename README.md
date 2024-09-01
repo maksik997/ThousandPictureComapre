@@ -1,4 +1,4 @@
-![logo](data/thumbnail.png) 
+![logo](images/thumbnail.png) 
 # Thousand Picture Compare`
 ### Version tag: 0.5
 

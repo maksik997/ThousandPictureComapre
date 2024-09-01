@@ -1,6 +1,6 @@
 package pl.magzik;
 
-import pl.magzik.modules.ResourceModule;
+import pl.magzik.modules.resource.ResourceModule;
 import pl.magzik.ui.UiManager;
 import pl.magzik.ui.localization.ComponentTranslationStrategy;
 import pl.magzik.ui.scenes.SceneManager;

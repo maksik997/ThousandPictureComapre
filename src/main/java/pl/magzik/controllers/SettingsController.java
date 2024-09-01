@@ -1,10 +1,11 @@
 package pl.magzik.controllers;
 
-import pl.magzik.modules.comparer.file.ComparerFilePropertyAccess;
+import pl.magzik.modules.comparer.persistence.ComparerFilePropertyAccess;
 import pl.magzik.modules.comparer.processing.ComparerPropertyAccess;
+import pl.magzik.modules.gallery.operations.GalleryPropertyAccess;
 import pl.magzik.ui.localization.TranslationStrategy;
-import pl.magzik.modules.GalleryModule;
-import pl.magzik.modules.SettingsModule;
+import pl.magzik.modules.gallery.management.GalleryManagementModule;
+import pl.magzik.modules.settings.SettingsModule;
 import pl.magzik.ui.components.settings.ComboBoxSettingsEntry;
 import pl.magzik.ui.components.settings.SettingsEntry;
 import pl.magzik.ui.logging.MessageInterface;
@@ -20,7 +21,7 @@ import java.util.function.Function;
 /**
  * The {@code SettingsController} class manages the interaction between the settings user interface and the underlying settings module.
  * It is responsible for initializing the settings view, handling user input, and updating settings both in the internal settings module
- * and external components such as {@link ComparerPropertyAccess} instances and the {@link GalleryModule}.
+ * and external components such as {@link ComparerPropertyAccess} instances and the {@link GalleryManagementModule}.
  * <p>
  * This controller listens for changes in settings and enables or disables the save button accordingly. When the user clicks the save button,
  * it updates the settings in the settings module and other related modules if necessary. If any settings have changed and require a restart,
@@ -41,7 +42,7 @@ import java.util.function.Function;
  * <ul>
  *   <li>{@link SettingsView} - The view component that provides the user interface for settings.</li>
  *   <li>{@link SettingsModule} - The module responsible for storing and managing the settings data.</li>
- *   <li>{@link GalleryModule} - A module that also implements {@link ComparerPropertyAccess} and is affected by certain settings.</li>
+ *   <li>{@link GalleryManagementModule} - A module that also implements {@link ComparerPropertyAccess} and is affected by certain settings.</li>
  *   <li>{@link TranslationStrategy} - For translating strings used in the settings view.</li>
  *   <li>{@link MessageInterface} - For displaying messages to the user.</li>
  *   <li>{@link ComparerPropertyAccess} - An interface representing modules that require updates based on settings.</li>
@@ -55,7 +56,7 @@ import java.util.function.Function;
 public class SettingsController {
     private final SettingsView sView;
     private final SettingsModule sModule;
-    private final GalleryModule gModule;
+    private final GalleryPropertyAccess gpa;
     private final TranslationStrategy ti;
     private final MessageInterface mi;
     private final ComparerFilePropertyAccess cfpa;
@@ -69,7 +70,7 @@ public class SettingsController {
      * <p>
      * The constructor performs the following actions:
      * <ul>
-     *   <li>Assigns the provided {@link SettingsView}, {@link SettingsModule}, {@link GalleryModule}, {@link TranslationStrategy},
+     *   <li>Assigns the provided {@link SettingsView}, {@link SettingsModule}, {@link GalleryManagementModule}, {@link TranslationStrategy},
      *       {@link MessageInterface}, and {@link ComparerPropertyAccess} implementations to the corresponding fields.</li>
      *   <li>Initializes the settings through {@link #initializeSettings()}.</li>
      *   <li>Updates external settings using {@link #updateExternalSettings()}.</li>
@@ -79,17 +80,18 @@ public class SettingsController {
      *
      * @param sView The {@link SettingsView} instance used to interact thenLoad the user interface. Must not be {@code null}.
      * @param sModule The {@link SettingsModule} instance responsible for handling the settings data. Must not be {@code null}.
-     * @param gModule The {@link GalleryModule} instance, which also implements {@link ComparerPropertyAccess}. Must not be {@code null}.
+     * @param gpa The {@link GalleryPropertyAccess} instance, which also implements {@link ComparerPropertyAccess}.
+     *            Must not be {@code null}.
      * @param ti The {@link TranslationStrategy} instance used for translating text strings. Must not be {@code null}.
      * @param mi The {@link MessageInterface} instance used for displaying messages to the user. Must not be {@code null}.
      * @param cpa The {@link ComparerPropertyAccess} instance used for accessing comparison properties. Must not be {@code null}.
      * @param cfpa The {@link ComparerFilePropertyAccess} instance used for handling file-related comparison properties. Must not be {@code null}.
      * @throws NullPointerException if any of the provided parameters are {@code null}.
      */
-    public SettingsController(SettingsView sView, SettingsModule sModule, GalleryModule gModule, TranslationStrategy ti, MessageInterface mi, ComparerPropertyAccess cpa, ComparerFilePropertyAccess cfpa) {
+    public SettingsController(SettingsView sView, SettingsModule sModule, GalleryPropertyAccess gpa, TranslationStrategy ti, MessageInterface mi, ComparerPropertyAccess cpa, ComparerFilePropertyAccess cfpa) {
         this.sView = sView;
         this.sModule = sModule;
-        this.gModule = gModule;
+        this.gpa = gpa;
         this.ti = ti;
         this.mi = mi;
         this.cpa = cpa;
@@ -301,7 +303,7 @@ public class SettingsController {
 
     /**
      * Checks if any of the settings have changed compared to their current values.
-     * This method compares the values of various settings in the view thenLoad their corresponding current values in the settings module.
+     * This method compares the values of various settings in the view and thenLoad their corresponding current values in the settings module.
      * If any of the settings differ from their current values, the method returns {@code true}.
      * Otherwise, it returns {@code false}.
      *
@@ -364,7 +366,7 @@ public class SettingsController {
      * <p>
      * This method performs the following actions:
      * <ul>
-     *   <li>Sets the name template for the {@link GalleryModule} using the value retrieved from the "unify-names-prefix" setting.
+     *   <li>Sets the name template for the {@link GalleryManagementModule} using the value retrieved from the "unify-names-prefix" setting.
      *       <p>The value is used to configure the prefix template for unifying names within the gallery module.</p></li>
      *   <li>Configures whether the file extensions should be converted to lowercase based on the value of the "unify-names-lowercase" setting.
      *       <p>If the setting value is "yes", extensions will be converted to lowercase; otherwise, they will remain unchanged.</p></li>
@@ -377,8 +379,8 @@ public class SettingsController {
      * </p>
      */
     private void updateExternalSettings() {
-        gModule.setNormalizedNameTemplate(sModule.getSetting("un_prefix"));
-        gModule.setNormalizedFileExtensions(sModule.getSetting("un_lowercase").equals("yes"));
+        gpa.setNormalizedNameTemplate(sModule.getSetting("un_prefix"));
+        gpa.setNormalizedFileExtensions(sModule.getSetting("un_lowercase").equals("yes"));
 
         updateComparerSettings();
     }

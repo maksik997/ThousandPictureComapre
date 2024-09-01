@@ -1,5 +1,6 @@
 package pl.magzik.ui.views;
 
+import pl.magzik.modules.resource.ResourceModule;
 import pl.magzik.ui.components.Utility;
 
 import javax.swing.*;
@@ -57,7 +58,7 @@ public class MenuView extends JPanel {
      * @param insets The insets to be applied for the icon label.
      */
     private void addIcon(GridBagConstraints gbc, Insets insets) {
-        ImageIcon icon = Utility.getScaledImage(new ImageIcon("data/thumbnail.png"), 200, 200);
+        ImageIcon icon = Utility.getScaledImage(new ImageIcon(ResourceModule.getInstance().getImage("thumbnail.png")), 200, 200);
         JLabel iconLabel = new JLabel(icon);
 
         gbc.insets = insets;

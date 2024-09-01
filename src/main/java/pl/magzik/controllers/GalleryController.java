@@ -2,11 +2,14 @@ package pl.magzik.controllers;
 
 import pl.magzik.base.interfaces.Command;
 import pl.magzik.async.ExecutorServiceManager;
-import pl.magzik.modules.GalleryModule;
-import pl.magzik.modules.ResourceModule;
+import pl.magzik.base.interfaces.FileUtils;
+import pl.magzik.modules.gallery.management.GalleryManagementModule;
+import pl.magzik.modules.resource.ResourceModule;
 import pl.magzik.modules.comparer.processing.ComparerProcessor;
 import pl.magzik.base.interfaces.FileHandler;
-import pl.magzik.modules.gallery.GalleryTableRowSorter;
+import pl.magzik.modules.gallery.table.GalleryEntry;
+import pl.magzik.modules.gallery.operations.GalleryOperations;
+import pl.magzik.modules.gallery.table.GalleryTableRowSorter;
 import pl.magzik.ui.localization.TranslationStrategy;
 import pl.magzik.ui.cursor.CursorManagerInterface;
 import pl.magzik.ui.listeners.UnifiedDocumentListener;
@@ -17,9 +20,9 @@ import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.io.UncheckedIOException;
+import java.nio.file.Path;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -27,7 +30,7 @@ import java.util.stream.Collectors;
 /**
  * Manages the gallery operations including image addition, removal, deletion, and tag management.
  * <p>
- * The {@code GalleryController} interacts thenLoad the {@link GalleryView}, {@link GalleryModule}, and various
+ * The {@code GalleryController} interacts thenLoad the {@link GalleryView}, {@link GalleryManagementModule}, and various
  * user interface components to perform and manage gallery operations. It uses an {@link ExecutorService} to run
  * tasks asynchronously and provides methods to handle various user actions.
  * </p>
@@ -35,9 +38,11 @@ import java.util.stream.Collectors;
 public class GalleryController {
 
     private final GalleryView gView;
-    private final GalleryModule gModule;
+    private final GalleryManagementModule gModule;
+    private final GalleryOperations goi;
     private final ComparerProcessor cp;
     private final FileHandler comparerFileHandler, galleryFileHandler;
+    private final FileUtils fu;
     private final MessageInterface mi;
     private final CursorManagerInterface umi;
     private final TranslationStrategy ti;
@@ -50,19 +55,21 @@ public class GalleryController {
      * </p>
      *
      * @param gView the {@link GalleryView} used to interact thenLoad the UI.
-     * @param gModule the {@link GalleryModule} that handles gallery data and operations.
+     * @param gModule the {@link GalleryManagementModule} that handles gallery data and operations.
      * @param umi the {@link CursorManagerInterface} for managing the user interface state.
      * @param mi the {@link MessageInterface} for displaying messages to the user.
      * @param ti the {@link TranslationStrategy} for translating messages.
      */
-    public GalleryController(GalleryView gView, GalleryModule gModule, ComparerProcessor cp, FileHandler comparerFileHandler, FileHandler galleryFileHandler, CursorManagerInterface umi, MessageInterface mi, TranslationStrategy ti) {
+    public GalleryController(GalleryView gView, GalleryManagementModule gModule, GalleryOperations goi, ComparerProcessor cp, FileHandler comparerFileHandler, FileHandler galleryFileHandler, FileUtils fu, CursorManagerInterface umi, MessageInterface mi, TranslationStrategy ti) {
         this.ti = ti;
         this.umi = umi;
         this.mi = mi;
         this.gModule = gModule;
+        this.goi = goi;
         this.cp = cp;
         this.comparerFileHandler = comparerFileHandler;
         this.galleryFileHandler = galleryFileHandler;
+        this.fu = fu;
         this.gView = gView;
         this.executor = ExecutorServiceManager.getInstance().getExecutorService();
 
@@ -165,7 +172,8 @@ public class GalleryController {
 
         try {
             for (int idx : selected) {
-                gModule.openImage(idx);
+                File file = gModule.getFile(idx);
+                goi.openImage(file);
             }
         } catch (IOException e) {
             mi.showErrorMessage(
@@ -400,7 +408,7 @@ public class GalleryController {
      * @throws IOException if an I/O error occurs while saving the gallery data.
      */
     private void saveGallery() throws IOException {
-        ResourceModule.getInstance().setObject("gallery.tp", gModule.getGalleryTableModel().getImages(), true);
+        ResourceModule.getInstance().setObject("gallery.tp", gModule.getGalleryTableModel().getEntries(), true);
     }
 
     /**
@@ -435,7 +443,7 @@ public class GalleryController {
      * Handles the addition of images from a given list of file paths.
      * <p>
      * This method is designed to be used externally, allowing for the addition of images
-     * to the gallery using a list of file paths. It interacts thenLoad the {@link GalleryModule}
+     * to the gallery using a list of file paths. It interacts thenLoad the {@link GalleryManagementModule}
      * to perform the actual addition. If an {@link IOException} occurs during the process,
      * an error message is displayed to the user.
      * </p>
@@ -526,7 +534,7 @@ public class GalleryController {
      * </p>
      */
     private void unifyNamesTask() {
-        executeAsync(this::unifyNames, this::save, this::showMessage);
+        executeAsync(this::prepareUiBefore, this::unifyNames, this::save, this::showMessage);
     }
 
 
@@ -709,8 +717,16 @@ public class GalleryController {
      */
     private void unifyNames() {
         try {
-            gModule.normalizeNames();
-        } catch (IOException e) {
+            List<File> oldFiles = gModule.getGalleryTableModel().getEntries().stream()
+                                                                            .map(GalleryEntry::getPath)
+                                                                            .map(Path::toFile)
+                                                                            .toList();
+            gModule.removeElements(oldFiles);
+
+            List<File> newFiles = goi.normalizeNames(oldFiles);
+            fu.renameFiles(oldFiles, newFiles);
+            gModule.addItems(newFiles);
+        } catch (UncheckedIOException e) {
             throw new CompletionException(e);
         }
     }

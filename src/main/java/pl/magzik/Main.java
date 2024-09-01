@@ -3,23 +3,24 @@ package pl.magzik;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.util.SystemInfo;
-import pl.magzik.modules.GalleryModule;
-import pl.magzik.modules.ResourceModule;
-import pl.magzik.modules.gallery.Entry;
-import pl.magzik.modules.gallery.GalleryTableModel;
-import pl.magzik.modules.loader.ModuleLoader;
-import pl.magzik.modules.theme.ThemeDetector;
+import pl.magzik.modules.gallery.management.GalleryManagementModule;
+import pl.magzik.modules.resource.ResourceModule;
+import pl.magzik.modules.gallery.table.GalleryEntry;
+import pl.magzik.modules.gallery.table.GalleryTableModelHandler;
+import pl.magzik.modules.base.ModuleLoader;
+import pl.magzik.ui.theme.ThemeDetector;
 import pl.magzik.ui.LoadingFrame;
 import pl.magzik.ui.UiManager;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Entry point of the application that initializes and starts the application.
+ * GalleryEntry point of the application that initializes and starts the application.
  * <p>
  * This class sets up the application environment, including loading configuration settings,
  * initializing modules, setting up UI properties, and launching the main application view.
@@ -85,27 +86,28 @@ public class Main {
                     .thenLoad(() -> {
                         model.getGalleryModule().postConstruct();
                         loadGalleryItems(model.getGalleryModule().getGalleryTableModel());
-                    }, GalleryModule.class)
+                    }, GalleryManagementModule.class)
                     .thenLoad(model.getGalleryFileModule())
+                    .thenLoad(model.getGalleryOperationsModule())
                     .ready();
     }
 
-    private static void loadGalleryItems(GalleryTableModel gtm) throws IOException {
+    private static void loadGalleryItems(GalleryTableModelHandler gti) throws IOException {
         Object obj = ResourceModule.getInstance().getObject("gallery.tp");
         if (obj == null) {
             ResourceModule.getInstance().addObject("gallery.tp", new ArrayList<>());
             return;
         }
 
-        List<Entry> entries = validateEntryList(obj);
-        if (!entries.stream().map(Entry::getPath).allMatch(Files::exists))
+        List<GalleryEntry> entries = validateEntryList(obj);
+        if (!entries.stream().map(GalleryEntry::getPath).allMatch(Files::exists))
             throw new IOException(
-                    entries.stream()
-                            .map(e -> String.format("Missing file: %s", e.getPath().toString()))
-                            .collect(Collectors.joining("\n"))
+                entries.stream()
+                    .map(e -> String.format("Missing file: %s", e.getPath().toString()))
+                    .collect(Collectors.joining("\n"))
             );
 
-        gtm.addEntries(entries);
+        gti.addEntries(entries);
     }
 
     /**
@@ -116,10 +118,10 @@ public class Main {
      * @throws IllegalArgumentException if the object is not a {@link List<String>}.
      */
     @SuppressWarnings("unchecked")
-    private static List<Entry> validateEntryList(Object obj) {
+    private static List<GalleryEntry> validateEntryList(Object obj) {
         if (obj instanceof List<?> list) {
-            if (list.isEmpty() || list.stream().allMatch(e -> e instanceof Entry))
-                return (List<Entry>) obj;
+            if (list.isEmpty() || list.stream().allMatch(e -> e instanceof GalleryEntry))
+                return (List<GalleryEntry>) obj;
         }
 
         throw new IllegalArgumentException("gallery.tp file is not of expected type.");
@@ -267,7 +269,7 @@ public class Main {
         while (moduleLoader.hasNext()) {
             try {
                 moduleLoader.loadNext();
-            } catch (IOException e) {
+            } catch (IOException | UncheckedIOException e) {
                 JTextArea textArea = new JTextArea(String.format("Could not load module: %n%s%nDo you wish to continue?", e.getMessage()));
                 textArea.setEditable(false);
                 JScrollPane scrollPane = new JScrollPane(textArea);
@@ -278,6 +280,8 @@ public class Main {
                     "Loading halted because: " + e.getClass().getSimpleName()
                 );
                 if (res != JOptionPane.YES_OPTION) handleError(e);
+            } catch (RuntimeException e) { // Debug
+                e.printStackTrace();
             }
         }
     }

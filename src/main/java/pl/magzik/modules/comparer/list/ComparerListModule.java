@@ -1,6 +1,6 @@
 package pl.magzik.modules.comparer.list;
 
-import pl.magzik.modules.loader.Module;
+import pl.magzik.modules.base.Module;
 
 import javax.swing.*;
 import java.io.IOException;

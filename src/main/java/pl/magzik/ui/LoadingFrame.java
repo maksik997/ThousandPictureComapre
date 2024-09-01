@@ -1,6 +1,6 @@
 package pl.magzik.ui;
 
-import pl.magzik.modules.ResourceModule;
+import pl.magzik.modules.resource.ResourceModule;
 import pl.magzik.ui.components.Utility;
 import pl.magzik.ui.components.panels.ImagePanel;
 import pl.magzik.ui.localization.ComponentTranslationStrategy;
@@ -12,7 +12,6 @@ import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
 
 /**
  * The {@code LoadingFrame} class represents a custom JFrame that displays a loading screen

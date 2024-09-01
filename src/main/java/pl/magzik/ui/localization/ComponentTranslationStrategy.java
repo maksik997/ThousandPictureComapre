@@ -1,7 +1,8 @@
 package pl.magzik.ui.localization;
 
 import pl.magzik.View;
-import pl.magzik.modules.gallery.GalleryTableModel;
+import pl.magzik.modules.gallery.table.TablePropertyAccess;
+import pl.magzik.modules.gallery.table.GalleryTableModel;
 import pl.magzik.ui.components.filechoosers.FileChooser;
 
 import javax.swing.*;
@@ -127,7 +128,7 @@ public class ComponentTranslationStrategy extends DefaultTranslationStrategy {
      * @param gtm the {@link GalleryTableModel} whose column names are to be translated. Must not be {@code null}.
      * @throws NullPointerException if {@code gtm} is {@code null}.
      */
-    public void translateComponents(GalleryTableModel gtm) {
+    public void translateComponents(TablePropertyAccess gtm) {
         String key;
         for (int i = 0; i < gtm.getColumnCount(); i++) {
             key = gtm.getColumnName(i);

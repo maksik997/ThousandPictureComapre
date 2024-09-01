@@ -1,6 +1,6 @@
 package pl.magzik.modules.comparer.processing;
 
-import pl.magzik.modules.loader.Module;
+import pl.magzik.modules.base.Module;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;

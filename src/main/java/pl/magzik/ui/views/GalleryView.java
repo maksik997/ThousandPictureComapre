@@ -2,7 +2,7 @@ package pl.magzik.ui.views;
 
 import pl.magzik.Controller;
 import pl.magzik.controllers.GalleryController;
-import pl.magzik.modules.gallery.GalleryTableModel;
+import pl.magzik.modules.gallery.table.GalleryTableModel;
 import pl.magzik.ui.components.Utility;
 import pl.magzik.ui.components.filechoosers.FileChooser;
 import pl.magzik.ui.components.filechoosers.MultipleFileSelectionStrategy;

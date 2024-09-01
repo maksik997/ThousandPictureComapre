@@ -5,13 +5,15 @@ import pl.magzik.Comparator.ImageFilePredicate;
 import pl.magzik.base.interfaces.CheckedConsumer;
 import pl.magzik.base.interfaces.CheckedPredicate;
 import pl.magzik.base.interfaces.FileHandler;
-import pl.magzik.modules.loader.Module;
+import pl.magzik.base.interfaces.FileUtils;
+import pl.magzik.modules.base.Module;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -24,7 +26,7 @@ import java.util.stream.Stream;
  * <p>This module uses a {@link FilePredicate} to filter files, specifically targeting image files
  * through the {@link ImageFilePredicate} implementation.</p>
  */
-public class GalleryFileModule implements Module, FileHandler {
+public class GalleryFileModule implements Module, FileHandler, FileUtils {
 
     private final FilePredicate filePredicate;
 
@@ -101,6 +103,11 @@ public class GalleryFileModule implements Module, FileHandler {
     @Override
     public void moveFiles(List<File> files) {
         throw new UnsupportedOperationException("Not supported.");
+    }
+
+    @Override
+    public void renameFile(File oldFile, File newFile) throws IOException {
+        Files.move(oldFile.toPath(), newFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
     }
 }
 

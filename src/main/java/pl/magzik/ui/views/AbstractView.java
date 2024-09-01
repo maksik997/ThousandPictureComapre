@@ -1,6 +1,6 @@
 package pl.magzik.ui.views;
 
-import pl.magzik.modules.ResourceModule;
+import pl.magzik.modules.resource.ResourceModule;
 import pl.magzik.ui.components.Utility;
 
 import javax.swing.*;

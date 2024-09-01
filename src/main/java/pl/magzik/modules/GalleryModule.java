@@ -40,15 +40,21 @@ public class GalleryModule implements Module, GalleryManagementInterface, Galler
     }
 
     @Override
-    public void addItem(File file) {
-        Path p = file.toPath();
-        galleryTableModel.addEntry(new Entry(p));
+    public void addItems(List<File> files) {
+        List<Entry> entries = files.stream()
+                                    .map(File::toPath)
+                                    .map(Entry::new)
+                                    .toList();
+
+        galleryTableModel.addEntries(entries);
     }
 
     @Override
-    public File removeItem(int index) {
-        System.out.println(index);
-        return galleryTableModel.removeEntry(index).getPath().toFile();
+    public List<File> removeItems(List<Integer> indexes) {
+        return galleryTableModel.removeEntries(indexes).stream()
+                                                        .map(Entry::getPath)
+                                                        .map(Path::toFile)
+                                                        .toList();
     }
 
     @Override
@@ -57,14 +63,13 @@ public class GalleryModule implements Module, GalleryManagementInterface, Galler
     }
 
     @Override
-    public List<File> removeItems(List<Integer> indexes) { // TODO
-        indexes = new ArrayList<>(indexes); // In case indexes is immutable
-        indexes.sort(Integer::compare);
-        indexes = indexes.reversed();
-
-        return indexes.stream()
-                .map(this::removeItem)
-                .toList();
+    public void removeElements(List<File> files) {
+        List<Integer> indexes = files.stream()
+                                        .map(File::toPath)
+                                        .map(Entry::new)
+                                        .map(galleryTableModel::indexOf)
+                                        .toList();
+        removeItems(indexes);
     }
 
     @Override
@@ -90,10 +95,10 @@ public class GalleryModule implements Module, GalleryManagementInterface, Galler
     @Override
     public List<String> getAllTags() {
         return galleryTableModel.getImages().stream()
-            .map(Entry::getTags)
-            .flatMap(Collection::stream)
-            .distinct()
-            .toList();
+                                            .map(Entry::getTags)
+                                            .flatMap(Collection::stream)
+                                            .distinct()
+                                            .toList();
     }
 
     @Override

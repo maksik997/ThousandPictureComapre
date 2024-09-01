@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -90,11 +89,7 @@ public class GalleryTableModel extends AbstractTableModel {
         fireTableRowsInserted(images.size() - 1, images.size() - 1);
     }
 
-    public void addAllEntries(Entry... entries) {
-        addAllEntries(Arrays.asList(entries));
-    }
-
-    public void addAllEntries(Collection<Entry> entries) {
+    public void addEntries(Collection<Entry> entries) {
         if (entries.isEmpty()) return;
 
         int idx = images.size();
@@ -116,40 +111,32 @@ public class GalleryTableModel extends AbstractTableModel {
         return e;
     }
 
-    public void removeAllEntries(Integer... rows) {
-        removeAllEntries(Arrays.asList(rows));
-    }
+    public List<Entry> removeEntries(Collection<Integer> rows) {
+        List<Entry> entries = rows.stream()
+                                    .map(images::get)
+                                    .toList();
 
-    public void removeAllEntries(List<Integer> rows) {
-        for (Integer row : rows) images.remove(row.intValue());
+        entries.forEach(images::remove);
         fireTableDataChanged();
-    }
 
-    public void deleteImage(int row) throws IOException {
-        // This method will remove entry from table and will deleteFiles image from disk.
-        Entry entry = images.get(row);
-        removeEntry(row);
-
-        Path path = entry.getPath();
-        Files.delete(path);
-    }
-
-    public void deleteAllImages(List<Integer> rows) throws IOException {
-        List<Path> entries = rows.stream().map(images::get).map(Entry::getPath).toList();
-        removeAllEntries(rows);
-
-        for (Path path : entries) Files.delete(path);
+        return entries;
     }
 
     public Entry getImage(int index) {
         return images.get(index);
     }
 
+    public int indexOf(Entry entry) {
+        return images.indexOf(entry);
+    }
+
+    @Deprecated
     public void openEntry(int row) throws IOException {
         File file = images.get(row).getPath().toFile();
         Desktop.getDesktop().open(file);
     }
 
+    @Deprecated
     public void modifyName(int row, String newName) throws IOException {
         Path oldPath = images.get(row).getPath();
 
@@ -174,6 +161,7 @@ public class GalleryTableModel extends AbstractTableModel {
     }
 
     // Group functions
+    @Deprecated
     public void unifyNames(String pattern, boolean lowercaseSuffix) throws IOException {
         int i = 0;
 
@@ -185,12 +173,6 @@ public class GalleryTableModel extends AbstractTableModel {
 
             modifyName(idx, String.format("%s%s_%s%s", pattern, ++i, System.currentTimeMillis(), ext));
         }
-    }
-
-    public void reduction(List<Path> paths) {
-        images.removeAll(paths.stream().map(Entry::new).toList());
-
-        fireTableDataChanged();
     }
 
     public void refresh() {

@@ -105,7 +105,7 @@ public class Main {
                             .collect(Collectors.joining("\n"))
             );
 
-        gtm.addAllEntries(entries);
+        gtm.addEntries(entries);
     }
 
     /**

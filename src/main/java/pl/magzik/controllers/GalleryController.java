@@ -687,7 +687,7 @@ public class GalleryController {
     private void reduceImages(boolean res) {
         List<File> out = cp.getOutput();
         cp.notifyUnlock();
-        gModule.removeItemsByFiles(out);
+        gModule.removeElements(out);
 
         try {
             if (res) comparerFileHandler.moveFiles(out);

@@ -3,7 +3,6 @@ package pl.magzik.modules.gallery.table;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,7 +16,9 @@ public interface GalleryManagementInterface {
      *
      * @param file The file to be added.
      */
-    void addItem(File file);
+    default void addItem(File file) {
+        addItems(List.of(file));
+    }
 
     /**
      * Adds a file to the gallery using a {@link Path}.
@@ -42,9 +43,7 @@ public interface GalleryManagementInterface {
      *
      * @param files The list of files to be added.
      */
-    default void addItems(List<File> files) {
-        files.forEach(this::addItem);
-    }
+    void addItems(List<File> files);
 
     /**
      * Removes a file from the gallery based on the specified index.
@@ -52,7 +51,9 @@ public interface GalleryManagementInterface {
      * @param index The index of the file to be removed.
      * @return The removed file.
      */
-    File removeItem(int index);
+    default File removeItem(int index) {
+        return removeItems(List.of(index)).getFirst();
+    }
 
     /**
      * Removes the specified file from the collection of items.
@@ -64,7 +65,9 @@ public interface GalleryManagementInterface {
      * @param file The {@code File} object to be removed from the collection.
      * @throws NullPointerException if the specified file is {@code null}.
      */
-    void removeItem(File file);
+    default void removeItem(File file) {
+        removeElements(List.of(file));
+    }
 
     /**
      * Removes multiple files from the gallery based on their indices.
@@ -73,15 +76,7 @@ public interface GalleryManagementInterface {
      * @param indexes The list of indices of the files to be removed.
      * @return A list of removed files.
      */
-    default List<File> removeItems(List<Integer> indexes) {
-        indexes = new ArrayList<>(indexes); // In case indexes is immutable
-        indexes.sort(Integer::compare);
-        indexes = indexes.reversed();
-
-        return indexes.stream()
-            .map(this::removeItem)
-            .toList();
-    }
+    List<File> removeItems(List<Integer> indexes);
 
     /**
      * Removes multiple {@code File} objects from the collection.
@@ -97,9 +92,7 @@ public interface GalleryManagementInterface {
      *              If the list is empty, the collection remains unchanged.
      * @throws NullPointerException if the provided list or any of its elements are {@code null}.
      */
-    default void removeItemsByFiles(List<File> files) {
-        files.forEach(this::removeItem);
-    }
+    void removeElements(List<File> files);
 
     /**
      * Retrieves a file from the gallery based on the specified index.

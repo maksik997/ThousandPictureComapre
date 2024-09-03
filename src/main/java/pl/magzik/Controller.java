@@ -51,12 +51,12 @@ public class Controller {
         this.translationStrategy = new DefaultTranslationStrategy(resourceBundle);
         this.menuController = new MenuController(view.getMenuView(), view.getSceneManager());
         this.comparerController = new ComparerController(view.getComparerView(), model.getComparerModule(), model.getComparerFileModule(), model.getComparerListModule(), translationStrategy, view.getUiManager(), view.getUiManager());
-        this.galleryController = new GalleryController(view.getGalleryView(), model.getGalleryModule(), model.getGalleryOperationsModule(), model.getComparerModule(), model.getComparerFileModule(), model.getGalleryFileModule(), model.getGalleryFileModule(), view.getUiManager(), view.getUiManager(), translationStrategy);
-        this.settingsController = new SettingsController(view.getSettingsView(), model.getSettingsModule(), model.getGalleryOperationsModule(), translationStrategy, view.getUiManager(), model.getComparerModule(), model.getComparerFileModule());
+        this.galleryController = new GalleryController(model.getGc(), view.getGalleryView(), model.getComparerModule(), model.getComparerFileModule(), view.getUiManager(), view.getUiManager(), translationStrategy);
+        this.settingsController = new SettingsController(view.getSettingsView(), model.getSettingsModule(), model.getGc().getGalleryPropertyAccess(), translationStrategy, view.getUiManager(), model.getComparerModule(), model.getComparerFileModule());
 
         // Translate Components Post-construct
         view.getTranslationStrategy().translateComponents(view);
-        view.getTranslationStrategy().translateComponents(model.getGalleryModule().getGalleryPropertyAccess());
+        view.getTranslationStrategy().translateComponents(model.getGc().getTablePropertyAccess());
     }
 
 }

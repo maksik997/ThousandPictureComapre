@@ -2,6 +2,7 @@ package pl.magzik;
 
 import pl.magzik.modules.comparer.list.ComparerListModule;
 import pl.magzik.modules.comparer.processing.ComparerModule;
+import pl.magzik.modules.gallery.GalleryCoordinator;
 import pl.magzik.modules.gallery.management.GalleryManagementModule;
 import pl.magzik.modules.settings.SettingsModule;
 import pl.magzik.modules.comparer.persistence.ComparerFileModule;
@@ -12,19 +13,23 @@ public class Model {
     private final ComparerModule comparerModule;
     private final ComparerFileModule comparerFileModule;
     private final ComparerListModule comparerListModule;
-    private final GalleryManagementModule galleryManagementModule;
-    private final GalleryFileModule galleryFileModule;
-    private final GalleryOperationsModule galleryOperationsModule;
+//    private final GalleryManagementModule galleryManagementModule;
+//    private final GalleryFileModule galleryFileModule;
+//    private final GalleryOperationsModule galleryOperationsModule;
     private final SettingsModule settingsModule;
+
+    private final GalleryCoordinator gc;
 
     public Model() {
         this.comparerModule = new ComparerModule();
         this.comparerFileModule = new ComparerFileModule();
         this.comparerListModule = new ComparerListModule();
-        this.galleryManagementModule = new GalleryManagementModule();
-        this.galleryFileModule = new GalleryFileModule();
-        this.galleryOperationsModule = new GalleryOperationsModule();
+//        this.galleryManagementModule = new GalleryManagementModule();
+//        this.galleryFileModule = new GalleryFileModule();
+//        this.galleryOperationsModule = new GalleryOperationsModule();
         this.settingsModule = new SettingsModule();
+
+        this.gc = new GalleryCoordinator();
     }
 
     public ComparerModule getComparerModule() {
@@ -39,19 +44,23 @@ public class Model {
         return comparerListModule;
     }
 
-    public GalleryManagementModule getGalleryModule() {
-        return galleryManagementModule;
-    }
-
-    public GalleryFileModule getGalleryFileModule() {
-        return galleryFileModule;
-    }
-
-    public GalleryOperationsModule getGalleryOperationsModule() {
-        return galleryOperationsModule;
-    }
+//    public GalleryManagementModule getGalleryModule() {
+//        return galleryManagementModule;
+//    }
+//
+//    public GalleryFileModule getGalleryFileModule() {
+//        return galleryFileModule;
+//    }
+//
+//    public GalleryOperationsModule getGalleryOperationsModule() {
+//        return galleryOperationsModule;
+//    }
 
     public SettingsModule getSettingsModule() {
         return settingsModule;
+    }
+
+    public GalleryCoordinator getGc() {
+        return gc;
     }
 }

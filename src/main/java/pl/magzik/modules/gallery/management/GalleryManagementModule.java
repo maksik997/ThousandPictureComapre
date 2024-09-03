@@ -18,11 +18,13 @@ public class GalleryManagementModule implements Module, GalleryManagement {
         galleryTableModel = new GalleryTableModel();
     }
 
-    public TablePropertyAccess getGalleryPropertyAccess() {
+    @Override
+    public TablePropertyAccess getTablePropertyAccess() {
         return galleryTableModel;
     }
 
-    public GalleryTableModel getGalleryTableModel() {
+    @Override
+    public GalleryTableModel getTableModel() {
         return galleryTableModel;
     }
 
@@ -37,7 +39,7 @@ public class GalleryManagementModule implements Module, GalleryManagement {
     }
 
     @Override
-    public List<File> removeItems(List<Integer> indexes) {
+    public List<File> removeItems(Collection<Integer> indexes) {
         return galleryTableModel.removeEntries(indexes).stream()
                                                         .map(GalleryEntry::getPath)
                                                         .map(Path::toFile)
@@ -45,7 +47,7 @@ public class GalleryManagementModule implements Module, GalleryManagement {
     }
 
     @Override
-    public void removeElements(List<File> files) {
+    public void removeElements(Collection<File> files) {
         List<Integer> indexes = files.stream()
                                         .map(File::toPath)
                                         .map(GalleryEntry::new)
@@ -81,5 +83,10 @@ public class GalleryManagementModule implements Module, GalleryManagement {
                                             .flatMap(Collection::stream)
                                             .distinct()
                                             .toList();
+    }
+
+    @Override
+    public List<GalleryEntry> getEntries() {
+        return Collections.unmodifiableList(galleryTableModel.getEntries());
     }
 }

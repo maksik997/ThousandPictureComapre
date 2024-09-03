@@ -1,7 +1,7 @@
 package pl.magzik.ui.views;
 
 import pl.magzik.Controller;
-import pl.magzik.controllers.GalleryController;
+import pl.magzik.modules.gallery.GalleryCoordinator;
 import pl.magzik.modules.gallery.table.GalleryTableModel;
 import pl.magzik.ui.components.Utility;
 import pl.magzik.ui.components.filechoosers.FileChooser;
@@ -302,6 +302,14 @@ public class GalleryView extends AbstractView implements PropertyChangeListener 
     }
 
     /**
+     * Checks if any images are selected in the gallery table.
+     * @return {@code true} if no images are selected, {@code false} otherwise.
+     */
+    public boolean ifAnySelected() {
+        return !getSelectedRows().isEmpty();
+    }
+
+    /**
      * Configures the {@link FileChooser} for this view, setting up the dialog title,
      * the button that triggers the file chooser, and the strategy for processing file selections.
      * <p>
@@ -310,18 +318,18 @@ public class GalleryView extends AbstractView implements PropertyChangeListener 
      * of both files and directories.
      * </p>
      *
-     * @param controller The {@link Controller} that will process the file selection results.
+     * @param gc The {@link GalleryCoordinator} that will process the file selection results.
      *                   Must not be {@code null}.
      *
      * @throws NullPointerException if the {@code controller} is {@code null}.
      */
-    public void setFileChooser(GalleryController controller) {
-        Objects.requireNonNull(controller);
+    public void setFileChooser(GalleryCoordinator gc) {
+        Objects.requireNonNull(gc);
 
         fileChooser = new FileChooser<>(
                 "view.gallery.file_chooser.dialog.title",
                 openButton,
-                controller::handleAddImages,
+                gc::handleAddImages,
                 new MultipleFileSelectionStrategy()
         );
         fileChooser.getFileChooser().setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);

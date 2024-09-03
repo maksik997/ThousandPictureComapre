@@ -108,12 +108,16 @@ public class GalleryTableModel extends AbstractTableModel implements GalleryTabl
 
     @Override
     public void addTag(int row, String tag) {
-        SwingUtilities.invokeLater(() -> entries.get(row).addTag(tag));
+        entries.get(row).addTag(tag);
+
+        SwingUtilities.invokeLater(() -> fireTableRowsUpdated(row, row));
     }
 
     @Override
     public void removeTag(int row, String tag) {
-        SwingUtilities.invokeLater(() -> entries.get(row).removeTag(tag));
+        entries.get(row).removeTag(tag);
+
+        SwingUtilities.invokeLater(() -> fireTableRowsUpdated(row, row));
     }
 
     @Override

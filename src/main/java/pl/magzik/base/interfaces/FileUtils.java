@@ -36,15 +36,19 @@ public interface FileUtils {
      * @param newFiles the list of new file names
      * @throws IndexOutOfBoundsException if the lists have different sizes
      */
-    default void renameFiles(List<File> oldFiles, List<File> newFiles) {
-        IntStream.range(0, oldFiles.size())
-        .forEach(i -> {
-            try {
-                renameFile(oldFiles.get(i), newFiles.get(i));
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
+    default void renameFiles(List<File> oldFiles, List<File> newFiles) throws IOException {
+        try {
+            IntStream.range(0, oldFiles.size())
+            .forEach(i -> {
+                try {
+                    renameFile(oldFiles.get(i), newFiles.get(i));
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
+        }
     }
 
     /**

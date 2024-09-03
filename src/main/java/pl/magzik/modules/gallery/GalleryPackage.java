@@ -39,7 +39,7 @@ public class GalleryPackage extends Package {
     }
 
     private void loadGalleryItems() throws IOException {
-        GalleryTableModelHandler gtmh = galleryManagementModule.getGalleryTableModel();
+        GalleryTableModelHandler gtmh = galleryManagementModule.getTableModel();
 
         Object obj = ResourceModule.getInstance().getObject("gallery.tp");
         if (obj == null) {
@@ -56,6 +56,10 @@ public class GalleryPackage extends Package {
             );
 
         gtmh.addEntries(entries);
+    }
+
+    public void saveGalleryItems() throws IOException {
+        ResourceModule.getInstance().setObject("gallery.tp", galleryManagementModule.getEntries(), true);
     }
 
     /**

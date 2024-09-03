@@ -41,6 +41,12 @@ public interface TablePropertyAccess {
     int getColumnCount();
 
     /**
+     * Returns the number of rows in the table model.
+     * @return the number of rows in the table model.
+     * */
+    int getRowCount();
+
+    /**
      * Refreshes the table model, causing the table to update its view to reflect the current state.
      * This can be useful after batch updates or changes to ensure the table view is consistent with the model.
      */

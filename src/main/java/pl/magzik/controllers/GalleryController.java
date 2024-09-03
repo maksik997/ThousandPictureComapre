@@ -2,14 +2,12 @@ package pl.magzik.controllers;
 
 import pl.magzik.base.interfaces.Command;
 import pl.magzik.async.ExecutorServiceManager;
-import pl.magzik.base.interfaces.FileUtils;
+import pl.magzik.modules.gallery.GalleryCoordinator;
 import pl.magzik.modules.gallery.management.GalleryManagementModule;
-import pl.magzik.modules.resource.ResourceModule;
+import pl.magzik.modules.gallery.table.GalleryTableModel;
+import pl.magzik.modules.gallery.table.GalleryTableRowSorter;
 import pl.magzik.modules.comparer.processing.ComparerProcessor;
 import pl.magzik.base.interfaces.FileHandler;
-import pl.magzik.modules.gallery.table.GalleryEntry;
-import pl.magzik.modules.gallery.operations.GalleryOperations;
-import pl.magzik.modules.gallery.table.GalleryTableRowSorter;
 import pl.magzik.ui.localization.TranslationStrategy;
 import pl.magzik.ui.cursor.CursorManagerInterface;
 import pl.magzik.ui.listeners.UnifiedDocumentListener;
@@ -17,15 +15,10 @@ import pl.magzik.ui.logging.MessageInterface;
 import pl.magzik.ui.views.GalleryView;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Manages the gallery operations including image addition, removal, deletion, and tag management.
@@ -38,15 +31,14 @@ import java.util.stream.Collectors;
 public class GalleryController {
 
     private final GalleryView gView;
-    private final GalleryManagementModule gModule;
-    private final GalleryOperations goi;
     private final ComparerProcessor cp;
-    private final FileHandler comparerFileHandler, galleryFileHandler;
-    private final FileUtils fu;
+    private final FileHandler comparerFileHandler;
     private final MessageInterface mi;
     private final CursorManagerInterface umi;
     private final TranslationStrategy ti;
     private final ExecutorService executor;
+
+    private final GalleryCoordinator gc;
 
     /**
      * Constructs a {@code GalleryController} thenLoad the specified view, module, and interfaces.
@@ -55,21 +47,19 @@ public class GalleryController {
      * </p>
      *
      * @param gView the {@link GalleryView} used to interact thenLoad the UI.
-     * @param gModule the {@link GalleryManagementModule} that handles gallery data and operations.
+     //* @param gModule the {@link GalleryManagementModule} that handles gallery data and operations.
      * @param umi the {@link CursorManagerInterface} for managing the user interface state.
      * @param mi the {@link MessageInterface} for displaying messages to the user.
      * @param ti the {@link TranslationStrategy} for translating messages.
      */
-    public GalleryController(GalleryView gView, GalleryManagementModule gModule, GalleryOperations goi, ComparerProcessor cp, FileHandler comparerFileHandler, FileHandler galleryFileHandler, FileUtils fu, CursorManagerInterface umi, MessageInterface mi, TranslationStrategy ti) {
+    public GalleryController(GalleryCoordinator gc, GalleryView gView/*, GalleryManagementModule gModule, GalleryOperations goi,*/, ComparerProcessor cp, FileHandler comparerFileHandler, CursorManagerInterface umi, MessageInterface mi, TranslationStrategy ti) {
+        this.gc = gc;
+
         this.ti = ti;
         this.umi = umi;
         this.mi = mi;
-        this.gModule = gModule;
-        this.goi = goi;
         this.cp = cp;
         this.comparerFileHandler = comparerFileHandler;
-        this.galleryFileHandler = galleryFileHandler;
-        this.fu = fu;
         this.gView = gView;
         this.executor = ExecutorServiceManager.getInstance().getExecutorService();
 
@@ -89,11 +79,10 @@ public class GalleryController {
      * </p>
      */
     private void initialize() {
-        gView.setFileChooser(this);
-        gView.setGalleryRowSorter(new GalleryTableRowSorter(gModule.getGalleryTableModel()));
-
-        gView.getGalleryTable().setModel(gModule.getGalleryTableModel());
-        gView.getElementCountLabel().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount()));
+        gView.setFileChooser(gc);
+        gc.assignTableModel(gView.getGalleryTable());
+        gView.setGalleryRowSorter(new GalleryTableRowSorter((GalleryTableModel) gc.getTableModel()));
+        updateUiAfter();
     }
 
     /**
@@ -112,7 +101,6 @@ public class GalleryController {
         gView.getOpenButton().addActionListener(_ -> handleOpenButton());
         gView.getAddTagButton().addActionListener(_ -> handleAddTagButton());
         gView.getRemoveTagButton().addActionListener(_ -> handleRemoveTagButton());
-        gModule.getGalleryTableModel().addTableModelListener(this::handleGalleryTableUpdate);
 
         cp.addPropertyChangeListener(gView);
     }
@@ -167,14 +155,10 @@ public class GalleryController {
      */
     private void handleOpenButton() {
         if (checkIfNotSelected()) return;
-
-        List<Integer> selected = getGalleryTableSelectedRows();
+        List<Integer> selected = gView.getAndClearSelectedRows();
 
         try {
-            for (int idx : selected) {
-                File file = gModule.getFile(idx);
-                goi.openImage(file);
-            }
+            gc.handleOpen(selected);
         } catch (IOException e) {
             mi.showErrorMessage(
                 ti.translate("error.open.ioexception.desc"),
@@ -192,11 +176,12 @@ public class GalleryController {
     private void handleAddTagButton() {
         if (checkIfNotSelected()) return;
 
-        String[] tags = gModule.getAllTags().toArray(String[]::new);
+        String[] tags = gc.getAllTags().toArray(String[]::new);
 
         String tag = showTagsCombobox("message.add_tag.title", tags, true);
 
         if (tag == null) return;
+
         if (!tag.matches("^[\\w\\-]+$")) {
             mi.showErrorMessage(
                 ti.translate("error.tag.invalid_string.desc"),
@@ -205,9 +190,17 @@ public class GalleryController {
             return;
         }
 
-        List<Integer> selected = getGalleryTableSelectedRows();
+        List<Integer> selected = gView.getAndClearSelectedRows();
 
-        doAndSave(() -> gModule.addTagToAll(selected, tag));
+        try {
+            gc.handleAddTag(selected, tag);
+        } catch (IOException e) {
+            mi.showErrorMessage(
+                ti.translate("error.general.desc"),
+                ti.translate("error.general.title"),
+                e
+            );
+        }
     }
 
     /**
@@ -219,12 +212,8 @@ public class GalleryController {
     private void handleRemoveTagButton() {
         if (checkIfNotSelected()) return;
 
-        List<Integer> selected = getGalleryTableSelectedRows();
-
-        Set<String> tags = selected.stream()
-                .map(gModule::getItemTags)
-                .flatMap(List::stream)
-                .collect(Collectors.toSet());
+        List<Integer> selected = gView.getAndClearSelectedRows();
+        Set<String> tags = gc.getAllTagsInSelection(selected);
 
         if (tags.isEmpty()) {
             mi.showErrorMessage(
@@ -237,32 +226,14 @@ public class GalleryController {
         String tag = showTagsCombobox("message.remove_tag.title", tags.toArray(String[]::new), false);
         if (tag == null) return;
 
-        doAndSave(() -> {
-            gModule.removeTagFromAll(selected, tag);
-//            for (int idx : selected) gModule.removeTag(idx, tag);
-        });
-    }
-
-    /**
-     * Handles updates to the gallery table model.
-     * <p>
-     * Saves the current state to a file if the first column is updated.
-     * </p>
-     *
-     * @param e the {@link TableModelEvent} representing the update event.
-     */
-    private void handleGalleryTableUpdate(TableModelEvent e) {
-        int c = e.getColumn();
-
-        if (c == 0 && e.getType() == TableModelEvent.UPDATE) {
-            try {
-                saveGallery();
-            } catch (IOException ex) {
-                mi.showErrorMessage(
-                    ti.translate("error.save.ioexception.desc"),
-                    ti.translate("error.general.title")
-                );
-            }
+        try {
+            gc.handleRemoveTag(selected, tag);
+        } catch (IOException e) {
+            mi.showErrorMessage(
+                ti.translate("error.general.desc"),
+                ti.translate("error.general.title"),
+                e
+            );
         }
     }
 
@@ -286,7 +257,7 @@ public class GalleryController {
      * @return {@code true} if no images are selected, {@code false} otherwise.
      */
     private boolean checkIfNotSelected() {
-        if (gView.getSelectedRows().isEmpty()) {
+        if (!gView.ifAnySelected()) {
             mi.showErrorMessage(
                 ti.translate("error.delete.no_images.desc"),
                 ti.translate("error.general.title")
@@ -294,18 +265,6 @@ public class GalleryController {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Gets the indices of the selected rows in the gallery table.
-     *
-     * @return a list of selected row indices.
-     */
-    private List<Integer> getGalleryTableSelectedRows() {
-        List<Integer> rows = gView.getSelectedRows();
-        gView.getGalleryTable().clearSelection();
-
-        return rows;
     }
 
     /**
@@ -332,140 +291,6 @@ public class GalleryController {
         return null;
     }
 
-    /**
-     * Executes the provided {@link Command} and thenLoad attempts to save the current state to a file.
-     * <p>
-     * This method performs the following actions:
-     * <ul>
-     *     <li>Executes the provided {@link Command}.</li>
-     *     <li>Attempts to save the current state using {@link GalleryController#saveGallery()}.</li>
-     * </ul>
-     * If an {@link IOException} occurs during the save operation, an error message is displayed to the user
-     * using the {@link MessageInterface} instance.
-     * </p>
-     *
-     * @param action the {@link Command} to be executed. Must not be {@code null}.
-     * @throws NullPointerException if the provided {@code action} is {@code null}.
-     */
-    private void doAndSave(Command action) {
-        Objects.requireNonNull(action);
-        action.execute();
-
-        try {
-            saveGallery();
-        } catch (IOException e) {
-            mi.showErrorMessage(
-                ti.translate("error.general.desc"),
-                ti.translate("error.general.title"),
-                e
-            );
-        }
-    }
-
-    /**
-     * Executes the provided {@link Command} and thenLoad attempts to save the current state to a file asynchronously.
-     * <p>
-     * This method performs the following actions:
-     * <ul>
-     *     <li>Executes the provided {@link Command}.</li>
-     *     <li>Attempts to save the current state using {@link GalleryController#saveGallery()}.</li>
-     * </ul>
-     * If an {@link IOException} occurs during the save operation, it is wrapped in an instance of the specified
-     * {@link RuntimeException} subclass and thrown.
-     * </p>
-     * <p>
-     * Note: This method does not handle UI updates or error messages directly. It is designed to be used in an
-     * asynchronous context where exceptions will be handled by the caller.
-     * </p>
-     *
-     * @param action the {@link Command} to be executed. Must not be {@code null}.
-     * @param excClass the class of {@link RuntimeException} to wrap the {@link IOException} into. This class must
-     *                 have a constructor that accepts a {@link String} and a {@link Throwable} as parameters.
-     * @throws NullPointerException if the provided {@code action} is {@code null}.
-     * @throws IllegalArgumentException if the provided {@code excClass} is not a subclass of {@link RuntimeException}
-     *                                  or does not have the required constructor.
-     * @throws RuntimeException if instantiation of the specified {@code excClass} fails or if the {@link IOException}
-     *                          cannot be wrapped properly.
-     */
-    private void doAndSaveAsync(Command action, Class<? extends RuntimeException> excClass) {
-        Objects.requireNonNull(action);
-        action.execute();
-
-        try {
-            saveGallery();
-        } catch (IOException e) {
-            throw createWrappedException(excClass, e);
-        }
-    }
-
-    /**
-     * Saves the current state of the gallery to a persistent storage.
-     * <p>
-     * This method serializes the list of images managed by the gallery and stores it
-     * using the {@link ResourceModule}. The data is saved to a file named "gallery.tp".
-     * </p>
-     *
-     * @throws IOException if an I/O error occurs while saving the gallery data.
-     */
-    private void saveGallery() throws IOException {
-        ResourceModule.getInstance().setObject("gallery.tp", gModule.getGalleryTableModel().getEntries(), true);
-    }
-
-    /**
-     * Creates a new instance of the specified RuntimeException class, thenLoad the given cause.
-     * <p>
-     * This method uses reflection to instantiate the exception class and sets the cause to the provided exception.
-     * </p>
-     *
-     * @param excClass the class of the RuntimeException to create
-     * @param cause the cause of the exception
-     * @return a new instance of the specified RuntimeException thenLoad the cause set
-     * @throws RuntimeException if instantiation fails or the class is not a subclass of RuntimeException
-     */
-    private RuntimeException createWrappedException(Class<? extends RuntimeException> excClass, Throwable cause) {
-        Objects.requireNonNull(excClass);
-        Objects.requireNonNull(cause);
-
-        try {
-            if (!RuntimeException.class.isAssignableFrom(excClass)) {
-                throw new IllegalArgumentException("Provided class is not a RuntimeException subclass.");
-            }
-
-            return excClass
-                .getConstructor(Throwable.class)
-                .newInstance(cause);
-        } catch (ReflectiveOperationException ex) {
-            throw new RuntimeException("Couldn't create an instance of the exception", ex);
-        }
-    }
-
-    /**
-     * Handles the addition of images from a given list of file paths.
-     * <p>
-     * This method is designed to be used externally, allowing for the addition of images
-     * to the gallery using a list of file paths. It interacts thenLoad the {@link GalleryManagementModule}
-     * to perform the actual addition. If an {@link IOException} occurs during the process,
-     * an error message is displayed to the user.
-     * </p>
-     *
-     * @param list a {@link List} of {@link String} representing the file paths of the images
-     *             to be added to the gallery.
-     */
-    public void handleAddImages(List<String> list) {
-        // To be used externally.
-        try {
-            List<File> files = list.stream().map(File::new).toList();
-            files = galleryFileHandler.loadFiles(files);
-
-            gModule.addItems(files);
-        } catch (IOException e) {
-            mi.showErrorMessage(
-                ti.translate("error.add.ioexception.desc"),
-                ti.translate("error.general.title")
-            );
-        }
-    }
-
     // Tasks methods.
     // Handling async tasks and long operations
 
@@ -477,7 +302,11 @@ public class GalleryController {
      * </p>
      */
     private void addImagesTask() {
-        executeAsync(() -> doAndSaveAsync(this::addImages, CompletionException.class));
+        prepareUiBefore();
+
+        gc.execute(this::prepareUiBefore, this::addImages)
+            .exceptionally(this::handleException)
+            .whenComplete(this::handleGalleryUnlock);
     }
 
     /**
@@ -488,7 +317,11 @@ public class GalleryController {
      * </p>
      */
     private void removeImagesTask() {
-        executeAsync(() -> doAndSaveAsync(() -> performRemovalTask(_ -> {}), CompletionException.class));
+        List<Integer> indexes = gView.getAndClearSelectedRows();
+
+        gc.execute(this::prepareUiBefore, () -> gc.handleRemoveImages(indexes))
+                            .exceptionally(this::handleException)
+                            .whenComplete(this::handleGalleryUnlock);
     }
 
     /**
@@ -499,13 +332,11 @@ public class GalleryController {
      * </p>
      */
     private void deleteImagesTask() {
-        executeAsync(() -> doAndSaveAsync(() -> performRemovalTask(fs -> {
-            try {
-                galleryFileHandler.deleteFiles(fs);
-            } catch (IOException e) {
-                throw new CompletionException(e);
-            }
-        }), CompletionException.class));
+        List<Integer> indexes = gView.getAndClearSelectedRows();
+
+        gc.execute(this::prepareUiBefore, () -> gc.handleDeleteImages(indexes))
+                .exceptionally(this::handleException)
+                .whenComplete(this::handleGalleryUnlock);
     }
 
     /**
@@ -516,6 +347,7 @@ public class GalleryController {
      * </p>
      */
     private void distinctImagesTask() {
+        // TODO: OUT
         executeAsync(
             this::distinctImages,
             () -> {
@@ -534,10 +366,12 @@ public class GalleryController {
      * </p>
      */
     private void unifyNamesTask() {
-        executeAsync(this::prepareUiBefore, this::unifyNames, this::save, this::showMessage);
+        gc.execute(this::prepareUiBefore, gc::handleUnifyNames, this::showMessage)
+            .exceptionally(this::handleException)
+            .whenComplete(this::handleGalleryUnlock);
     }
 
-
+    @Deprecated
     private void executeAsync(Command... commands) {
         prepareUiBefore();
 
@@ -575,7 +409,9 @@ public class GalleryController {
      * </p>
      */
     private void updateUiAfter() {
-        SwingUtilities.invokeLater(() -> gView.getElementCountLabel().setText(String.valueOf(gModule.getGalleryTableModel().getRowCount())));
+        SwingUtilities.invokeLater(() ->
+            gView.getElementCountLabel().setText(String.valueOf(gc.getRowCount()))
+        );
     }
 
     /**
@@ -640,27 +476,7 @@ public class GalleryController {
      * </p>
      */
     private void addImages() {
-        doAndSaveAsync(() -> gView.getFileChooser().perform(), CompletionException.class);
-    }
-
-    /**
-     * Performs a removal task using the provided consumer.
-     * <p>
-     * This method collects the selected image IDs, clears the selection, and thenLoad applies the removal task.
-     * It also saves the changes to a file.
-     * </p>
-     *
-     * @param consumer A Consumer that takes a list of image IDs to perform the removal operation.
-     * */
-    private void performRemovalTask(Consumer<List<File>> consumer) {
-        List<Integer> indexes = gView.getAndClearSelectedRows();
-        List<File> files = gModule.removeItems(indexes);
-
-        if (indexes.isEmpty()) {
-            throw new CompletionException(new NullPointerException("No images selected."));
-        }
-
-        doAndSaveAsync(() -> consumer.accept(files), CompletionException.class);
+        gView.getFileChooser().perform();
     }
 
     /**
@@ -674,7 +490,7 @@ public class GalleryController {
     private void distinctImages() {
         try {
             cp.notifyLock();
-            List<File> in = gModule.getFiles(gView.getSelectedRows());
+            List<File> in = gc.getFiles(gView.getSelectedRows());
             in = comparerFileHandler.loadFiles(in);
             cp.setInput(in);
             cp.process();
@@ -695,53 +511,12 @@ public class GalleryController {
     private void reduceImages(boolean res) {
         List<File> out = cp.getOutput();
         cp.notifyUnlock();
-        gModule.removeElements(out);
 
         try {
+            gc.handleRemoveFiles(out);
+
             if (res) comparerFileHandler.moveFiles(out);
             else comparerFileHandler.deleteFiles(out);
-
-            saveGallery();
-        } catch (IOException e) {
-            throw new CompletionException(e);
-        }
-    }
-
-    /**
-     * Unifies image names.
-     * <p>
-     * This method performs the operation to unify image names.
-     * </p>
-     *
-     * @throws CompletionException If an I/O error occurs during the unification process.
-     */
-    private void unifyNames() {
-        try {
-            List<File> oldFiles = gModule.getGalleryTableModel().getEntries().stream()
-                                                                            .map(GalleryEntry::getPath)
-                                                                            .map(Path::toFile)
-                                                                            .toList();
-            gModule.removeElements(oldFiles);
-
-            List<File> newFiles = goi.normalizeNames(oldFiles);
-            fu.renameFiles(oldFiles, newFiles);
-            gModule.addItems(newFiles);
-        } catch (UncheckedIOException e) {
-            throw new CompletionException(e);
-        }
-    }
-
-    /**
-     * Saves the current state to a file.
-     * <p>
-     * This method performs the save operation for the current state.
-     * </p>
-     *
-     * @throws CompletionException If an I/O error occurs during the save operation.
-     */
-    private void save() {
-        try {
-            saveGallery();
         } catch (IOException e) {
             throw new CompletionException(e);
         }

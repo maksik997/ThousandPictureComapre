@@ -1,7 +1,12 @@
 package pl.magzik.modules.gallery.management;
 
+import pl.magzik.modules.gallery.table.GalleryEntry;
+import pl.magzik.modules.gallery.table.TablePropertyAccess;
+
+import javax.swing.table.TableModel;
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -75,7 +80,7 @@ public interface GalleryManagement {
      * @param indexes The list of indices of the files to be removed.
      * @return A list of removed files.
      */
-    List<File> removeItems(List<Integer> indexes);
+    List<File> removeItems(Collection<Integer> indexes);
 
     /**
      * Removes multiple {@code File} objects from the collection.
@@ -91,7 +96,7 @@ public interface GalleryManagement {
      *              If the list is empty, the collection remains unchanged.
      * @throws NullPointerException if the provided list or any of its elements are {@code null}.
      */
-    void removeElements(List<File> files);
+    void removeElements(Collection<File> files);
 
     /**
      * Retrieves a file from the gallery based on the specified index.
@@ -107,7 +112,7 @@ public interface GalleryManagement {
      * @param indexes The list of indices of the files to retrieve.
      * @return A list of files at the specified indices.
      */
-    default List<File> getFiles(List<Integer> indexes) {
+    default List<File> getFiles(Collection<Integer> indexes) {
         return indexes.stream()
             .map(this::getFile)
             .toList();
@@ -127,7 +132,7 @@ public interface GalleryManagement {
      * @param indexes The list of indices of the files to tag.
      * @param tagName The tag to be added.
      */
-    default void addTagToAll(List<Integer> indexes, String tagName) {
+    default void addTagToAll(Collection<Integer> indexes, String tagName) {
         indexes.forEach(idx -> addTagTo(idx, tagName));
     }
 
@@ -145,7 +150,7 @@ public interface GalleryManagement {
      * @param indexes The list of indices of the files to untag.
      * @param tagName The tag to be removed.
      */
-    default void removeTagFromAll(List<Integer> indexes, String tagName) {
+    default void removeTagFromAll(Collection<Integer> indexes, String tagName) {
         indexes.forEach(idx -> removeTagFrom(idx, tagName));
     }
 
@@ -163,4 +168,18 @@ public interface GalleryManagement {
      * @return A list of all tags.
      */
     List<String> getAllTags();
+
+    /**
+     * Retrieves all entries present in gallery.
+     * @return A list of gallery entries.
+     * */
+    List<GalleryEntry> getEntries();
+
+    /**
+     * Retrieves table model
+     * @return TableModel
+     * */
+    TableModel getTableModel();
+
+    TablePropertyAccess getTablePropertyAccess();
 }

@@ -3,6 +3,8 @@ package pl.magzik;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.util.SystemInfo;
+import pl.magzik.modules.base.ModuleLoadException;
+import pl.magzik.modules.gallery.GalleryPackage;
 import pl.magzik.modules.gallery.management.GalleryManagementModule;
 import pl.magzik.modules.resource.ResourceModule;
 import pl.magzik.modules.gallery.table.GalleryEntry;
@@ -83,15 +85,11 @@ public class Main {
                     .thenLoad(model.getComparerModule())
                     .thenLoad(model.getComparerFileModule())
                     .thenLoad(model.getComparerListModule())
-                    .thenLoad(() -> {
-                        model.getGalleryModule().postConstruct();
-                        loadGalleryItems(model.getGalleryModule().getGalleryTableModel());
-                    }, GalleryManagementModule.class)
-                    .thenLoad(model.getGalleryFileModule())
-                    .thenLoad(model.getGalleryOperationsModule())
+                    .thenLoad(new GalleryPackage(model.getGalleryModule(), model.getGalleryFileModule(), model.getGalleryOperationsModule()))
                     .ready();
     }
 
+    @Deprecated
     private static void loadGalleryItems(GalleryTableModelHandler gti) throws IOException {
         Object obj = ResourceModule.getInstance().getObject("gallery.tp");
         if (obj == null) {
@@ -117,6 +115,7 @@ public class Main {
      * @return The object cast to a {@link List<String>} if it is valid.
      * @throws IllegalArgumentException if the object is not a {@link List<String>}.
      */
+    @Deprecated
     @SuppressWarnings("unchecked")
     private static List<GalleryEntry> validateEntryList(Object obj) {
         if (obj instanceof List<?> list) {
@@ -134,7 +133,7 @@ public class Main {
      * @throws IOException if an error occurs while loading the module or settings
      * @throws NullPointerException if {@code moduleLoader} or {@code model} is {@code null}
      */
-    private static void loadInitialModule(ModuleLoader moduleLoader, Model model) throws IOException {
+    private static void loadInitialModule(ModuleLoader moduleLoader, Model model) throws ModuleLoadException {
         Objects.requireNonNull(moduleLoader);
         Objects.requireNonNull(model);
 
@@ -269,7 +268,7 @@ public class Main {
         while (moduleLoader.hasNext()) {
             try {
                 moduleLoader.loadNext();
-            } catch (IOException | UncheckedIOException e) {
+            } catch (ModuleLoadException | UncheckedIOException e) {
                 JTextArea textArea = new JTextArea(String.format("Could not load module: %n%s%nDo you wish to continue?", e.getMessage()));
                 textArea.setEditable(false);
                 JScrollPane scrollPane = new JScrollPane(textArea);

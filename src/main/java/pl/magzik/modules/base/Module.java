@@ -22,5 +22,5 @@ public interface Module {
      *
      * @throws IOException if an error occurs during the initialization process
      */
-    default void postConstruct() throws IOException { }
+    default void postConstruct() throws Exception { }
 }

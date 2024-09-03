@@ -2,6 +2,8 @@ package pl.magzik.modules.settings;
 
 import com.formdev.flatlaf.util.SystemInfo;
 import pl.magzik.modules.base.Module;
+import pl.magzik.modules.base.ModuleLoadException;
+import pl.magzik.modules.base.Package;
 import pl.magzik.modules.resource.ResourceModule;
 
 import java.io.IOException;

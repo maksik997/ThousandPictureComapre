@@ -1,107 +1,85 @@
 package pl.magzik.modules.base;
 
-import pl.magzik.base.interfaces.CheckedCommand;
-
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
 import java.util.*;
 
 /**
- * Manages the loading of a sequence of {@link Module} instances.
+ * The {@code ModuleLoader} class manages the sequential loading of {@link Module} instances.
+ * It supports adding modules and packages to a queue, tracking loading progress, and notifying
+ * listeners of changes during the loading process.
  * <p>
- * This class is responsible for iterating through a stack of modules and invoking their
- * {@link Module#postConstruct()} method, or other specified {@link CheckedCommand} instances.
- * It tracks and reports progress through a {@link ModuleLoaderProgress} instance.
+ * This class provides a fluent API for configuring the loading sequence, initializing the loader,
+ * and then executing the loading process step by step.
  * </p>
- * <h3>Example usage: </h3>
- * <pre>{@code
- *      Module m1 = () -> System.out.println("Loading something...");
- *      Module m2 = () -> System.out.println("Loading something else...");
- *      ModuleLoader ml = ModuleLoader.create(m1)
- *                                    .thenLoad(m2)
- *                                    .ready();
- *      while (ml.hasNext()) ml.loadNext();
- *
- * }</pre>
  *
  * @see Module
+ * @see Package
  * @see ModuleLoaderProgress
  */
 public class ModuleLoader {
-    private final List<CheckedCommand> commands;
-    private final List<String> names;
+    private final Queue<Package> packages;
     private boolean ready;
 
     private ModuleLoaderProgress mlp;
 
     /**
-     * Private constructor to initialize a new {@code ModuleLoader} instance with a single command.
+     * Private constructor to initialize a new {@code ModuleLoader} instance with a single {@link Package}.
      *
-     * @param command the command to be executed during module loading
-     * @param moduleClass the class of the module being loaded, used for tracking purposes
+     * @param pkg the initial {@link Package} to be managed by this loader
      */
-    private ModuleLoader(CheckedCommand command, Class<?> moduleClass) {
-        this.commands = new LinkedList<>();
-        this.commands.add(command);
-
-        this.names = new LinkedList<>();
-        this.names.add(moduleClass.getSimpleName());
+    private ModuleLoader(Package pkg) {
+        this.packages = new LinkedList<>();
+        this.packages.add(pkg);
 
         this.ready = false;
     }
 
     /**
-     * Creates a {@code ModuleLoader} with a single module specified by a {@link CheckedCommand}.
+     * Creates a {@code ModuleLoader} with a single {@link Module}.
      *
-     * @param command the command representing the module's loading action
-     * @param moduleClass the class of the module being loaded, used for tracking purposes
-     * @return a new instance of {@code ModuleLoader}
-     */
-    public static ModuleLoader create(CheckedCommand command, Class<?> moduleClass) {
-        return new ModuleLoader(command, moduleClass);
-    }
-
-    /**
-     * Creates a {@code ModuleLoader} with a single module.
-     *
-     * @param module the module to be loaded
+     * @param module the {@link Module} to be loaded
      * @return a new instance of {@code ModuleLoader}
      */
     public static ModuleLoader create(Module module) {
-        return new ModuleLoader(module::postConstruct, module.getClass());
+        return new ModuleLoader(new Package(Collections.singletonList(module)));
     }
 
     /**
-     * Adds a module to the loader with a specified {@link CheckedCommand}.
+     * Creates a {@code ModuleLoader} with a single {@link Package}.
      *
-     * @param command the command representing the module's loading action
-     * @param moduleClass the class of the module being loaded, used for tracking purposes
+     * @param pkg the {@link Package} to be loaded
+     * @return a new instance of {@code ModuleLoader}
+     */
+    public static ModuleLoader create(Package pkg) {
+        return new ModuleLoader(pkg);
+    }
+
+    /**
+     * Adds a {@link Module} to the loader.
+     *
+     * @param module the {@link Module} to be added
      * @return this {@code ModuleLoader} instance
      */
-    public ModuleLoader thenLoad(CheckedCommand command, Class<?> moduleClass) {
-        commands.add(command);
-        names.add(moduleClass.getSimpleName());
-
+    public ModuleLoader thenLoad(Module module) {
+        packages.offer(new Package(Collections.singletonList(module)));
         return this;
     }
 
     /**
-     * Adds a module to the loader.
+     * Adds a {@link Package} to the loader.
      *
-     * @param module the module to be added
+     * @param pkg the {@link Package} to be added
      * @return this {@code ModuleLoader} instance
      */
-    public ModuleLoader thenLoad(Module module) {
-        commands.add(module::postConstruct);
-        names.add(module.getClass().getSimpleName());
-
+    public ModuleLoader thenLoad(Package pkg) {
+        packages.offer(pkg);
         return this;
     }
 
     /**
      * Prepares the loader for use by initializing the progress tracker.
      * <p>
-     * This method should be called after adding all modules to the loader
+     * This method should be called after all modules or packages have been added to the loader
      * and before starting the loading process.
      * </p>
      *
@@ -111,7 +89,7 @@ public class ModuleLoader {
     public ModuleLoader ready() {
         if (ready) throw new IllegalStateException("Loader is already ready");
 
-        mlp = new ModuleLoaderProgress(commands.size());
+        mlp = new ModuleLoaderProgress(packages.stream().mapToInt(Package::getModuleCount).sum());
         ready = true;
 
         return this;
@@ -120,43 +98,39 @@ public class ModuleLoader {
     /**
      * Checks if there are more modules to load.
      *
-     * @return true if there are more modules, false otherwise
+     * @return {@code true} if there are more modules, {@code false} otherwise
      * @throws IllegalStateException if the loader isn't marked as ready
      */
     public boolean hasNext() {
         if (!ready)
             throw new IllegalStateException("Loader isn't marked as ready");
 
-        return !commands.isEmpty();
+        return !packages.isEmpty();
     }
 
     /**
      * Loads the next module in the sequence.
      * <p>
-     * This method executes the next command in the queue, updating the progress
+     * This method processes the next package in the queue, updating the progress
      * tracker accordingly.
      * </p>
      *
-     * @throws IOException if an error occurs while loading the module
+     * @throws ModuleLoadException if an error occurs while loading the module
      * @throws IllegalStateException if the loader isn't ready, or if there are no more modules to load
      */
-    public void loadNext() throws IOException {
+    public void loadNext() throws ModuleLoadException {
         if (!ready)
             throw new IllegalStateException("Loader isn't marked as ready");
 
         if (!hasNext())
             throw new IllegalStateException("No more modules to loadFiles");
 
-        CheckedCommand command = this.commands.removeFirst();
-        String name = names.removeFirst();
-
-        mlp.updateCurrentModule(name);
-        command.execute();
-        mlp.stepUp();
+        Package pkg = packages.remove();
+        pkg.loadModules(mlp::updateCurrentModule, mlp::stepUp);
     }
 
     /**
-     * Adds a listener for property change events to the {@link ModuleLoaderProgress}.
+     * Adds a {@link PropertyChangeListener} to the {@link ModuleLoaderProgress}.
      * <p>
      * This listener will be notified of changes in the loading progress, such as
      * updates to the current module being loaded or the completion percentage.

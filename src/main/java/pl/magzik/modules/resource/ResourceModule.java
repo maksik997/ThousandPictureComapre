@@ -387,6 +387,7 @@ public class ResourceModule implements Module {
     public void addObject(String name, Object obj) throws IOException {
         objectCache.put(name, obj);
         saveExternalResource(name);
+        System.out.println("?");
     }
 
     /**

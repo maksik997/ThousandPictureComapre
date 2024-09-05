@@ -1,7 +1,7 @@
 package pl.magzik.ui;
 
 import pl.magzik.modules.resource.ResourceModule;
-import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.ComponentUtils;
 import pl.magzik.ui.components.panels.ImagePanel;
 import pl.magzik.ui.localization.ComponentTranslationStrategy;
 
@@ -83,13 +83,13 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
             panel,
             loadingLabel,
             new EmptyBorder(20, 0, 0, 10),
-            Utility.fontHelveticaBold
+            ComponentUtils.fontHelveticaBold
         );
         addLabel(
             panel,
             new JLabel("loading_frame.bottom.label"),
             new EmptyBorder(0, 0, 20, 10),
-            Utility.fontHelveticaPlain
+            ComponentUtils.fontHelveticaPlain
         );
 
         mainPanel.add(panel, BorderLayout.SOUTH);
@@ -102,7 +102,7 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
      */
     private void addProgressBar(JPanel panel) {
         progressBar.setStringPainted(true);
-        progressBar.setFont(Utility.fontHelveticaBold);
+        progressBar.setFont(ComponentUtils.fontHelveticaBold);
         panel.add(progressBar);
     }
 

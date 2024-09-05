@@ -9,7 +9,8 @@ import pl.magzik.ui.views.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.util.*;
+import java.util.Objects;
+import java.util.ResourceBundle;
 
 /**
  * Represents the main application window that handles scene management and user interface operations.

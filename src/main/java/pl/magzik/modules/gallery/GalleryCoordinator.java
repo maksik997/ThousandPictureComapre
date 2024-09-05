@@ -1,6 +1,6 @@
 package pl.magzik.modules.gallery;
 
-import pl.magzik.async.AsyncTaskFactory;
+import pl.magzik.base.async.AsyncTaskFactory;
 import pl.magzik.base.interfaces.FileHandler;
 import pl.magzik.base.interfaces.FileUtils;
 import pl.magzik.modules.base.Package;
@@ -19,12 +19,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
+/**
+ * The {@code GalleryCoordinator} class manages gallery-related operations,
+ * such as adding, removing, renaming, and tagging images.
+ * It coordinates
+ * between various modules including file handling, management, and operations.
+ * This class implements the {@code AsyncTaskFactory} interface.
+ */
 public class GalleryCoordinator implements AsyncTaskFactory {
 
     private final GalleryManagement gm;
@@ -34,6 +40,9 @@ public class GalleryCoordinator implements AsyncTaskFactory {
     private final GalleryPropertyAccess gpa;
     private final GalleryPackage gp;
 
+    /**
+     * Constructs a {@code GalleryCoordinator} and initializes the necessary modules.
+     */
     public GalleryCoordinator() {
         GalleryManagementModule gmm = new GalleryManagementModule();
         this.gm = gmm;
@@ -47,12 +56,22 @@ public class GalleryCoordinator implements AsyncTaskFactory {
         this.gp = new GalleryPackage(gmm, gfm, gom);
     }
 
+    /**
+     * Returns the gallery package containing all modules used by the coordinator.
+     *
+     * @return the gallery package
+     */
     public Package getPackage() {
         return gp;
     }
 
     // Handle Tasks
 
+    /**
+     * Adds images to the gallery.
+     *
+     * @param input a collection of image file paths to add
+     */
     public void handleAddImages(Collection<String> input) {
         List<File> files = input.stream()
                                 .map(File::new)
@@ -67,6 +86,11 @@ public class GalleryCoordinator implements AsyncTaskFactory {
         }
     }
 
+    /**
+     * Removes images from the gallery by their indexes.
+     *
+     * @param indexes the indexes of images to remove
+     */
     public void handleRemoveImages(Collection<Integer> indexes) {
         gm.removeItems(indexes);
 
@@ -77,11 +101,22 @@ public class GalleryCoordinator implements AsyncTaskFactory {
         }
     }
 
+    /**
+     * Removes specified files from the gallery.
+     *
+     * @param files the files to remove
+     * @throws IOException if an I/O error occurs
+     */
     public void handleRemoveFiles(Collection<File> files) throws IOException {
         gm.removeElements(files);
         gp.saveGalleryItems();
     }
 
+    /**
+     * Deletes images from the gallery by their indexes and deletes the corresponding files.
+     *
+     * @param integers the indexes of images to delete
+     */
     public void handleDeleteImages(Collection<Integer> integers) {
         List<File> files = gm.removeItems(integers);
         try {
@@ -93,6 +128,12 @@ public class GalleryCoordinator implements AsyncTaskFactory {
         }
     }
 
+    /**
+     * Opens images in the default image viewer.
+     *
+     * @param indexes the indexes of images to open
+     * @throws IOException if an I/O error occurs
+     */
     public void handleOpen(Collection<Integer> indexes) throws IOException {
         for (Integer index : indexes) {
             File f = gm.getFile(index);
@@ -100,6 +141,9 @@ public class GalleryCoordinator implements AsyncTaskFactory {
         }
     }
 
+    /**
+     * Unifies the names of the images in the gallery by normalizing them.
+     */
     public void handleUnifyNames() {
         List<File> oldFiles = gm.getEntries().stream()
                                                 .map(GalleryEntry::getPath)
@@ -123,11 +167,25 @@ public class GalleryCoordinator implements AsyncTaskFactory {
         }
     }
 
+    /**
+     * Adds a tag to the specified images.
+     *
+     * @param indexes the indexes of images to tag
+     * @param tagName the tag to add
+     * @throws IOException if an I/O error occurs
+     */
     public void handleAddTag(Collection<Integer> indexes, String tagName) throws IOException {
         gm.addTagToAll(indexes, tagName);
         gp.saveGalleryItems();
     }
 
+    /**
+     * Removes a tag from the specified images.
+     *
+     * @param indexes the indexes of images to untag
+     * @param tagName the tag to remove
+     * @throws IOException if an I/O error occurs
+     */
     public void handleRemoveTag(Collection<Integer> indexes, String tagName) throws IOException {
         gm.removeTagFromAll(indexes, tagName);
         gp.saveGalleryItems();
@@ -135,14 +193,21 @@ public class GalleryCoordinator implements AsyncTaskFactory {
 
     // Delegated getters
 
+    /**
+     * Returns a list of all tags in the gallery.
+     *
+     * @return a list of all tags
+     */
     public List<String> getAllTags() {
         return gm.getAllTags();
     }
 
-    public List<String> getItemTags(int index) {
-        return gm.getItemTags(index);
-    }
-
+    /**
+     * Returns all tags that are associated with the selected gallery items.
+     *
+     * @param indexes the indexes of the selected gallery items
+     * @return a set of all tags in the selection
+     */
     public Set<String> getAllTagsInSelection(Collection<Integer> indexes) {
         return indexes.stream()
                         .map(gm::getItemTags)
@@ -150,26 +215,57 @@ public class GalleryCoordinator implements AsyncTaskFactory {
                         .collect(Collectors.toSet());
     }
 
+    /**
+     * Returns a list of files associated with the specified gallery items.
+     *
+     * @param indexes the indexes of the gallery items
+     * @return a list of files for the specified items
+     */
     public List<File> getFiles(Collection<Integer> indexes) {
         return gm.getFiles(indexes);
     }
 
+    /**
+     * Returns the row count of the gallery table.
+     *
+     * @return the row count
+     */
     public int getRowCount() {
         return gm.getTablePropertyAccess().getRowCount();
     }
 
+    /**
+     * Returns the table model for the gallery.
+     *
+     * @return the table model
+     */
     public TableModel getTableModel() {
         return gm.getTableModel();
     }
 
+    /**
+     * Assigns the gallery's table model to the specified {@code JTable}.
+     *
+     * @param table the table to assign the model to
+     */
     public void assignTableModel(JTable table) {
         table.setModel(gm.getTableModel());
     }
 
+    /**
+     * Returns the {@code GalleryPropertyAccess} instance used by this coordinator.
+     *
+     * @return the gallery property access instance
+     */
     public GalleryPropertyAccess getGalleryPropertyAccess() {
         return gpa;
     }
 
+    /**
+     * Returns the {@code TablePropertyAccess} instance for the gallery table.
+     *
+     * @return the table property access instance
+     */
     public TablePropertyAccess getTablePropertyAccess() {
         return gm.getTablePropertyAccess();
     }

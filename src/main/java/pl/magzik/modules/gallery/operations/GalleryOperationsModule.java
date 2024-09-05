@@ -39,9 +39,7 @@ public class GalleryOperationsModule implements Module, GalleryOperations, Galle
      * Normalizes the names of the specified list of files.
      * <p>
      * This method renames each file in the list according to a predefined template, which
-     * may include options such as appending a timestamp or sequential index. If the
-     * {@link #isNormalizedFileExtensions()} flag is set to {@code true}, file extensions
-     * will be converted to lowercase.
+     * may include options such as appending a timestamp or sequential index.
      * </p>
      *
      * @param files the list of files to normalize
@@ -81,18 +79,8 @@ public class GalleryOperationsModule implements Module, GalleryOperations, Galle
     }
 
     @Override
-    public String getNormalizedNameTemplate() {
-        return normalizedNameTemplate;
-    }
-
-    @Override
     public void setNormalizedNameTemplate(String normalizedNameTemplate) {
         this.normalizedNameTemplate = normalizedNameTemplate;
-    }
-
-    @Override
-    public boolean isNormalizedFileExtensions() {
-        return normalizedFileExtensions;
     }
 
     @Override

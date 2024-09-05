@@ -1,6 +1,6 @@
 package pl.magzik.ui.components.settings;
 
-import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.ComponentUtils;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -35,7 +35,7 @@ public abstract class SettingsEntry<T extends JComponent, V> {
      * */
     public SettingsEntry(String label, T value) {
         this.label = new JLabel(label);
-        this.label.setFont(Utility.fontHelveticaPlain);
+        this.label.setFont(ComponentUtils.fontHelveticaPlain);
         this.label.setBorder(labelBorder);
 
         this.value = value;

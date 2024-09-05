@@ -1,8 +1,8 @@
 package pl.magzik.ui.localization;
 
 import pl.magzik.View;
-import pl.magzik.modules.gallery.table.TablePropertyAccess;
 import pl.magzik.modules.gallery.table.GalleryTableModel;
+import pl.magzik.modules.gallery.table.TablePropertyAccess;
 import pl.magzik.ui.components.filechoosers.FileChooser;
 
 import javax.swing.*;

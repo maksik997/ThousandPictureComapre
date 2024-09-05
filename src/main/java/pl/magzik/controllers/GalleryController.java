@@ -1,65 +1,65 @@
 package pl.magzik.controllers;
 
-import pl.magzik.base.interfaces.Command;
-import pl.magzik.async.ExecutorServiceManager;
+import pl.magzik.base.async.ExecutorServiceManager;
+import pl.magzik.modules.comparer.ComparerCoordinator;
 import pl.magzik.modules.gallery.GalleryCoordinator;
-import pl.magzik.modules.gallery.management.GalleryManagementModule;
 import pl.magzik.modules.gallery.table.GalleryTableModel;
 import pl.magzik.modules.gallery.table.GalleryTableRowSorter;
-import pl.magzik.modules.comparer.processing.ComparerProcessor;
-import pl.magzik.base.interfaces.FileHandler;
-import pl.magzik.ui.localization.TranslationStrategy;
 import pl.magzik.ui.cursor.CursorManagerInterface;
 import pl.magzik.ui.listeners.UnifiedDocumentListener;
+import pl.magzik.ui.localization.TranslationStrategy;
 import pl.magzik.ui.logging.MessageInterface;
 import pl.magzik.ui.views.GalleryView;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
 
 /**
- * Manages the gallery operations including image addition, removal, deletion, and tag management.
+ * Manages gallery operations such as adding, removing, deleting images, and managing tags.
  * <p>
- * The {@code GalleryController} interacts thenLoad the {@link GalleryView}, {@link GalleryManagementModule}, and various
- * user interface components to perform and manage gallery operations. It uses an {@link ExecutorService} to run
- * tasks asynchronously and provides methods to handle various user actions.
+ * The {@code GalleryController} interacts with the {@link GalleryView}, {@link GalleryCoordinator},
+ * {@link ComparerCoordinator}, and various user interface components to perform and manage gallery operations.
+ * It utilizes an {@link ExecutorService} to run tasks asynchronously and provides methods for handling
+ * various user actions.
  * </p>
  */
 public class GalleryController {
 
+    private final GalleryCoordinator gc;
     private final GalleryView gView;
-    private final ComparerProcessor cp;
-    private final FileHandler comparerFileHandler;
+    private final ComparerCoordinator cc;
     private final MessageInterface mi;
     private final CursorManagerInterface umi;
     private final TranslationStrategy ti;
     private final ExecutorService executor;
 
-    private final GalleryCoordinator gc;
-
     /**
-     * Constructs a {@code GalleryController} thenLoad the specified view, module, and interfaces.
+     * Constructs a {@code GalleryController} with the specified view, coordinators, and interfaces.
      * <p>
-     * Initializes the UI components, adds listeners to the UI elements, and sets up the executor service.
+     * Initializes the UI components, adds listeners to the UI elements, and sets up the executor service for
+     * asynchronous task execution.
      * </p>
      *
-     * @param gView the {@link GalleryView} used to interact thenLoad the UI.
-     //* @param gModule the {@link GalleryManagementModule} that handles gallery data and operations.
-     * @param umi the {@link CursorManagerInterface} for managing the user interface state.
-     * @param mi the {@link MessageInterface} for displaying messages to the user.
-     * @param ti the {@link TranslationStrategy} for translating messages.
+     * @param gc   the {@link GalleryCoordinator} for handling gallery-related operations.
+     * @param gView the {@link GalleryView} to interact with the user interface.
+     * @param cc    the {@link ComparerCoordinator} to handle comparison operations.
+     * @param umi   the {@link CursorManagerInterface} to manage the UI cursor.
+     * @param mi    the {@link MessageInterface} to display messages to the user.
+     * @param ti    the {@link TranslationStrategy} to translate messages in the UI.
      */
-    public GalleryController(GalleryCoordinator gc, GalleryView gView/*, GalleryManagementModule gModule, GalleryOperations goi,*/, ComparerProcessor cp, FileHandler comparerFileHandler, CursorManagerInterface umi, MessageInterface mi, TranslationStrategy ti) {
+    public GalleryController(GalleryCoordinator gc, GalleryView gView, ComparerCoordinator cc, CursorManagerInterface umi, MessageInterface mi, TranslationStrategy ti) {
         this.gc = gc;
+        this.cc = cc;
 
         this.ti = ti;
         this.umi = umi;
         this.mi = mi;
-        this.cp = cp;
-        this.comparerFileHandler = comparerFileHandler;
         this.gView = gView;
         this.executor = ExecutorServiceManager.getInstance().getExecutorService();
 
@@ -86,9 +86,10 @@ public class GalleryController {
     }
 
     /**
-     * Adds action listeners to the UI components.
+     * Adds action listeners to various UI components.
      * <p>
-     * Sets up listeners for various buttons and text fields to handle user actions.
+     * Sets up listeners for buttons and text fields to handle user actions like adding, removing,
+     * and deleting images, as well as tag management and filtering.
      * </p>
      */
     private void addListeners() {
@@ -102,13 +103,13 @@ public class GalleryController {
         gView.getAddTagButton().addActionListener(_ -> handleAddTagButton());
         gView.getRemoveTagButton().addActionListener(_ -> handleRemoveTagButton());
 
-        cp.addPropertyChangeListener(gView);
+        cc.addPropertyChangeListener(gView);
     }
 
     /**
-     * Handles the removal of images when the "Remove" button is pressed.
+     * Handles the "Remove" button click to remove selected images.
      * <p>
-     * Checks if any images are selected and initiates the removal task if so.
+     * Initiates the remove operation if images are selected.
      * </p>
      */
     private void handleRemoveImagesButton() {
@@ -117,9 +118,9 @@ public class GalleryController {
     }
 
     /**
-     * Handles the deletion of images when the "Delete" button is pressed.
+     * Handles the "Delete" button click to delete selected images.
      * <p>
-     * Prompts the user for confirmation before initiating the deletion task if images are selected.
+     * Asks the user for confirmation before starting the deletion process if images are selected.
      * </p>
      */
     private void handleDeleteImagesButton() {
@@ -136,9 +137,9 @@ public class GalleryController {
     }
 
     /**
-     * Handles the distinct operation for images when the "Distinct" button is pressed.
+     * Handles the "Distinct" button click to distinct selected images.
      * <p>
-     * Initiates the distinct image task if images are selected.
+     * Initiates the distinct operation if images are selected.
      * </p>
      */
     private void handleDistinctButton() {
@@ -148,9 +149,9 @@ public class GalleryController {
     }
 
     /**
-     * Handles the opening of images when the "Open" button is pressed.
+     * Handles the "Open" button click to open selected images.
      * <p>
-     * Opens the selected images and displays an error message if an {@link IOException} occurs.
+     * Opens the selected images in the system's default image viewer. Displays an error if an {@link IOException} occurs.
      * </p>
      */
     private void handleOpenButton() {
@@ -168,9 +169,9 @@ public class GalleryController {
     }
 
     /**
-     * Handles the addition of tags to images when the "Add Tag" button is pressed.
+     * Handles the "Add Tag" button click to add a tag to selected images.
      * <p>
-     * Displays a tag combobox for user input and adds the tag to the selected images if valid.
+     * Prompts the user to select a tag and adds it to the selected images.
      * </p>
      */
     private void handleAddTagButton() {
@@ -204,9 +205,9 @@ public class GalleryController {
     }
 
     /**
-     * Handles the removal of tags from images when the "Remove Tag" button is pressed.
+     * Handles the "Remove Tag" button click to remove a tag from selected images.
      * <p>
-     * Displays a tag combobox for user input and removes the selected tag from the selected images.
+     * Prompts the user to select a tag to remove and performs the removal from the selected images.
      * </p>
      */
     private void handleRemoveTagButton() {
@@ -249,7 +250,7 @@ public class GalleryController {
     }
 
     /**
-     * Checks if any images are selected in the gallery table.
+     * Checks if any images are selected in the gallery.
      * <p>
      * Displays an error message if no images are selected.
      * </p>
@@ -268,12 +269,12 @@ public class GalleryController {
     }
 
     /**
-     * Shows a tag combobox dialog to the user for adding or removing tags.
+     * Displays a combobox dialog for the user to select or input a tag.
      *
-     * @param title the key for the dialog title translation.
-     * @param tags the array of existing tags to display in the combobox.
-     * @param editable if {@code true}, the dialog is for adding tags; otherwise, it's for removing tags.
-     * @return the selected tag or {@code null} if the user cancels the operation.
+     * @param title    the translation key for the dialog title.
+     * @param tags     the list of available tags.
+     * @param editable determines if the combobox allows custom tag input.
+     * @return the selected tag, or {@code null} if canceled.
      */
     private String showTagsCombobox(String title, String[] tags, boolean editable) {
         JComboBox<String> comboBox = new JComboBox<>();
@@ -295,95 +296,78 @@ public class GalleryController {
     // Handling async tasks and long operations
 
     /**
-     * Initiates an asynchronous task to add images.
+     * Runs the task of adding images asynchronously.
      * <p>
-     * The task involves preparing the UI, adding images, and thenLoad updating the UI.
-     * If an exception occurs during the execution, it will be handled and the gallery notifyUnlock operation will be completed.
+     * Launches a file chooser dialog for the user to select images and then adds the chosen images
+     * to the gallery. Updates the gallery UI after the task is complete.
      * </p>
      */
     private void addImagesTask() {
-        prepareUiBefore();
-
-        gc.execute(this::prepareUiBefore, this::addImages)
+        gc.execute(this::prepareUiBefore, this::addImages, this::updateUiAfter)
             .exceptionally(this::handleException)
             .whenComplete(this::handleGalleryUnlock);
     }
 
     /**
-     * Initiates an asynchronous task to remove images.
+     * Runs the task of removing selected images asynchronously.
      * <p>
-     * The task involves preparing the UI, performing the removal operation, and thenLoad updating the UI.
-     * If an exception occurs during the execution, it will be handled and the gallery notifyUnlock operation will be completed.
+     * Removes the selected images from the gallery without deleting them from the file system.
+     * Updates the gallery UI after the task is complete.
      * </p>
      */
     private void removeImagesTask() {
         List<Integer> indexes = gView.getAndClearSelectedRows();
-
-        gc.execute(this::prepareUiBefore, () -> gc.handleRemoveImages(indexes))
-                            .exceptionally(this::handleException)
-                            .whenComplete(this::handleGalleryUnlock);
+        gc.execute(this::prepareUiBefore, () -> gc.handleRemoveImages(indexes), this::updateUiAfter)
+            .exceptionally(this::handleException)
+            .whenComplete(this::handleGalleryUnlock);
     }
 
     /**
-     * Initiates an asynchronous task to deleteFiles images.
+     * Runs the task of deleting selected images asynchronously.
      * <p>
-     * The task involves preparing the UI, performing the deletion operation, and thenLoad updating the UI.
-     * If an exception occurs during the execution, it will be handled and the gallery notifyUnlock operation will be completed.
+     * Deletes the selected images from both the gallery and the file system.
+     * Updates the gallery UI after the task is complete.
      * </p>
      */
     private void deleteImagesTask() {
         List<Integer> indexes = gView.getAndClearSelectedRows();
+        gc.execute(this::prepareUiBefore, () -> gc.handleDeleteImages(indexes), this::updateUiAfter)
+            .exceptionally(this::handleException)
+            .whenComplete(this::handleGalleryUnlock);
+    }
 
-        gc.execute(this::prepareUiBefore, () -> gc.handleDeleteImages(indexes))
+    /**
+     * Runs the task of unifying the names of selected images asynchronously.
+     * <p>
+     * Applies a uniform naming convention to the selected images based on user input.
+     * Updates the gallery UI after the task is complete.
+     * </p>
+     */
+    private void unifyNamesTask() {
+        gc.execute(this::prepareUiBefore, gc::handleUnifyNames, this::showMessage)
                 .exceptionally(this::handleException)
                 .whenComplete(this::handleGalleryUnlock);
     }
 
     /**
-     * Initiates an asynchronous task to handle image distinct operations.
+     * Runs the task of distinguishing the duplicates of selected images asynchronously.
      * <p>
-     * The task involves preparing the UI, performing distinct image operations, updating the UI, confirming removal, and thenLoad reducing images.
-     * If an exception occurs during the execution, it will be handled and the gallery notifyUnlock operation will be completed.
+     * Updates the gallery UI after the task is complete.
      * </p>
      */
     private void distinctImagesTask() {
-        // TODO: OUT
-        executeAsync(
-            this::distinctImages,
+        cc.execute(
+            this::prepareUiBefore,
+            this::setInputImages,
+            cc::handleLoadFiles,
+            cc::handleCompare,
             () -> {
                 CompletableFuture<Boolean> ftr = removalConfirmation();
                 ftr.thenAcceptAsync(this::reduceImages, executor)
-                    .thenRun(this::updateUiAfter);
+                        .thenRun(this::updateUiAfter);
             }
-        );
-    }
-
-    /**
-     * Initiates an asynchronous task to unify image names.
-     * <p>
-     * The task involves preparing the UI, unifying names, saving the results, updating the UI, and showing a completion message.
-     * If an exception occurs during the execution, it will be handled and the gallery notifyUnlock operation will be completed.
-     * </p>
-     */
-    private void unifyNamesTask() {
-        gc.execute(this::prepareUiBefore, gc::handleUnifyNames, this::showMessage)
-            .exceptionally(this::handleException)
-            .whenComplete(this::handleGalleryUnlock);
-    }
-
-    @Deprecated
-    private void executeAsync(Command... commands) {
-        prepareUiBefore();
-
-        CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
-
-        for (Command command : commands) {
-            future = future.thenRunAsync(command::execute, executor);
-        }
-
-        future.thenRun(this::updateUiAfter)
-            .exceptionally(this::handleException)
-            .whenComplete(this::handleGalleryUnlock);
+        ).exceptionally(this::handleException)
+        .whenComplete(this::handleGalleryUnlock);
     }
 
     // UI-related methods.
@@ -480,23 +464,23 @@ public class GalleryController {
     }
 
     /**
-     * Performs the distinct image operations.
+     * Locks the current process, retrieves the list of selected files from the graphical view,
+     * and sets them as input for further processing.
      * <p>
-     * This method prepares the comparer thenLoad selected image IDs and thenLoad performs the comparison and extraction operations.
-     * </p>
+     * This method performs the following steps:
+     * <ol>
+     *   <li>Locks the comparer process by calling {@code notifyLock()} on the comparer package.</li>
+     *   <li>Retrieves a list of files based on the selected rows from the graphical view {@code gView}.</li>
+     *   <li>Sets the retrieved list of files as input for further operations in the comparer controller {@code cc}.</li>
+     * </ol>
      *
-     * @throws CompletionException If an I/O error occurs during the preparation or comparison, or If the thread is interrupted during the operation, or If the operation times out.
+     * This is typically used to set up the input images for comparison after the user has selected
+     * rows/files in the UI.
      */
-    private void distinctImages() {
-        try {
-            cp.notifyLock();
-            List<File> in = gc.getFiles(gView.getSelectedRows());
-            in = comparerFileHandler.loadFiles(in);
-            cp.setInput(in);
-            cp.process();
-        } catch (IOException | ExecutionException e) {
-            throw new CompletionException(e);
-        }
+    private void setInputImages() {
+        cc.notifyLock();
+        List<File> in = gc.getFiles(gView.getSelectedRows());
+        cc.setInput(in);
     }
 
     /**
@@ -509,16 +493,16 @@ public class GalleryController {
      * @throws CompletionException If an I/O error occurs during the file operation.
      */
     private void reduceImages(boolean res) {
-        List<File> out = cp.getOutput();
-        cp.notifyUnlock();
-
         try {
+            List<File> out = cc.getOutput();
             gc.handleRemoveFiles(out);
 
-            if (res) comparerFileHandler.moveFiles(out);
-            else comparerFileHandler.deleteFiles(out);
+            if (res) cc.handleDeleteFiles();
+            else cc.handleMoveFiles();
         } catch (IOException e) {
             throw new CompletionException(e);
+        } finally {
+            cc.notifyUnlock();
         }
     }
 

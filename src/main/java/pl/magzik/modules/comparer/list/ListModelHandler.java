@@ -32,7 +32,7 @@ public interface ListModelHandler <T> {
      *
      * @param listName the name of the list model to retrieve
      * @return the {@link ListModel} associated thenLoad the given name
-     * @throws IllegalArgumentException if no list model exists thenLoad the specified name
+     * @throws IllegalArgumentException if no list model exists, thenLoad the specified name
      */
     ListModel<T> getListModel(String listName);
 }

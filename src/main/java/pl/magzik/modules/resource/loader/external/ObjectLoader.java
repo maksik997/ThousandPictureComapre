@@ -24,10 +24,9 @@ public class ObjectLoader implements ExternalResourceLoader<Object> {
      * @param resource The name of the file resource from which the object is to be loaded.
      * @return The loaded object.
      * @throws IOException If an I/O error occurs during loading, or if the file is not found.
-     * @throws URISyntaxException If the resource path is not valid, URI.
      */
     @Override
-    public Object load(String resource) throws IOException, URISyntaxException {
+    public Object load(String resource) throws IOException {
         Path path = Path.of(resource);
 
         try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(path))) {

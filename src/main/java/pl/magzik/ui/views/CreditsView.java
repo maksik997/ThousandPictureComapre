@@ -1,6 +1,6 @@
 package pl.magzik.ui.views;
 
-import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.ComponentUtils;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -47,12 +47,12 @@ public class CreditsView extends AbstractView {
             c,
             createLabel(
                 "view.credits.desc.1",
-                Utility.fontHelveticaBold,
+                ComponentUtils.fontHelveticaBold,
                 new EmptyBorder(10, 0, 0, 0)
             ),
             createLabel(
                 "view.credits.desc.2",
-                Utility.fontHelveticaPlain,
+                ComponentUtils.fontHelveticaPlain,
                 new CompoundBorder(
                         new MatteBorder(0,0,1,0, Color.GRAY),
                         new EmptyBorder(0, 0, 10, 0)
@@ -61,7 +61,7 @@ public class CreditsView extends AbstractView {
             null,
             createLabel(
                 "view.credits.label.author",
-                Utility.fontHelveticaBold,
+                ComponentUtils.fontHelveticaBold,
                 new CompoundBorder(
                         new MatteBorder(1, 0, 0, 0, Color.gray),
                         new EmptyBorder(10, 0, 0, 0)
@@ -69,7 +69,7 @@ public class CreditsView extends AbstractView {
             ),
             createLabel(
                 "view.credits.author",
-                Utility.fontHelveticaPlain,
+                ComponentUtils.fontHelveticaPlain,
                 new CompoundBorder(
                         new MatteBorder(0, 0, 1, 0, Color.gray),
                         new EmptyBorder(0, 0, 10, 0)
@@ -77,7 +77,7 @@ public class CreditsView extends AbstractView {
             ),
             createLabel(
                 "view.credits.label.github",
-                Utility.fontHelveticaBold,
+                ComponentUtils.fontHelveticaBold,
                 new CompoundBorder(
                         new MatteBorder(1, 0, 0, 0, Color.gray),
                         new EmptyBorder(10, 0, 0, 0)
@@ -85,7 +85,7 @@ public class CreditsView extends AbstractView {
             ),
             createHyperlink(
                 "view.credits.github.link",
-                Utility.fontHelveticaPlain,
+                ComponentUtils.fontHelveticaPlain,
                 new CompoundBorder(
                         new MatteBorder(0, 0, 1, 0, Color.gray),
                         new EmptyBorder(0, 0, 10, 0)
@@ -95,7 +95,7 @@ public class CreditsView extends AbstractView {
             null,
             createLabel(
                 "general.version",
-                Utility.fontSmallHelveticaBold,
+                ComponentUtils.fontSmallHelveticaBold,
                 new CompoundBorder(
                         new MatteBorder(1, 0, 0, 0, Color.GRAY),
                         new EmptyBorder(5, 0, 5, 0)

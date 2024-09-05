@@ -2,14 +2,15 @@ package pl.magzik.modules.settings;
 
 import com.formdev.flatlaf.util.SystemInfo;
 import pl.magzik.modules.base.Module;
-import pl.magzik.modules.base.ModuleLoadException;
-import pl.magzik.modules.base.Package;
 import pl.magzik.modules.resource.ResourceModule;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * The {@code SettingsModule} class manages application settings.
@@ -50,11 +51,7 @@ public class SettingsModule implements Module {
     @Override
     public void postConstruct() throws IOException {
         if (!Files.exists(ResourceModule.CONFIG_PATH)) {
-            try {
-                defaultSettings();
-            } catch (URISyntaxException e) {
-                throw new IOException(e);
-            }
+            defaultSettings();
         }
 
         loadSettings();
@@ -64,10 +61,9 @@ public class SettingsModule implements Module {
      * Creates default settings by copying from the default configuration file.
      * Replaces placeholders thenLoad a user directory path.
      *
-     * @throws URISyntaxException if the default configuration file URI is invalid
      * @throws IOException if an I/O error occurs while reading or writing files
      */
-    private void defaultSettings() throws URISyntaxException, IOException {
+    private void defaultSettings() throws IOException {
         ResourceModule.getInstance().copyReference(
             "default.cfg",
             "config.cfg",
@@ -78,9 +74,8 @@ public class SettingsModule implements Module {
     /**
      * Saves the current settings to the configuration file.
      *
-     * @throws IOException if an I/O error occurs while writing the file
      */
-    public void saveSettings()  throws IOException {
+    public void saveSettings() {
         ResourceModule.getInstance().setTextFile(
             "config.cfg",
             settings.stream().map(Entry::toString).toList()

@@ -3,7 +3,7 @@ package pl.magzik.ui.views;
 import pl.magzik.Controller;
 import pl.magzik.modules.gallery.GalleryCoordinator;
 import pl.magzik.modules.gallery.table.GalleryTableModel;
-import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.ComponentUtils;
 import pl.magzik.ui.components.filechoosers.FileChooser;
 import pl.magzik.ui.components.filechoosers.MultipleFileSelectionStrategy;
 
@@ -117,7 +117,7 @@ public class GalleryView extends AbstractView implements PropertyChangeListener 
         c.weighty = 1;
         c.insets = new Insets(5, 2, 5, 2);
 
-        headerPanel.add(createLabel("view.gallery.label.header", Utility.fontHelveticaBold), c);
+        headerPanel.add(createLabel("view.gallery.label.header", ComponentUtils.fontHelveticaBold), c);
 
         c.gridx++;
         c.weightx = 1;
@@ -125,7 +125,7 @@ public class GalleryView extends AbstractView implements PropertyChangeListener 
 
         c.gridx++;
         c.weightx = 0;
-        headerPanel.add(createLabel("view.gallery.label.name_filter", Utility.fontHelveticaPlain), c);
+        headerPanel.add(createLabel("view.gallery.label.name_filter", ComponentUtils.fontHelveticaPlain), c);
 
         c.gridx++;
         headerPanel.add(nameFilterTextField, c);
@@ -213,7 +213,7 @@ public class GalleryView extends AbstractView implements PropertyChangeListener 
         JPanel elementCountPanel = new JPanel();
         elementCountPanel.setLayout(new BoxLayout(elementCountPanel, BoxLayout.X_AXIS));
 
-        elementCountPanel.add(createLabel("view.gallery.label.element_count", Utility.fontSmallHelveticaBold, new EmptyBorder(0,5,0,5)));
+        elementCountPanel.add(createLabel("view.gallery.label.element_count", ComponentUtils.fontSmallHelveticaBold, new EmptyBorder(0,5,0,5)));
         elementCountPanel.add(elementCountLabel);
         elementCountPanel.add(Box.createHorizontalGlue());
 
@@ -480,7 +480,7 @@ public class GalleryView extends AbstractView implements PropertyChangeListener 
          */
         private static JLabel createCountLabel() {
             JLabel label = new JLabel("0");
-            label.setFont(Utility.fontSmallHelveticaBold);
+            label.setFont(ComponentUtils.fontSmallHelveticaBold);
 
             return label;
         }
@@ -492,7 +492,7 @@ public class GalleryView extends AbstractView implements PropertyChangeListener 
          */
         private static JTextField createFilterTextField() {
             JTextField textField = new JTextField();
-            textField.setFont(Utility.fontHelveticaPlain);
+            textField.setFont(ComponentUtils.fontHelveticaPlain);
             textField.setPreferredSize(new Dimension(150, 30));
 
             return textField;
@@ -505,7 +505,7 @@ public class GalleryView extends AbstractView implements PropertyChangeListener 
          * @return A new instance of {@link JButton}.
          */
         private static JButton createButton(String title) {
-            return Utility.buttonFactory(title, buttonInsets);
+            return ComponentUtils.buttonFactory(title, buttonInsets);
         }
     }
 }

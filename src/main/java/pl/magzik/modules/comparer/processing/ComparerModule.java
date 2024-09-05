@@ -5,7 +5,9 @@ import pl.magzik.modules.base.Module;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -84,7 +86,6 @@ public class ComparerModule implements Module, ComparerProcessor {
         pcs.addPropertyChangeListener(listener);
     }
 
-    @Override
     public void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
         pcs.firePropertyChange(propertyName, oldValue, newValue);
     }

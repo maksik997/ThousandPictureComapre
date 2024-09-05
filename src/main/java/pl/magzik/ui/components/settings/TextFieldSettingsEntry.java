@@ -1,6 +1,6 @@
 package pl.magzik.ui.components.settings;
 
-import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.ComponentUtils;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -47,7 +47,7 @@ public class TextFieldSettingsEntry extends SettingsEntry<JPanel, String> {
 
         textField.setEditable(true);
         textField.setFocusable(true);
-        textField.setFont(Utility.fontHelveticaPlain);
+        textField.setFont(ComponentUtils.fontHelveticaPlain);
         textField.setBorder(textFieldBorder);
 
         textField.getDocument().addDocumentListener(new DocumentListener() {

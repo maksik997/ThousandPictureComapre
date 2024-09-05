@@ -1,4 +1,4 @@
-package pl.magzik.ui.theme;
+package pl.magzik.base.theme;
 
 import com.formdev.flatlaf.util.SystemInfo;
 import com.sun.jna.Native;
@@ -46,6 +46,7 @@ public interface Advapi32 extends StdCallLibrary {
      * @param hKey the handle to the open registry key
      * @return {@code ERROR_SUCCESS} if the function succeeds, otherwise an error code
      */
+    @SuppressWarnings("UnusedReturnValue")
     int RegCloseKey(Pointer hKey);
 
     /**

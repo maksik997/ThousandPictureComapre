@@ -1,6 +1,6 @@
 package pl.magzik.ui.views;
 
-import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.ComponentUtils;
 import pl.magzik.ui.components.filechoosers.FileChooser;
 import pl.magzik.ui.components.filechoosers.SingleFileSelectionStrategy;
 
@@ -364,16 +364,16 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
             Insets buttonInsets = new Insets(5, 15, 5, 15);
 
             JTextField pathTextField = createTextField();
-            JButton pathButton = Utility.buttonFactory("view.comparer.button.open", buttonInsets);
+            JButton pathButton = ComponentUtils.buttonFactory("view.comparer.button.open", buttonInsets);
             FileChooser<String> fileChooser = createFileChooser(pathButton, pathTextField::setText);
-            JButton loadButton = Utility.buttonFactory("view.comparer.button.load", buttonInsets);
-            JButton moveButton = Utility.buttonFactory("view.comparer.button.move", buttonInsets);
-            JButton resetButton = Utility.buttonFactory("view.comparer.button.reset", buttonInsets);
+            JButton loadButton = ComponentUtils.buttonFactory("view.comparer.button.load", buttonInsets);
+            JButton moveButton = ComponentUtils.buttonFactory("view.comparer.button.move", buttonInsets);
+            JButton resetButton = ComponentUtils.buttonFactory("view.comparer.button.reset", buttonInsets);
             JLabel statusLabel = createStatusLabel();
             JList<String> foundList = createList();
             JList<String> duplicateList = createList();
-            JTextField totalFoundTextField = Utility.constTextFieldFactory("view.comparer.tray.total.border.title", "0", 6);
-            JTextField duplicateFoundTextField = Utility.constTextFieldFactory("view.comparer.tray.duplicates.border.title", "0", 6);
+            JTextField totalFoundTextField = ComponentUtils.constTextFieldFactory("view.comparer.tray.total.border.title", "0", 6);
+            JTextField duplicateFoundTextField = ComponentUtils.constTextFieldFactory("view.comparer.tray.duplicates.border.title", "0", 6);
 
             return new ComparerView(
                 pathTextField,
@@ -409,7 +409,7 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
                     "view.comparer.path.border.title"
                 )
             );
-            textField.setFont(Utility.fontHelveticaPlain);
+            textField.setFont(ComponentUtils.fontHelveticaPlain);
 
             return textField;
         }
@@ -443,7 +443,7 @@ public class ComparerView extends AbstractView implements PropertyChangeListener
          */
         private static JLabel createStatusLabel() {
             JLabel label = new JLabel("comparer.state.ready");
-            label.setFont(Utility.fontBigHelveticaBold);
+            label.setFont(ComponentUtils.fontBigHelveticaBold);
             label.setHorizontalAlignment(SwingConstants.CENTER);
             label.setVerticalAlignment(SwingConstants.CENTER);
 

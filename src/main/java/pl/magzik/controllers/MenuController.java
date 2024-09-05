@@ -1,8 +1,8 @@
 package pl.magzik.controllers;
 
+import pl.magzik.ui.cursor.CursorManagerInterface;
 import pl.magzik.ui.scenes.SceneManager;
 import pl.magzik.ui.scenes.SceneManagerInterface;
-import pl.magzik.ui.cursor.CursorManagerInterface;
 import pl.magzik.ui.views.MenuView;
 
 /**

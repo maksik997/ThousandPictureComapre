@@ -1,10 +1,7 @@
 package pl.magzik.ui.components.panels;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
 
 /**
  * The {@code ImagePanel} class is a custom {@link JPanel} that displays an image.

@@ -1,7 +1,9 @@
 package pl.magzik.modules.base;
 
 import java.beans.PropertyChangeListener;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * The {@code ModuleLoader} class manages the sequential loading of {@link Module} instances.

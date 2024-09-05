@@ -1,4 +1,7 @@
-![logo](images/thumbnail.png) 
+![logo](src/main/resources/thumbnail.png) 
+
+TODO UPDATE PENDING...
+
 # Thousand Picture Compare`
 ### Version tag: 0.5
 

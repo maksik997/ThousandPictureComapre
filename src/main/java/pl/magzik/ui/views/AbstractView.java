@@ -1,7 +1,7 @@
 package pl.magzik.ui.views;
 
 import pl.magzik.modules.resource.ResourceModule;
-import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.ComponentUtils;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -24,15 +24,15 @@ public abstract class AbstractView extends JPanel {
             )
         );
 
-        ImageIcon thumbnail = Utility.getScaledImage(new ImageIcon(ResourceModule.getInstance().getImage("thumbnail.png")), 50, 50);
+        ImageIcon thumbnail = ComponentUtils.getScaledImage(new ImageIcon(ResourceModule.getInstance().getImage("thumbnail.png")), 50, 50);
         JLabel title = new JLabel(
                 "general.title",
                 thumbnail,
                 JLabel.LEFT
         );
-        title.setFont(Utility.fontHelveticaBold);
+        title.setFont(ComponentUtils.fontHelveticaBold);
 
-        backButton = Utility.buttonFactory(
+        backButton = ComponentUtils.buttonFactory(
                 "view.abstract.button.back",
                 new Insets(5, 15, 5, 15)
         );

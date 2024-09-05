@@ -1,7 +1,10 @@
 package pl.magzik.ui.scenes;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Manages the switching of scenes in a {@link JFrame}.

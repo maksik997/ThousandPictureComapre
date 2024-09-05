@@ -1,10 +1,12 @@
 package pl.magzik.ui.views;
 
+import pl.magzik.ui.components.ComponentUtils;
 import pl.magzik.ui.components.settings.*;
-import pl.magzik.ui.components.Utility;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.util.Objects;
 
@@ -70,7 +72,7 @@ public class SettingsView extends AbstractView {
         gbc.gridy = 0;
 
         JLabel panelTitle = new JLabel("view.settings.label.header");
-        panelTitle.setFont(Utility.fontBigHelveticaBold);
+        panelTitle.setFont(ComponentUtils.fontBigHelveticaBold);
         panelTitle.setBorder(new CompoundBorder(
                 new MatteBorder(0, 0, 1, 0, Color.GRAY),
                 new EmptyBorder(5, 5, 5, 5)
@@ -244,7 +246,7 @@ public class SettingsView extends AbstractView {
          * @return A new instance of {@code SettingsView}.
          */
         public static SettingsView create() {
-            JButton saveButton = Utility.buttonFactory("view.settings.button.save", new Insets(5, 10, 5, 10));
+            JButton saveButton = ComponentUtils.buttonFactory("view.settings.button.save", new Insets(5, 10, 5, 10));
             ComboBoxSettingsEntry languageEntry = new ComboBoxSettingsEntry("view.settings.label.language", new JComboBox<>());
             ComboBoxSettingsEntry themeEntry = new ComboBoxSettingsEntry("view.settings.label.theme", new JComboBox<>());
             PathSettingsEntry destinationEntry = new PathSettingsEntry("view.settings.label.destination", createPathPanel());
@@ -271,7 +273,7 @@ public class SettingsView extends AbstractView {
         private static JPanel createPathPanel() {
             JPanel panel = new JPanel();
             JTextField textField = new JTextField();
-            JButton button = Utility.buttonFactory("view.settings.button.destination.open", new Insets(5, 15, 5, 15));
+            JButton button = ComponentUtils.buttonFactory("view.settings.button.destination.open", new Insets(5, 15, 5, 15));
             panel.add(textField);
             panel.add(Box.createHorizontalStrut(10));
             panel.add(button);

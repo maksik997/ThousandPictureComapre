@@ -1,6 +1,9 @@
 package pl.magzik;
 
-import pl.magzik.controllers.*;
+import pl.magzik.controllers.ComparerController;
+import pl.magzik.controllers.GalleryController;
+import pl.magzik.controllers.MenuController;
+import pl.magzik.controllers.SettingsController;
 import pl.magzik.ui.localization.DefaultTranslationStrategy;
 import pl.magzik.ui.localization.TranslationStrategy;
 
@@ -21,7 +24,7 @@ import java.util.ResourceBundle;
  * of the main {@code Controller}, ensuring that they are immutable and their dependencies are satisfied.
  * </p>
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "FieldCanBeLocal"}) // Hurts my eyes :P
 public class Controller {
 
     private final View view;
@@ -50,9 +53,9 @@ public class Controller {
         this.resourceBundle = resourceBundle;
         this.translationStrategy = new DefaultTranslationStrategy(resourceBundle);
         this.menuController = new MenuController(view.getMenuView(), view.getSceneManager());
-        this.comparerController = new ComparerController(view.getComparerView(), model.getComparerModule(), model.getComparerFileModule(), model.getComparerListModule(), translationStrategy, view.getUiManager(), view.getUiManager());
-        this.galleryController = new GalleryController(model.getGc(), view.getGalleryView(), model.getComparerModule(), model.getComparerFileModule(), view.getUiManager(), view.getUiManager(), translationStrategy);
-        this.settingsController = new SettingsController(view.getSettingsView(), model.getSettingsModule(), model.getGc().getGalleryPropertyAccess(), translationStrategy, view.getUiManager(), model.getComparerModule(), model.getComparerFileModule());
+        this.comparerController = new ComparerController(model.getCc(), view.getComparerView(), translationStrategy, view.getUiManager(), view.getUiManager());
+        this.galleryController = new GalleryController(model.getGc(), view.getGalleryView(), model.getCc(), view.getUiManager(), view.getUiManager(), translationStrategy);
+        this.settingsController = new SettingsController(view.getSettingsView(), model.getSettingsModule(), model.getGc().getGalleryPropertyAccess(), translationStrategy, view.getUiManager(), model.getCc().getComparerPropertyAccess(), model.getCc().getComparerFilePropertyAccess());
 
         // Translate Components Post-construct
         view.getTranslationStrategy().translateComponents(view);

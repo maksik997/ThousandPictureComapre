@@ -1,6 +1,6 @@
 package pl.magzik.ui.components.settings;
 
-import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.ComponentUtils;
 import pl.magzik.ui.components.filechoosers.FileChooser;
 import pl.magzik.ui.components.filechoosers.SingleFileSelectionStrategy;
 
@@ -58,7 +58,7 @@ public class PathSettingsEntry extends SettingsEntry<JPanel, String> {
 
         pathTextField.setFocusable(false);
         pathTextField.setEditable(false);
-        pathTextField.setFont(Utility.fontHelveticaPlain);
+        pathTextField.setFont(ComponentUtils.fontHelveticaPlain);
         pathTextField.setBorder(textFieldBorder);
 
         fileChooser = new FileChooser<>(

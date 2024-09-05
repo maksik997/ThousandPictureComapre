@@ -85,7 +85,6 @@ public class GalleryTableModel extends AbstractTableModel implements GalleryTabl
         SwingUtilities.invokeLater(() -> fireTableRowsInserted(idx, this.entries.size() - 1));
     }
 
-    @Override
     public List<GalleryEntry> removeEntries(Collection<Integer> rows) {
         List<GalleryEntry> entries = rows.stream()
                                     .map(this.entries::get)
@@ -106,14 +105,12 @@ public class GalleryTableModel extends AbstractTableModel implements GalleryTabl
         return entries;
     }
 
-    @Override
     public void addTag(int row, String tag) {
         entries.get(row).addTag(tag);
 
         SwingUtilities.invokeLater(() -> fireTableRowsUpdated(row, row));
     }
 
-    @Override
     public void removeTag(int row, String tag) {
         entries.get(row).removeTag(tag);
 
@@ -125,17 +122,14 @@ public class GalleryTableModel extends AbstractTableModel implements GalleryTabl
         SwingUtilities.invokeLater(this::fireTableStructureChanged);
     }
 
-    @Override
     public int indexOf(GalleryEntry galleryEntry) {
         return entries.indexOf(galleryEntry);
     }
 
-    @Override
     public GalleryEntry getEntry(int index) {
         return entries.get(index);
     }
 
-    @Override
     public List<GalleryEntry> getEntries() {
         return Collections.unmodifiableList(entries);
     }

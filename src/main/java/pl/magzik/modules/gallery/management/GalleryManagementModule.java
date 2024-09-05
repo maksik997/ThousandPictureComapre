@@ -1,13 +1,14 @@
 package pl.magzik.modules.gallery.management;
 
+import pl.magzik.modules.base.Module;
 import pl.magzik.modules.gallery.table.GalleryEntry;
 import pl.magzik.modules.gallery.table.GalleryTableModel;
 import pl.magzik.modules.gallery.table.TablePropertyAccess;
-import pl.magzik.modules.base.Module;
 
-import java.io.*;
+import java.io.File;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class GalleryManagementModule implements Module, GalleryManagement {

@@ -1,6 +1,6 @@
 package pl.magzik.ui.components.settings;
 
-import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.ComponentUtils;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -27,7 +27,7 @@ public class ComboBoxSettingsEntry extends SettingsEntry<JComboBox<String>, Stri
     public ComboBoxSettingsEntry(String label, JComboBox<String> value) {
         super(label, value);
 
-        value.setFont(Utility.fontHelveticaPlain);
+        value.setFont(ComponentUtils.fontHelveticaPlain);
         value.setBorder(comboBoxBorder);
 
         value.addItemListener(e -> {

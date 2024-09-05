@@ -1,9 +1,9 @@
 package pl.magzik.ui.components.filechoosers;
 
 import javax.swing.*;
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import java.io.File;
 
 /**
  * Implementation of {@link FileSelectionStrategy} for selecting multiple files.

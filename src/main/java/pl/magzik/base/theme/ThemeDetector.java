@@ -1,4 +1,4 @@
-package pl.magzik.ui.theme;
+package pl.magzik.base.theme;
 
 import com.formdev.flatlaf.util.SystemInfo;
 import com.sun.jna.Pointer;

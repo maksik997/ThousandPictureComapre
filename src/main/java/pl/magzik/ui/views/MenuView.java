@@ -1,7 +1,7 @@
 package pl.magzik.ui.views;
 
 import pl.magzik.modules.resource.ResourceModule;
-import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.ComponentUtils;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
@@ -58,7 +58,7 @@ public class MenuView extends JPanel {
      * @param insets The insets to be applied for the icon label.
      */
     private void addIcon(GridBagConstraints gbc, Insets insets) {
-        ImageIcon icon = Utility.getScaledImage(new ImageIcon(ResourceModule.getInstance().getImage("thumbnail.png")), 200, 200);
+        ImageIcon icon = ComponentUtils.getScaledImage(new ImageIcon(ResourceModule.getInstance().getImage("thumbnail.png")), 200, 200);
         JLabel iconLabel = new JLabel(icon);
 
         gbc.insets = insets;
@@ -73,7 +73,7 @@ public class MenuView extends JPanel {
      */
     private void addTitleLabel(GridBagConstraints gbc) {
         JLabel title = new JLabel("general.title");
-        title.setFont(Utility.fontBigHelveticaBold);
+        title.setFont(ComponentUtils.fontBigHelveticaBold);
         title.setBorder(
             new MatteBorder(0,0,1,0, Color.GRAY)
         );
@@ -90,7 +90,7 @@ public class MenuView extends JPanel {
      */
     private void addVersionTagLabel(GridBagConstraints gbc) {
         JLabel versionTag = new JLabel("general.version");
-        versionTag.setFont(Utility.fontSmallHelveticaBold);
+        versionTag.setFont(ComponentUtils.fontSmallHelveticaBold);
 
         gbc.insets = new Insets(0, 0, 10, 0);
         add(versionTag, gbc);
@@ -194,7 +194,7 @@ public class MenuView extends JPanel {
          * @return A {@code JButton} thenLoad the specified title and properties.
          */
         private static JButton createButton(String title) {
-            JButton button = Utility.buttonFactory(title, new Insets(10, 15, 10, 15));
+            JButton button = ComponentUtils.buttonFactory(title, new Insets(10, 15, 10, 15));
             button.setPreferredSize(new Dimension(200, 50));
             return button;
         }

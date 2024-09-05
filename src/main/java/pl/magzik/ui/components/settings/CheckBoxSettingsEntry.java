@@ -1,6 +1,6 @@
 package pl.magzik.ui.components.settings;
 
-import pl.magzik.ui.components.Utility;
+import pl.magzik.ui.components.ComponentUtils;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -41,7 +41,7 @@ public class CheckBoxSettingsEntry extends SettingsEntry<JPanel, Boolean> {
         if (checkBox == null)
             throw new NullPointerException("Checkbox is null. Bad panel.");
 
-        checkBox.setFont(Utility.fontHelveticaPlain);
+        checkBox.setFont(ComponentUtils.fontHelveticaPlain);
 
         checkBox.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED || e.getStateChange() == ItemEvent.DESELECTED) {

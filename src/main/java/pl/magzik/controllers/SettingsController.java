@@ -2,17 +2,16 @@ package pl.magzik.controllers;
 
 import pl.magzik.modules.comparer.persistence.ComparerFilePropertyAccess;
 import pl.magzik.modules.comparer.processing.ComparerPropertyAccess;
-import pl.magzik.modules.gallery.operations.GalleryPropertyAccess;
-import pl.magzik.ui.localization.TranslationStrategy;
 import pl.magzik.modules.gallery.management.GalleryManagementModule;
+import pl.magzik.modules.gallery.operations.GalleryPropertyAccess;
 import pl.magzik.modules.settings.SettingsModule;
 import pl.magzik.ui.components.settings.ComboBoxSettingsEntry;
 import pl.magzik.ui.components.settings.SettingsEntry;
+import pl.magzik.ui.localization.TranslationStrategy;
 import pl.magzik.ui.logging.MessageInterface;
 import pl.magzik.ui.views.SettingsView;
 
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -42,10 +41,10 @@ import java.util.function.Function;
  * <ul>
  *   <li>{@link SettingsView} - The view component that provides the user interface for settings.</li>
  *   <li>{@link SettingsModule} - The module responsible for storing and managing the settings data.</li>
- *   <li>{@link GalleryManagementModule} - A module that also implements {@link ComparerPropertyAccess} and is affected by certain settings.</li>
  *   <li>{@link TranslationStrategy} - For translating strings used in the settings view.</li>
  *   <li>{@link MessageInterface} - For displaying messages to the user.</li>
- *   <li>{@link ComparerPropertyAccess} - An interface representing modules that require updates based on settings.</li>
+ *   <li>{@link ComparerPropertyAccess} - An interface representing module that require updates based on settings.</li>
+ *   <li>{@link ComparerFilePropertyAccess} - An interface representing module that require updates base on settings.</li>
  * </ul>
  * </p>
  * <p>
@@ -59,8 +58,8 @@ public class SettingsController {
     private final GalleryPropertyAccess gpa;
     private final TranslationStrategy ti;
     private final MessageInterface mi;
-    private final ComparerFilePropertyAccess cfpa;
     private final ComparerPropertyAccess cpa;
+    private final ComparerFilePropertyAccess cfpa;
 
     /**
      * Constructs a new {@code SettingsController} thenLoad the provided dependencies and initializes the settings view.
@@ -231,15 +230,7 @@ public class SettingsController {
 
         // Saves settings and shows the message if needed.
 
-        try {
-            sModule.saveSettings();
-        } catch (IOException e) {
-            mi.showErrorMessage(
-                ti.translate("error.save.ioexception.desc"),
-                ti.translate("error.general.title")
-            );
-            return;
-        }
+        sModule.saveSettings();
 
         if (messageNeeded) {
             mi.showInformationMessage(

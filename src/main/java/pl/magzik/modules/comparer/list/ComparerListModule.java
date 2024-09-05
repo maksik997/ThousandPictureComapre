@@ -3,7 +3,6 @@ package pl.magzik.modules.comparer.list;
 import pl.magzik.modules.base.Module;
 
 import javax.swing.*;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +23,7 @@ public class ComparerListModule implements Module, ListModelHandler<String> {
     }
 
     @Override
-    public void postConstruct() throws IOException {
+    public void postConstruct() {
         listModels.put("Output", new DefaultListModel<>());
         listModels.put("Duplicates", new DefaultListModel<>());
     }

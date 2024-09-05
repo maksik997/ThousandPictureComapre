@@ -1,13 +1,14 @@
 package pl.magzik.ui.components;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class Utility {
+public class ComponentUtils {
 
-    public static Font fontHelveticaPlain = new Font("Helvetica", Font.PLAIN, 16),
+    public final static Font fontHelveticaPlain = new Font("Helvetica", Font.PLAIN, 16),
                         fontHelveticaBold = new Font("Helvetica", Font.BOLD, 16),
                         fontSmallHelveticaBold = new Font("Helvetica", Font.BOLD, 12),
                         fontBigHelveticaBold = new Font("Helvetica", Font.BOLD, 32);
@@ -50,7 +51,7 @@ public class Utility {
             textField.getBorder(),
             title,
             TitledBorder.CENTER, TitledBorder.TOP,
-            Utility.fontSmallHelveticaBold
+            ComponentUtils.fontSmallHelveticaBold
         ));
 
         return textField;

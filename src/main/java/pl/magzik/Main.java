@@ -3,18 +3,17 @@ package pl.magzik;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.util.SystemInfo;
+import pl.magzik.base.theme.ThemeDetector;
 import pl.magzik.modules.base.ModuleLoadException;
-import pl.magzik.modules.gallery.GalleryPackage;
-import pl.magzik.modules.resource.ResourceModule;
 import pl.magzik.modules.base.ModuleLoader;
-import pl.magzik.ui.theme.ThemeDetector;
+import pl.magzik.modules.resource.ResourceModule;
 import pl.magzik.ui.LoadingFrame;
 import pl.magzik.ui.UiManager;
 
 import javax.swing.*;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.*;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.ResourceBundle;
 
 /**
  * GalleryEntry point of the application that initializes and starts the application.
@@ -34,6 +33,7 @@ public class Main {
      * </p>
      * @param args command-line arguments (not used)
      */
+    @SuppressWarnings("unused")
     public static void main(String[] args) {
         try {
             Model model = initializeModel();
@@ -77,11 +77,8 @@ public class Main {
 
         return ModuleLoader.create(model.getSettingsModule())
                     .thenLoad(ResourceModule.getInstance())
-                    .thenLoad(model.getComparerModule())
-                    .thenLoad(model.getComparerFileModule())
-                    .thenLoad(model.getComparerListModule())
+                    .thenLoad(model.getCc().getPackage())
                     .thenLoad(model.getGc().getPackage())
-//                    .thenLoad(new GalleryPackage(model.getGalleryModule(), model.getGalleryFileModule(), model.getGalleryOperationsModule()))
                     .ready();
     }
 
@@ -89,7 +86,7 @@ public class Main {
      * Loads the initial module using the provided {@code ModuleLoader} and {@code Model}.
      * @param moduleLoader the {@code ModuleLoader} used to loadFiles the initial module
      * @param model the {@code Model} instance used to loadFiles settings
-     * @throws IOException if an error occurs while loading the module or settings
+     * @throws ModuleLoadException if an error occurs while loading the module or settings
      * @throws NullPointerException if {@code moduleLoader} or {@code model} is {@code null}
      */
     private static void loadInitialModule(ModuleLoader moduleLoader, Model model) throws ModuleLoadException {
@@ -227,7 +224,7 @@ public class Main {
         while (moduleLoader.hasNext()) {
             try {
                 moduleLoader.loadNext();
-            } catch (ModuleLoadException | UncheckedIOException e) {
+            } catch (ModuleLoadException | RuntimeException e) {
                 JTextArea textArea = new JTextArea(String.format("Could not load module: %n%s%nDo you wish to continue?", e.getMessage()));
                 textArea.setEditable(false);
                 JScrollPane scrollPane = new JScrollPane(textArea);
@@ -238,8 +235,6 @@ public class Main {
                     "Loading halted because: " + e.getClass().getSimpleName()
                 );
                 if (res != JOptionPane.YES_OPTION) handleError(e);
-            } catch (RuntimeException e) { // Debug
-                e.printStackTrace();
             }
         }
     }

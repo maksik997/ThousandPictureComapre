@@ -19,13 +19,6 @@ public class Package implements PackageInterface {
     private final List<Module> modules;
 
     /**
-     * Constructs an empty {@code Package} with no modules.
-     */
-    public Package() {
-        modules = new ArrayList<>();
-    }
-
-    /**
      * Constructs a {@code Package} with a collection of modules.
      *
      * @param modules A collection of {@link Module} instances to be managed by this package.
@@ -63,7 +56,6 @@ public class Package implements PackageInterface {
      *
      * @return The number of modules in this package.
      */
-    @Override
     public int getModuleCount() {
         return modules.size();
     }

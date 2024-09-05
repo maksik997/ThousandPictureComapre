@@ -1,11 +1,11 @@
 package pl.magzik.modules.resource;
 
 import pl.magzik.modules.base.Module;
+import pl.magzik.modules.resource.loader.Loader;
 import pl.magzik.modules.resource.loader.external.ExternalResourceLoader;
 import pl.magzik.modules.resource.loader.external.ObjectLoader;
 import pl.magzik.modules.resource.loader.external.TextFileLoader;
 import pl.magzik.modules.resource.loader.internal.ImageLoader;
-import pl.magzik.modules.resource.loader.Loader;
 import pl.magzik.modules.resource.loader.internal.ReferenceLoader;
 
 import java.awt.*;
@@ -18,8 +18,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**

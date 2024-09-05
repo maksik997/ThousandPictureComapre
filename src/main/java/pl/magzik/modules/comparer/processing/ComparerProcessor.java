@@ -241,17 +241,4 @@ public interface ComparerProcessor extends Processor, ComparerPropertyAccess {
      */
     void addPropertyChangeListener(PropertyChangeListener listener);
 
-    /**
-     * Notifies all registered listeners of a change to a specific property.
-     * <p>
-     * This method triggers a notification to all listeners that the specified
-     * property has changed from the old value to the new value.
-     * </p>
-     *
-     * @param propertyName the name of the property that has changed
-     * @param oldValue the old value of the property
-     * @param newValue the new value of the property
-     * @throws NullPointerException if {@code propertyName} is {@code null}
-     */
-    void firePropertyChange(String propertyName, Object oldValue, Object newValue);
 }

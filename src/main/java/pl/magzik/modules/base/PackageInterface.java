@@ -31,10 +31,4 @@ public interface PackageInterface {
      */
     default void onModulesLoaded() throws ModuleLoadException {}
 
-    /**
-     * Returns the total number of modules that have been loaded.
-     *
-     * @return The number of loaded modules.
-     */
-    int getModuleCount();
 }

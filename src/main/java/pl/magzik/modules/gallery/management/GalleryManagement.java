@@ -5,7 +5,6 @@ import pl.magzik.modules.gallery.table.TablePropertyAccess;
 
 import javax.swing.table.TableModel;
 import java.io.File;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 
@@ -16,62 +15,11 @@ import java.util.List;
 public interface GalleryManagement {
 
     /**
-     * Adds a file to the gallery.
-     *
-     * @param file The file to be added.
-     */
-    default void addItem(File file) {
-        addItems(List.of(file));
-    }
-
-    /**
-     * Adds a file to the gallery using a {@link Path}.
-     *
-     * @param file The path of the file to be added.
-     */
-    default void addItem(Path file) {
-        addItem(file.toFile());
-    }
-
-    /**
-     * Adds a file to the gallery using a file path as a {@link String}.
-     *
-     * @param file The path of the file to be added.
-     */
-    default void addItem(String file) {
-        addItem(new File(file));
-    }
-
-    /**
      * Adds a list of files to the gallery.
      *
      * @param files The list of files to be added.
      */
     void addItems(List<File> files);
-
-    /**
-     * Removes a file from the gallery based on the specified index.
-     *
-     * @param index The index of the file to be removed.
-     * @return The removed file.
-     */
-    default File removeItem(int index) {
-        return removeItems(List.of(index)).getFirst();
-    }
-
-    /**
-     * Removes the specified file from the collection of items.
-     * <p>
-     * This method searches for the provided {@code File} object in the collection and removes
-     * the first occurrence of it. If the file is not found in the collection, the collection remains unchanged.
-     * </p>
-     *
-     * @param file The {@code File} object to be removed from the collection.
-     * @throws NullPointerException if the specified file is {@code null}.
-     */
-    default void removeItem(File file) {
-        removeElements(List.of(file));
-    }
 
     /**
      * Removes multiple files from the gallery based on their indices.
@@ -181,5 +129,9 @@ public interface GalleryManagement {
      * */
     TableModel getTableModel();
 
+    /**
+     * Retrieves the TablePropertyAccess
+     * @return TablePropertyAccess
+     * */
     TablePropertyAccess getTablePropertyAccess();
 }

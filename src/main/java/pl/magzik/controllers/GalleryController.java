@@ -365,6 +365,7 @@ public class GalleryController {
                 CompletableFuture<Boolean> ftr = removalConfirmation();
                 ftr.thenAcceptAsync(this::reduceImages, executor)
                         .thenRun(this::updateUiAfter);
+                ftr.join();
             }
         ).exceptionally(this::handleException)
         .whenComplete(this::handleGalleryUnlock);

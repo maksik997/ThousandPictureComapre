@@ -1,7 +1,7 @@
 package pl.magzik.modules.gallery.persistence;
 
-import pl.magzik.Comparator.FilePredicate;
-import pl.magzik.Comparator.ImageFilePredicate;
+import pl.magzik.predicates.FilePredicate;
+import pl.magzik.predicates.ImageFilePredicate;
 import pl.magzik.base.interfaces.CheckedConsumer;
 import pl.magzik.base.interfaces.CheckedPredicate;
 import pl.magzik.base.interfaces.FileHandler;

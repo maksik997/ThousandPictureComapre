@@ -1,8 +1,11 @@
 package pl.magzik.modules.comparer.processing;
 
-import pl.magzik.Structures.ImageRecord;
-import pl.magzik.Structures.Record;
-import pl.magzik.Utils.LoggingInterface;
+import pl.magzik.algorithms.Algorithm;
+import pl.magzik.algorithms.PerceptualHash;
+import pl.magzik.algorithms.PixelByPixel;
+import pl.magzik.structures.ImageRecord;
+import pl.magzik.structures.Record;
+import pl.magzik.*;
 import pl.magzik.base.interfaces.Processor;
 
 import java.awt.image.BufferedImage;
@@ -31,21 +34,6 @@ import java.util.function.Function;
  * </p>
  */
 public interface ComparerProcessor extends Processor, ComparerPropertyAccess {
-
-    /**
-     * A function that creates an {@link ImageRecord} from a {@link File}.
-     * If an {@link IOException} is thrown during the creation of the {@link ImageRecord},
-     * the file is logged and skipped.
-     */
-    Function<File, ImageRecord> createRecord = f -> {
-        try {
-            return new ImageRecord(f);
-        } catch (IOException e) {
-            LoggingInterface.staticLog(String.format("Skipping file: %s", f.getName()));
-            LoggingInterface.staticLog(e, String.format("Skipping file: %s", f.getName()));
-        }
-        return null;
-    };
 
     /**
      * Notifies listeners that the resource is now locked and should not be accessed.
@@ -121,38 +109,32 @@ public interface ComparerProcessor extends Processor, ComparerPropertyAccess {
      *
      * @param input The list of image files to compare.
      * @return A list of files that are considered duplicates based on the comparison.
-     * @throws IOException           If an I/O error occurs during processing.
-     * @throws ExecutionException    If an error occurs during execution.
      */
-    private List<File> compare(List<File> input) throws IOException, ExecutionException {
+    private List<File> compare(List<File> input) {
         return extract(processWithStrategy(input));
     }
 
     /**
      * Processes the image files using the appropriate strategy based on the current configuration.
      * <p>
-     * This method calls {@link Record#process(Collection, Function, Function[])} thenLoad the appropriate
+     * This method calls {@link RecordProcessor#process(Collection, Function, Algorithm[])} thenLoad the appropriate
      * functions based on the comparison strategy configured via {@link ComparerPropertyAccess}.
      * </p>
      *
      * @param input The list of image files to process.
      * @return A map where the key represents the comparison result, and the value is a list of records.
-     * @throws IOException           If an I/O error occurs during processing.
-     * @throws ExecutionException    If an error occurs during execution.
      */
-    private Map<?, List<Record<BufferedImage>>> processWithStrategy(List<File> input) throws IOException, ExecutionException {
-        // TODO After Picture Comparer fixes fix this... It's terrible.
+    @SuppressWarnings("unchecked")
+    private Map<?, List<Record<BufferedImage>>> processWithStrategy(List<File> input) {
         Objects.requireNonNull(input);
 
-        if (isPerceptualHash() && isPixelByPixel()) {
-            return Record.process(input, createRecord, ImageRecord.pHashFunction, ImageRecord.pixelByPixelFunction);
-        } else if (isPerceptualHash()) {
-            return Record.process(input, createRecord, ImageRecord.pHashFunction);
-        } else if (isPixelByPixel()) {
-            return Record.process(input, createRecord, ImageRecord.pixelByPixelFunction);
-        } else {
-            return Record.process(input, createRecord);
-        }
+        RecordProcessor rp = new RecordProcessor();
+
+        List<Algorithm<?, ImageRecord>> algorithms = new ArrayList<>();
+        if (isPerceptualHash()) algorithms.add(new PerceptualHash());
+        if (isPixelByPixel()) algorithms.add(new PixelByPixel());
+
+        return rp.process(input, ImageRecord::create, algorithms.toArray(new Algorithm[0]));
     }
 
     /**
@@ -165,12 +147,21 @@ public interface ComparerProcessor extends Processor, ComparerPropertyAccess {
      * @return A list of files that are considered duplicates.
      */
     private List<File> extract(Map<?, List<Record<BufferedImage>>> map) {
-        return map.values().parallelStream()
-                .filter(list -> list.size() > 1)
-                .map(list -> list.subList(1, list.size()))
-                .flatMap(Collection::stream)
-                .map(Record::getFile)
-                .toList();
+        Set<File> org = new HashSet<>();
+        List<File> output = new ArrayList<>();
+
+        map.entrySet().stream()
+        .filter(e -> e.getValue().size() > 1)
+        .forEach(e -> {
+            List<File> list = new ArrayList<>(e.getValue().stream().map(Record::getFile).toList());
+
+            if (!output.contains(list.getFirst()))
+                org.add(list.removeFirst());
+
+            output.addAll(list.stream().filter(f -> !org.contains(f)).toList());
+        });
+
+        return output.stream().distinct().toList();
     }
 
     /**

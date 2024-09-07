@@ -1,8 +1,9 @@
 package pl.magzik.modules.comparer.persistence;
 
-import pl.magzik.Comparator.FilePredicate;
-import pl.magzik.Comparator.ImageFilePredicate;
-import pl.magzik.IO.FileOperator;
+import pl.magzik.predicates.FilePredicate;
+import pl.magzik.predicates.ImageFilePredicate;
+import pl.magzik.io.FileOperator;
+import pl.magzik.base.async.ExecutorServiceManager;
 import pl.magzik.base.interfaces.CheckedConsumer;
 import pl.magzik.base.interfaces.FileHandler;
 import pl.magzik.modules.base.Module;
@@ -15,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Implementation of a file handling module that supports operations such as
@@ -30,7 +30,6 @@ public class ComparerFileModule implements Module, FileHandler, ComparerFileProp
 
     private Mode mode;
     private String outputPath;
-    private final FilePredicate filePredicate;
     private final FileOperator fileOperator;
 
     /**
@@ -43,19 +42,16 @@ public class ComparerFileModule implements Module, FileHandler, ComparerFileProp
         this.outputPath = System.getProperty("user.home");
         this.mode = Mode.NOT_RECURSIVE;
 
-        this.filePredicate = new ImageFilePredicate();
-        this.fileOperator = new FileOperator();
+        FilePredicate filePredicate = new ImageFilePredicate();
+        this.fileOperator = new FileOperator(filePredicate, 1, ExecutorServiceManager.getInstance().getExecutorService());
     }
 
     @Override
     public List<File> loadFiles(List<File> input) throws IOException {
         int depth = mode.isRecursive() ? Integer.MAX_VALUE : 1;
+        fileOperator.setDepth(depth);
 
-        try {
-            return fileOperator.loadFiles(depth, filePredicate, input);
-        } catch (InterruptedException | TimeoutException e) { // TODO: After PictureComparer update will disappear
-            throw new IOException(e);
-        }
+        return fileOperator.load(input);
     }
 
     @Override

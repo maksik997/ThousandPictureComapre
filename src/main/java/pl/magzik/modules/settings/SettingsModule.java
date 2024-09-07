@@ -5,7 +5,6 @@ import pl.magzik.modules.base.Module;
 import pl.magzik.modules.resource.ResourceModule;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;

@@ -29,6 +29,9 @@ bin/
 ### Mac OS ###
 .DS_Store
 /logs/
-/data/config.cfg
-/data/gallery.tp
-/data/tags.tp
+/images/config.cfg
+/images/gallery.tp
+/images/tags.tp
+
+### Maven ###
+/target/

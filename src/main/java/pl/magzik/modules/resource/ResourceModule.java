@@ -9,19 +9,12 @@ import pl.magzik.modules.resource.loader.internal.ImageLoader;
 import pl.magzik.modules.resource.loader.internal.ReferenceLoader;
 
 import java.awt.*;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
+import java.nio.file.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -132,24 +125,66 @@ public class ResourceModule implements Module {
      * @throws IOException If an I/O error occurs during loading or if resources are not found.
      */
     private void loadResources() throws IOException {
-        URL resourcesURL = getClass().getClassLoader().getResource("");
-        if (resourcesURL == null)
-            throw new FileNotFoundException("Resources not found");
+        loadAndProcessResource("default.cfg");
+        loadAndProcessResource("loadingImage.jpg");
+        loadAndProcessResource("thumbnail.png");
+        loadAndProcessResource("thumbnail_64x64.png");
 
-        Path resourcesPath;
-        try {
-            resourcesPath = Paths.get(resourcesURL.toURI());
-        } catch (URISyntaxException e) {
-            throw new IOException(e);
+        if (!EXTERNAL_RESOURCES_DIR.toFile().exists()) {
+            EXTERNAL_RESOURCES_DIR.toFile().mkdirs();
         }
 
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(resourcesPath)) {
-            for (Path path : stream) {
-                if (Files.isDirectory(path)) continue;
+        if (!CONFIG_PATH.toFile().exists()) {
+            try (
+                InputStream inputStream = getClass().getClassLoader().getResourceAsStream("default.cfg");
+                OutputStream outputStream = new FileOutputStream(String.valueOf(CONFIG_PATH))
+            ) {
 
-                loadResource(path);
+                if (inputStream == null) {
+                    throw new IOException("Couldn't find a resource");
+                }
+
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
             }
         }
+    }
+
+    /**
+     * Loads a specific resource file and processes it.
+     *
+     * @param resourceName The name of the resource file to be loaded.
+     * @throws IOException If an I/O error occurs during loading.
+     */
+    private void loadAndProcessResource(String resourceName) throws IOException {
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(resourceName)) {
+            if (inputStream == null) {
+                throw new IOException("Resource not found: " + resourceName);
+            }
+
+            Path tempFile = createTemporaryFile(resourceName);
+            Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            loadResource(tempFile);
+        }
+    }
+
+    /**
+     * Creates a temporary file with the same name as the resource.
+     *
+     * @param resourceName The name of the resource file.
+     * @return The path of the temporary file.
+     * @throws IOException If an I/O error occurs during file creation.
+     */
+    private Path createTemporaryFile(String resourceName) throws IOException {
+        Path tempDir = Files.createTempDirectory("resourceLoader");
+        Path tempFile = tempDir.resolve(resourceName);
+        tempFile.toFile().deleteOnExit();
+
+        return tempFile;
     }
 
     /**
@@ -389,7 +424,6 @@ public class ResourceModule implements Module {
     public void addObject(String name, Object obj) throws IOException {
         objectCache.put(name, obj);
         saveExternalResource(name);
-        System.out.println("?");
     }
 
     /**
